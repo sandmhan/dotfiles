@@ -1,0 +1,17 @@
+# Bash Alias File
+# Made: 09/02/2022
+
+# Alias for running MARS for running assembly from cl
+# Add options, then asm file
+alias mars='java -jar ~/vimwiki/fall2022/cs_465/Mars4_5.jar'
+
+# For updating and upgrading system
+alias update='sudo apt update && sudo apt upgrade'
+
+# file removal protection
+alias rm='rm -i'
+
+# example of bash function
+icfind(){
+  find ./ -iname $1 -print
+}
