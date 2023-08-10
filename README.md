@@ -11,3 +11,10 @@ Check if path is symlink
 
 list broken links
 ```find <search directory> -xtype l```
+
+## Usage
+
+Run ```mass_linkup.sh``` to create links for current config files
+
+Run ```mass_cleanup.sh``` to delete links for current config files
+
