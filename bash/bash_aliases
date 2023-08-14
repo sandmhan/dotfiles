@@ -11,6 +11,9 @@ alias update='sudo apt update && sudo apt upgrade'
 # file removal protection
 alias rm='rm -i'
 
+# Shutdown shortcut
+alias shine='shutdown 0'
+
 # example of bash function
 icfind(){
   find ./ -iname $1 -print
