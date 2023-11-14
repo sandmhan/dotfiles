@@ -14,6 +14,12 @@ alias rm='rm -i'
 # Shutdown shortcut
 alias shine='shutdown 0'
 
+# Update/Upgrade
+alias fullup='sudo apt update; sudo apt upgrade'
+
+# Nvim alias
+alias vim='nvim'
+alias vi='nvim'
 # example of bash function
 icfind(){
   find ./ -iname $1 -print

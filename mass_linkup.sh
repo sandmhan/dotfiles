@@ -1,6 +1,6 @@
-#!bin/bash
+#!/bin/bash
 #Array of config folders
-CONFIGS=('bash' 'vim')
+CONFIGS=('bash' 'vim' 'i3')
 CONFIG_COUNT=${#CONFIGS[@]}
 
 for((i=0;i<$CONFIG_COUNT;i++)); do

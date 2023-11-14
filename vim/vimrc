@@ -67,3 +67,5 @@ set mouse=a
 "Enables clipboard
 set clipboard=unnamed
 
+" Display completion matches in a status line.
+set wildmenu
