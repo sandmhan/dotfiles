@@ -65,7 +65,42 @@ nnoremap <leader><space> :nohlsearch<CR>
 set mouse=a
 
 "Enables clipboard
-set clipboard=unnamed
+set clipboard+=unnamedplus
 
 " Display completion matches in a status line.
 set wildmenu
+
+" VimWikspace: required settings
+set nocompatible
+filetype plugin on
+syntax on
+function! VimwikiLinkHandler(link)
+    " Use Vim to open external files with the 'vfile:' scheme.  E.g.:
+    "   1) [[vfile:~/Code/PythonProject/abc123.py]]
+    "   2) [[vfile:./|Wiki Home]]
+    let link = a:link
+    if link =~# '^vfile:'
+      let link = link[1:]
+    else
+      return 0
+    endif
+    let link_infos = vimwiki#base#resolve_link(link)
+    if link_infos.filename == ''
+      echomsg 'Vimwiki Error: Unable to resolve link!'
+      return 0
+    else
+      exe 'vsplit ' . fnameescape(link_infos.filename)
+      return 1
+    endif
+  endfunction
+"===================================================
+" Custom Keybinds
+"===================================================
+"
+
+" open vim configuration file
+" nmap <leader><r> :vsplit ~/.config/nvim/vimrc.vim
+
+" spaceopen plugins init file
+" nmap <leader><p> :vsplit ~/.config/nvim/lua/init.lua
+
