@@ -45,8 +45,8 @@ filetype indent on
 set showmatch
 
 set scrolloff=8
-set sidescrolloff=8
 
+set sidescrolloff=8
 
 "===================================================
 "Searching
@@ -61,7 +61,7 @@ set hlsearch
 "Clears highlight when space is pressed (binding function with key combo)
 nnoremap <leader><space> :nohlsearch<CR>
 
-"Functionality
+"Mouse Functionality
 set mouse=a
 
 "Enables clipboard
