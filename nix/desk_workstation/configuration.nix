@@ -88,11 +88,9 @@
 	git
     	kdePackages.kate
 	vlc
-	vesktop
-	(discord.override {
-	  withVencord = true;
-	})
+	legcord
 	htop-vim
+    	tmux
     #  thunderbird
     ];
   };
@@ -102,6 +100,9 @@
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+
+  # Enabling choice experimental features
+  nix.settings.experimental-features = "flakes nix-command";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
