@@ -45,6 +45,8 @@
   # Optimise storage usage
   nix.settings.auto-optimise-store = true;
 
+  nix.settings.download-buffer-size = 500000000; # 500 MB
+
   # Enable the X11 windowing system.
   # You can disable this if you're only using the Wayland session.
   services.xserver.enable = true;
