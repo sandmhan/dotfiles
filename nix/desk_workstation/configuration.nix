@@ -3,7 +3,6 @@
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
 { config, pkgs, ... }:
-
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -104,6 +103,8 @@
     	tmux
 	pavucontrol
 	moonlight-qt
+	gnumake
+	home-manager
     #  thunderbird
     ];
   };
