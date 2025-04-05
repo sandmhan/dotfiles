@@ -1,4 +1,7 @@
-{ lib, pkgs, ...}:
+{ lib, pkgs, userSettings, ...}:
+let
+  username = userSettings.username;
+in
 {
   home = {
     # Define user packages here
@@ -7,8 +10,10 @@
     ];
 
     # This needs to match the actual username logged into
-    username = "sandmhan";
-    homeDirectory = "/home/sandmhan";
+    inherit username;
+    homeDirectory = "/home/${username}";
+
+    file."stuff.txt".text = "stuff \n stuff";
 
     # Does not need to be changed
     # Don't change this after the first build.
