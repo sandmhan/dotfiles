@@ -95,7 +95,6 @@
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
     	neovim
-	git
     	kdePackages.kate
 	vlc
 	legcord
