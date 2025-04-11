@@ -8,9 +8,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+		stylix = {
+			url = "github:danth/stylix/release-24.11";
+		};
   };
 
-  outputs = { self, nixpkgs, home-manager, ...}: 
+  outputs = { self, nixpkgs, home-manager, stylix, ...}:
     let
       lib = nixpkgs.lib;
       system = "x86_64-linux";
@@ -32,7 +35,7 @@
       # ----- USER SETTINGS ----- #
       userSettings = {
         username = "sandmhan";
-	theme = ""; 
+	theme = "";
 	wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
       };
     in {
@@ -40,8 +43,10 @@
       # System Configuration Output
       nixosConfigurations = {
         gaia = lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [./configuration.nix];
+          system = "x86_64-linux"; modules = [
+						./configuration.nix
+						stylix.nixosModules.stylix
+					];
         };
       };
 
@@ -49,14 +54,17 @@
       homeConfigurations = {
         # configuration name matches with hostname
         sandmhan = home-manager.lib.homeManagerConfiguration {
-	  inherit pkgs;
-	  modules = [ ./home.nix ];
+					inherit pkgs;
+	  			modules = [
+						./home.nix
+						stylix.nixosModules.stylix
+					];
 
-          # Passing in configuration variables from above
-	  extraSpecialArgs = {
-	  inherit userSettings;
-	  };
-	};
+    			# Passing in configuration variables from above
+	  			extraSpecialArgs = {
+	  			inherit userSettings;
+	  			};
+				};
       };
     };
 }
