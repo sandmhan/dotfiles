@@ -8,16 +8,23 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-		stylix = {
-			url = "github:danth/stylix/release-24.11";
-		};
+    stylix = {
+      url = "github:danth/stylix/release-24.11";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, stylix, ...}:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      home-manager,
+      stylix,
+      ...
+    }:
     let
       lib = nixpkgs.lib;
       system = "x86_64-linux";
-      pkgs = import nixpkgs {inherit system;};
+      pkgs = import nixpkgs { inherit system; };
       # ---- SYSTEM SETTINGS ---- #
       systemSettings = {
         system = "x86_64-linux"; # system arch
@@ -31,22 +38,23 @@
         gpuType = "amd"; # amd, intel or nvidia; only makes some slight mods for amd at the moment
       };
 
-
       # ----- USER SETTINGS ----- #
       userSettings = {
         username = "sandmhan";
-	theme = "";
-	wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
+        theme = "";
+        wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
       };
-    in {
+    in
+    {
 
       # System Configuration Output
       nixosConfigurations = {
         gaia = lib.nixosSystem {
-          system = "x86_64-linux"; modules = [
-						./configuration.nix
-						stylix.nixosModules.stylix
-					];
+          system = "x86_64-linux";
+          modules = [
+            ./configuration.nix
+            # stylix.nixosModules.stylix
+          ];
         };
       };
 
@@ -54,17 +62,17 @@
       homeConfigurations = {
         # configuration name matches with hostname
         sandmhan = home-manager.lib.homeManagerConfiguration {
-					inherit pkgs;
-	  			modules = [
-						./home.nix
-						stylix.nixosModules.stylix
-					];
+          inherit pkgs;
+          modules = [
+            ./home.nix
+            #stylix.nixosModules.stylix
+          ];
 
-    			# Passing in configuration variables from above
-	  			extraSpecialArgs = {
-	  			inherit userSettings;
-	  			};
-				};
+          # Passing in configuration variables from above
+          extraSpecialArgs = {
+            inherit userSettings;
+          };
+        };
       };
     };
 }

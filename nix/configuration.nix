@@ -56,6 +56,21 @@
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
+  # Enabling hyprland
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  environment.sessionVariables = {
+    #WLR_NO_HARDWARE_CURSORS = "1";
+    # Hint electron apps to use wayland
+    NIXOS_OZONE_WL = "1";
+  };
+
+  hardware.graphics.enable = true;
+  hardware.nvidia.modesetting.enable = true;
+
 
   # Configure keymap in X11
   services.xserver.xkb = {

@@ -3,11 +3,23 @@ let
   username = userSettings.username;
 in
 {
+  # home-manager package
+  programs.home-manager.enable = true;
+
+  programs.git = {
+    enable = true;
+    userEmail = "austinsanders0105@gmail.com";
+    userName = "sandmhan";
+  };
+
   home = {
     # Define user packages here
     packages = with pkgs; [
       git
       hello
+      alacritty
+      kitty
+      nixfmt-rfc-style #styling nix files
     ];
 
     # This needs to match the actual username logged into
