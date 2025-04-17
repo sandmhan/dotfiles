@@ -1,6 +1,7 @@
 { lib, pkgs, userSettings, ...}:
 let
   username = userSettings.username;
+  configPath = "../configs/";
 in
 {
   # home-manager package
@@ -12,6 +13,14 @@ in
     userName = "sandmhan";
   };
 
+  programs.tmux = {
+    keyMode = "vi";
+    mouse = true;
+    shortcut = "a";
+
+    extraConfig = builtins.readFile configPath + ".tmux.conf";
+  };
+
   home = {
     # Define user packages here
     packages = with pkgs; [
@@ -20,6 +29,7 @@ in
       alacritty
       kitty
       nixfmt-rfc-style #styling nix files
+      tmux
     ];
 
     # This needs to match the actual username logged into
