@@ -1,7 +1,7 @@
 { lib, pkgs, userSettings, ...}:
 let
   username = userSettings.username;
-  configPath = "../configs/";
+  configPath = "/home/${username}/dotfile/configs/";
 in
 {
   # home-manager package
@@ -14,22 +14,37 @@ in
   };
 
   programs.tmux = {
+		enable = true;
     keyMode = "vi";
     mouse = true;
     shortcut = "a";
 
-    extraConfig = builtins.readFile configPath + ".tmux.conf";
+    # extraConfig = builtins.readFile "github:sandmhan/dotfiles/nix/config/.tmux.conf";
   };
+
+	programs.bash = {
+		enable = true;
+		shellAliases = {
+			ll = "ls -l";
+			".." = "cd ..";
+		};
+	};
+
+	programs.qutebrowser = {
+		enable = true;
+		# quickmarks = {
+		# 	nixpkgs = "https://github.com/NixOS/nixpkgs";
+		# 	home-manager = "https://github.com/nix-community/home-manager";
+		# };
+	};
 
   home = {
     # Define user packages here
     packages = with pkgs; [
-      git
       hello
       alacritty
       kitty
       nixfmt-rfc-style #styling nix files
-      tmux
     ];
 
     # This needs to match the actual username logged into
