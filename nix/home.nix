@@ -1,4 +1,9 @@
-{ lib, pkgs, userSettings, ...}:
+{
+  lib,
+  pkgs,
+  userSettings,
+  ...
+}:
 let
   username = userSettings.username;
   configPath = "/home/${username}/dotfile/configs/";
@@ -14,29 +19,43 @@ in
   };
 
   programs.tmux = {
-		enable = true;
+    enable = true;
     keyMode = "vi";
     mouse = true;
     shortcut = "a";
 
+    extraConfig = 
+    ''
+	set -g mouse on
+	set -g history-limit 100000
+	unbind C-b
+	set -g prefix C-a
+	bind C-a send-prefix
+	
+	bind -n C-h select-pane -L
+	bind -n C-j select-pane -D
+	bind -n C-k select-pane -U
+	bind -n C-l select-pane -R
+    '';
+
     # extraConfig = builtins.readFile "github:sandmhan/dotfiles/nix/config/.tmux.conf";
   };
 
-	programs.bash = {
-		enable = true;
-		shellAliases = {
-			ll = "ls -l";
-			".." = "cd ..";
-		};
-	};
+  programs.bash = {
+    enable = true;
+    shellAliases = {
+      ll = "ls -l";
+      ".." = "cd ..";
+    };
+  };
 
-	programs.qutebrowser = {
-		enable = true;
-		# quickmarks = {
-		# 	nixpkgs = "https://github.com/NixOS/nixpkgs";
-		# 	home-manager = "https://github.com/nix-community/home-manager";
-		# };
-	};
+  programs.qutebrowser = {
+    enable = true;
+    # quickmarks = {
+    # 	nixpkgs = "https://github.com/NixOS/nixpkgs";
+    # 	home-manager = "https://github.com/nix-community/home-manager";
+    # };
+  };
 
   home = {
     # Define user packages here
@@ -44,7 +63,7 @@ in
       hello
       alacritty
       kitty
-      nixfmt-rfc-style #styling nix files
+      nixfmt-rfc-style # styling nix files
     ];
 
     # This needs to match the actual username logged into
