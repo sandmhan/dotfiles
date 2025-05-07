@@ -24,14 +24,14 @@ in
     mouse = true;
     shortcut = "a";
 
-    extraConfig = 
+    extraConfig =
     ''
 	set -g mouse on
 	set -g history-limit 100000
 	unbind C-b
 	set -g prefix C-a
 	bind C-a send-prefix
-	
+
 	bind -n C-h select-pane -L
 	bind -n C-j select-pane -D
 	bind -n C-k select-pane -U
@@ -47,6 +47,9 @@ in
       ll = "ls -l";
       ".." = "cd ..";
     };
+
+		bashrcExtra = "set -o vi";
+
   };
 
   programs.qutebrowser = {
@@ -64,6 +67,7 @@ in
       alacritty
       kitty
       nixfmt-rfc-style # styling nix files
+			qmk
     ];
 
     # This needs to match the actual username logged into
