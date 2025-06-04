@@ -11,6 +11,11 @@
     stylix = {
       url = "github:danth/stylix/release-24.11";
     };
+
+		nixvim = {
+			url = "github:nix-community/nixvim/nixos-24.11";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
   };
 
   outputs =
@@ -19,6 +24,7 @@
       nixpkgs,
       home-manager,
       stylix,
+			nixvim,
       ...
     }:
     let
@@ -41,8 +47,10 @@
       # ----- USER SETTINGS ----- #
       userSettings = {
         username = "sandmhan";
+				email = "austinsanders0105@gmail.com";
         theme = "";
         wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
+				font = "Blex Mono"; # Font from Nerdfonts list
       };
     in
     {
@@ -66,11 +74,13 @@
           modules = [
             ./home.nix
             #stylix.nixosModules.stylix
+						nixvim.homeManagerModules.nixvim
           ];
 
           # Passing in configuration variables from above
           extraSpecialArgs = {
             inherit userSettings;
+						inherit nixvim;
           };
         };
       };
