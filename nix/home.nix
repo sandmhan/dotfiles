@@ -142,6 +142,7 @@ in
       nixfmt-rfc-style # styling nix files
       qmk
       nerdfonts
+      mpv
     ];
 
     # This needs to match the actual username logged into
