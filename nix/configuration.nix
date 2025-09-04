@@ -12,6 +12,17 @@
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+    v4l2loopback.out
+  ];
+
+  boot.kernelModules = [
+    "v4l2loopback"
+  ];
+
+  boot.extraModprobeConfig = ''
+    options v4l2loopback devices=1 video_nr=2 card_label="RTSP_Camera" exclusive_caps=1
+  '';
 
   networking.hostName = "gaia"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
