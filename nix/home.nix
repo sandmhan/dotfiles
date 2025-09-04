@@ -133,6 +133,7 @@ in
 
 	fonts.fontconfig.enable = true;
 
+  nixpkgs.config.allowUnfree = true;
   home = {
     # Define user packages here
     packages = with pkgs; [
@@ -141,8 +142,9 @@ in
       kitty
       nixfmt-rfc-style # styling nix files
       qmk
-      nerdfonts
+      #nerd-fonts
       mpv
+      parsec-bin
     ];
 
     # This needs to match the actual username logged into
