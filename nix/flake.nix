@@ -7,82 +7,96 @@
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     stylix = {
       url = "github:danth/stylix/release-25.05";
     };
-
-		nixvim = {
-			url = "github:nix-community/nixvim/nixos-25.05";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    nixvim = {
+      url = "github:nix-community/nixvim/nixos-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      home-manager,
-      stylix,
-			nixvim,
-      ...
-    }:
-    let
-      lib = nixpkgs.lib;
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-      # ---- SYSTEM SETTINGS ---- #
-      systemSettings = {
-        system = "x86_64-linux"; # system arch
-        hostname = "gaia"; # hostname
-        profile = "personal"; # select a profile defined from my profiles directory
-        timezone = "America/Chicago"; # select timezone
-        locale = "en_US.UTF-8"; # select locale
-        bootMode = "uefi"; # uefi or bios
-        bootMountPath = "/boot"; # mount path for efi boot partition; only used for uefi boot mode
-        grubDevice = ""; # device identifier for grub; only used for legacy (bios) boot mode
-        gpuType = "amd"; # amd, intel or nvidia; only makes some slight mods for amd at the moment
-      };
+outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
+  (
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs { inherit system; };
 
-      # ----- USER SETTINGS ----- #
-      userSettings = {
-        username = "sandmhan";
-				email = "austinsanders0105@gmail.com";
-        theme = "";
-        wm = "hyprland"; # Selected window manager or desktop environment; must select one in both ./user/wm/ and ./system/wm/
-				font = "Blex Mono"; # Font from Nerdfonts list
-      };
-    in
-    {
+        # ---- SYSTEM SETTINGS ---- #
+        systemSettings = {
+          system = system;
+          hostname = "gaia";
+          profile = "personal";
+          timezone = "America/Chicago";
+          locale = "en_US.UTF-8";
+          bootMode = "uefi";
+          bootMountPath = "/boot";
+          grubDevice = "";
+          gpuType = "amd";
+        };
 
-      # System Configuration Output
-      nixosConfigurations = {
-        gaia = lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./configuration.nix
-            # stylix.nixosModules.stylix
-          ];
+        # ----- USER SETTINGS ----- #
+        userSettings = {
+          username = "sandmhan";
+          email = "austinsanders0105@gmail.com";
+          theme = "";
+          wm = "hyprland";
+          font = "Blex Mono";
+        };
+      in {
+        # Only define nixosConfiguration on Linux systems
+        nixosConfigurations = nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+          gaia = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./configuration.nix
+              # stylix.nixosModules.stylix
+            ];
+          };
+        };
+      })
+  )
+  // {
+    # Top-level home-manager configurations
+    homeConfigurations = {
+      sandmhan = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs { system = "x86_64-linux"; };
+        modules = [
+          ./home.nix
+          nixvim.homeManagerModules.nixvim
+          # stylix.homeManagerModules.stylix
+        ];
+        extraSpecialArgs = {
+          userSettings = {
+            username = "sandmhan";
+            email = "austinsanders0105@gmail.com";
+            theme = "";
+            wm = "hyprland";
+            font = "Blex Mono";
+          };
+          inherit nixvim;
         };
       };
 
-      # User Configuration Output
-      homeConfigurations = {
-        # configuration name matches with hostname
-        sandmhan = home-manager.lib.homeManagerConfiguration {
-          inherit pkgs;
-          modules = [
-            ./home.nix
-            #stylix.nixosModules.stylix
-						nixvim.homeManagerModules.nixvim
-          ];
-
-          # Passing in configuration variables from above
-          extraSpecialArgs = {
-            inherit userSettings;
-						inherit nixvim;
+      macman = home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs { system = "aarch64-darwin"; };
+        modules = [
+          ./home.nix
+          nixvim.homeManagerModules.nixvim
+          # stylix.homeManagerModules.stylix
+        ];
+        extraSpecialArgs = {
+          userSettings = {
+            username = "sandmhan";
+            email = "austinsanders0105@gmail.com";
+            theme = "";
+            wm = "hyprland";
+            font = "Blex Mono";
           };
+          inherit nixvim;
         };
       };
     };
+  };
 }

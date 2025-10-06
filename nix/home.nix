@@ -133,7 +133,11 @@ in
 
 	fonts.fontconfig.enable = true;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    allowUnsupportedSystem = true;
+    allowBroken = true;
+  };
   home = {
     # Define user packages here
     packages = with pkgs; [
@@ -144,12 +148,18 @@ in
       qmk
       #nerd-fonts
       mpv
+    ] ++ (if pkgs.stdenv.isLinux then [
       parsec-bin
-    ];
+    ] else [
+      # macOS only packages
+    ]);
 
     # This needs to match the actual username logged into
     inherit username;
-    homeDirectory = "/home/${username}";
+    homeDirectory =
+      if pkgs.stdenv.isLinux
+      then "/home/${username}"
+      else "/Users/${username}";
 
     # Does not need to be changed
     # Don't change this after the first build.
