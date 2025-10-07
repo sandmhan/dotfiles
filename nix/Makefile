@@ -1,3 +1,4 @@
-.PHONY: update
-update:
-	home-manager switch --flake .#sandmhan
+.PHONY: mac sandmhan
+
+mac sandmhan:
+	home-manager switch --flake .#$@
