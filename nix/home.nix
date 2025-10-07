@@ -8,7 +8,10 @@
 let
   username = userSettings.username;
 	font = userSettings.font;
-  configPath = "/home/${username}/dotfile/configs/";
+  configPath =
+    if pkgs.stdenv.isLinux
+    then "/home/${username}/dotfile/configs/"
+    else "/Users/${username}/dotfile/configs/";
 in
 {
   # home-manager package
@@ -113,9 +116,12 @@ in
       shiftwidth = 2; # Number of spaces used for each step of (auto)indent (local to buffer)
       expandtab = true; # Expand <Tab> to spaces in Insert mode (local to buffer)
 
+
 			# Encoding settings
 			encoding = "utf-8";
 			fileencoding = "utf-8";
+
+      swapfile = false; # Disable swapfiles
 
       autoindent = true; # Do clever autoindenting
 
@@ -129,6 +135,8 @@ in
 			web-devicons.enable = true;
 			bufferline.enable = true;
 		};
+    colorschemes.catppuccin.enable = false;
+    plugins.lualine.enable = true;
 	};
 
 	fonts.fontconfig.enable = true;
