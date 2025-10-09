@@ -58,26 +58,26 @@ in
 	programs.alacritty = {
 		enable = true;
 		settings = {
-			#font = {
-			#	normal = {
-			#		family = "BlexMono";
-			#		style = "Regular";
-			#	};
-			#	bold = {
-			#		family = font;
-			#		style = "Bold";
-			#	};
-			#	italic = {
-			#		family = font;
-			#		style = "Italic";
-			#	};
-			#	bold_italic = {
-			#		family = font;
-			#		style = "Bold Italic";
-			#	};
+			font = {
+				normal = {
+					family = font;
+					style = "Regular";
+				};
+				bold = {
+					family = font;
+					style = "Bold";
+				};
+				italic = {
+					family = font;
+					style = "Italic";
+				};
+				bold_italic = {
+					family = font;
+					style = "Bold Italic";
+				};
 
-			#	size = 16;
-			#};
+				size = 16;
+			};
 		};
 	};
 
@@ -107,23 +107,21 @@ in
 
 		# Editor Options
 		opts = {
-			# Line numbers
-			relativenumber = true;
-			scrolloff = 8; # Number of screen lines shown around the cursor
+			relativenumber = true; # Relative Line numbers
+      number = true; # Display the absolute line numver of the current line
+			scrolloff = 5; # Number of screen lines shown around the cursor
 
 			# Tab options
       tabstop = 2; # Number of spaces a <Tab> in the text stands for (local to buffer)
       shiftwidth = 2; # Number of spaces used for each step of (auto)indent (local to buffer)
       expandtab = true; # Expand <Tab> to spaces in Insert mode (local to buffer)
-
+      autoindent = true; # Do clever autoindenting
 
 			# Encoding settings
 			encoding = "utf-8";
 			fileencoding = "utf-8";
 
       swapfile = false; # Disable swapfiles
-
-      autoindent = true; # Do clever autoindenting
 
 			# Enable more colors (24-bit)
 			termguicolors = true;
@@ -134,6 +132,10 @@ in
 			# Icons
 			web-devicons.enable = true;
 			bufferline.enable = true;
+
+      nix.enable = true; # nix style highlighting
+
+      markdown-preview.enable = true; # markdown previewer plugin
 		};
     colorschemes.catppuccin.enable = false;
     plugins.lualine.enable = true;
@@ -155,6 +157,7 @@ in
       nixfmt-rfc-style # styling nix files
       qmk
       #nerd-fonts
+      nerd-fonts.blex-mono
       mpv
     ] ++ (if pkgs.stdenv.isLinux then [
       parsec-bin

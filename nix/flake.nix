@@ -42,7 +42,7 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
           email = "austinsanders0105@gmail.com";
           theme = "";
           wm = "hyprland";
-          font = "Blex Mono";
+          font = "BlexMono";
         };
       in {
         # Only define nixosConfiguration on Linux systems
@@ -73,7 +73,7 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
             email = "austinsanders0105@gmail.com";
             theme = "";
             wm = "hyprland";
-            font = "Blex Mono";
+            font = "BlexMono Nerd Font";
           };
           inherit nixvim;
         };
@@ -92,7 +92,7 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
             email = "austinsanders0105@gmail.com";
             theme = "";
             wm = "hyprland";
-            font = "Blex Mono";
+            font = "BlexMono Nerd Font";
           };
           inherit nixvim;
         };
