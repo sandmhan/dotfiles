@@ -8,7 +8,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     stylix = {
-      url = "github:danth/stylix/release-25.05";
+      url = "github:nix-community/stylix/release-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     nixvim = {
       url = "github:nix-community/nixvim/nixos-25.05";
@@ -65,7 +66,7 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
         modules = [
           ./home.nix
           nixvim.homeManagerModules.nixvim
-          # stylix.homeManagerModules.stylix
+          stylix.homeModules.stylix
         ];
         extraSpecialArgs = {
           userSettings = {
@@ -84,7 +85,7 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
         modules = [
           ./home.nix
           nixvim.homeManagerModules.nixvim
-          # stylix.homeManagerModules.stylix
+          stylix.homeModules.stylix #homeModule is new standard for stylix
         ];
         extraSpecialArgs = {
           userSettings = {
