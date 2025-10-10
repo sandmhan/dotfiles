@@ -2,16 +2,17 @@
   lib,
   pkgs,
   userSettings,
-	nixvim,
+  nixvim,
   ...
 }:
 let
   username = userSettings.username;
-	font = userSettings.font;
+  font = userSettings.font;
   configPath =
-    if pkgs.stdenv.isLinux
-    then "/home/${username}/dotfile/configs/"
-    else "/Users/${username}/dotfile/configs/";
+    if pkgs.stdenv.isLinux then
+      "/home/${username}/dotfile/configs/"
+    else
+      "/Users/${username}/dotfile/configs/";
 in
 {
   # home-manager package
@@ -77,31 +78,31 @@ in
     bashrcExtra = "set -o vi";
   };
 
-	programs.alacritty = {
-		enable = true;
-		settings = {
+  programs.alacritty = {
+    enable = true;
+    settings = {
       # font = {
-			# 	normal = {
-			# 		family = font;
-			# 		style = "Regular";
-			# 	};
-			# 	bold = {
-			# 		family = font;
-			# 		style = "Bold";
-			# 	};
-			# 	italic = {
-			# 		family = font;
-			# 		style = "Italic";
-			# 	};
-			# 	bold_italic = {
-			# 		family = font;
-			# 		style = "Bold Italic";
-			# 	};
+      # 	normal = {
+      # 		family = font;
+      # 		style = "Regular";
+      # 	};
+      # 	bold = {
+      # 		family = font;
+      # 		style = "Bold";
+      # 	};
+      # 	italic = {
+      # 		family = font;
+      # 		style = "Italic";
+      # 	};
+      # 	bold_italic = {
+      # 		family = font;
+      # 		style = "Bold Italic";
+      # 	};
 
-			# 	size = 16;
-			# };
-		};
-	};
+      # 	size = 16;
+      # };
+    };
+  };
 
   programs.qutebrowser = {
     enable = true;
@@ -111,59 +112,103 @@ in
     # };
   };
 
-	# Nixvim configuration
-	programs.nixvim = {
-		enable = true;
-		defaultEditor = true;
-		viAlias = true;
-		vimAlias = true;
+  # Nixvim configuration
+  programs.nixvim = {
+    enable = true;
+    defaultEditor = true;
+    viAlias = true;
+    vimAlias = true;
 
-		# Clipboard settings
-		clipboard = {
-			providers = {
-				wl-copy.enable = true;
-				xsel.enable = true;
-			};
-			register = "unnamedplus";
-		};
+    # Clipboard settings
+    clipboard = {
+      providers = {
+        wl-copy.enable = true;
+        xsel.enable = true;
+      };
+      register = "unnamedplus";
+    };
 
-		# Editor Options
-		opts = {
-			relativenumber = true; # Relative Line numbers
+    # Editor Options
+    opts = {
+      relativenumber = true; # Relative Line numbers
       number = true; # Display the absolute line numver of the current line
-			scrolloff = 5; # Number of screen lines shown around the cursor
+      scrolloff = 5; # Number of screen lines shown around the cursor
 
-			# Tab options
+      # Tab options
       tabstop = 2; # Number of spaces a <Tab> in the text stands for (local to buffer)
       shiftwidth = 2; # Number of spaces used for each step of (auto)indent (local to buffer)
       expandtab = true; # Expand <Tab> to spaces in Insert mode (local to buffer)
       autoindent = true; # Do clever autoindenting
 
-			# Encoding settings
-			encoding = "utf-8";
-			fileencoding = "utf-8";
+      # Encoding settings
+      encoding = "utf-8";
+      fileencoding = "utf-8";
 
       swapfile = false; # Disable swapfiles
 
-			# Enable more colors (24-bit)
-			termguicolors = true;
-		};
+      # Enable more colors (24-bit)
+      termguicolors = true;
+    };
 
-		# Plugins
-		plugins = {
-			# Icons
-			web-devicons.enable = true;
-			bufferline.enable = true;
+    # Plugins
+    plugins = {
+      # Icons
+      web-devicons.enable = true;
+      bufferline.enable = true;
 
       nix.enable = true; # nix style highlighting
 
-      markdown-preview.enable = true; # markdown previewer plugin
-		};
-    colorschemes.catppuccin.enable = false;
-    plugins.lualine.enable = true;
-	};
+      markdown-preview = {
+        # markdown previewer plugin
+        enable = true;
+        settings.theme = "dark";
+      };
+      lualine.enable = true;
 
-	fonts.fontconfig.enable = true;
+      lsp = {
+        enable = true;
+
+        inlayHints = true;
+
+        # Add Language Servers here
+        servers = {
+          nil_ls.enable = true;
+          clangd.enable = true;
+        };
+
+        keymaps = {
+          lspBuf = {
+            gd = {
+              action = "definition";
+              desc = "Goto Definition";
+            };
+            gr = {
+              action = "references";
+              desc = "Goto References";
+            };
+            gD = {
+              action = "declaration";
+              desc = "Goto Declaration";
+            };
+            gI = {
+              action = "implementation";
+              desc = "Goto Implementation";
+            };
+            gT = {
+              action = "type_definition";
+              desc = "Type Definition";
+            };
+            K = {
+              action = "hover";
+              desc = "Hover";
+            };
+          };
+        };
+      };
+    };
+  };
+
+  fonts.fontconfig.enable = true;
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -172,27 +217,32 @@ in
   };
   home = {
     # Define user packages here
-    packages = with pkgs; [
-      hello
-      alacritty
-      kitty
-      nixfmt-rfc-style # styling nix files
-      qmk
-      #nerd-fonts
-      nerd-fonts.blex-mono
-      mpv
-    ] ++ (if pkgs.stdenv.isLinux then [
-      parsec-bin
-    ] else [
-      # macOS only packages
-    ]);
+    packages =
+      with pkgs;
+      [
+        hello
+        alacritty
+        kitty
+        nixfmt-rfc-style # styling nix files
+        qmk
+        #nerd-fonts
+        nerd-fonts.blex-mono
+        mpv
+      ]
+      ++ (
+        if pkgs.stdenv.isLinux then
+          [
+            parsec-bin
+          ]
+        else
+          [
+            # macOS only packages
+          ]
+      );
 
     # This needs to match the actual username logged into
     inherit username;
-    homeDirectory =
-      if pkgs.stdenv.isLinux
-      then "/home/${username}"
-      else "/Users/${username}";
+    homeDirectory = if pkgs.stdenv.isLinux then "/home/${username}" else "/Users/${username}";
 
     # Does not need to be changed
     # Don't change this after the first build.
