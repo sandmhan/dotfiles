@@ -150,20 +150,41 @@ in
       termguicolors = true;
     };
 
+    keymaps = [
+      {
+        key = "H";
+        mode = [ "n" ];
+        action = "<cmd>bprevious<CR>";
+      }
+      {
+        key = "L";
+        mode = [ "n" ];
+        action = "<cmd>bnext<CR>";
+      }
+    ];
+
     # Plugins
     plugins = {
       # Icons
       web-devicons.enable = true;
+
+      # Makes the buffer tabs look nicer
       bufferline.enable = true;
 
-      nix.enable = true; # nix style highlighting
+      # nix style highlighting
+      nix.enable = true;
 
+      # Render markdown documents in browser
       markdown-preview = {
-        # markdown previewer plugin
         enable = true;
         settings.theme = "dark";
       };
+
+      # Status line
       lualine.enable = true;
+
+      # Show off available keymaps
+      which-key.enable = true;
 
       lsp = {
         enable = true;
