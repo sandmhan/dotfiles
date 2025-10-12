@@ -195,6 +195,7 @@ in
         servers = {
           nil_ls.enable = true;
           clangd.enable = true;
+          tinymist.enable = true;
         };
 
         keymaps = {
