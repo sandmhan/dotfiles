@@ -187,14 +187,6 @@ in
         action = "<cmd>bnext<CR>";
       }
       {
-        mode = "n";
-        key = "<leader>cd";
-        action = "vim.diagnostic.open_float";
-        options = {
-          desc = "Line Diagnostics";
-        };
-      }
-      {
         mode = [
           "i"
           "n"
@@ -269,6 +261,25 @@ in
             K = {
               action = "hover";
               desc = "Hover";
+            };
+            "<leader>cr" = {
+              action = "rename";
+              desc = "Rename";
+            };
+          };
+
+          diagnostic = {
+            "<leader>cd" = {
+              action = "open_float";
+              desc = "Line Diagnostics";
+            };
+            "[d" = {
+              action = "goto_next";
+              desc = "Next Diagnostic";
+            };
+            "]d" = {
+              action = "goto_prev";
+              desc = "Previous Diagnostic";
             };
           };
         };
