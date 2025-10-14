@@ -194,7 +194,9 @@ in
         # Add Language Servers here
         servers = {
           nil_ls.enable = true;
+          nixd.enable = true;
           clangd.enable = true;
+          cmake.enable = true;
           tinymist.enable = true;
         };
 
