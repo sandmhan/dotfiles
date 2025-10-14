@@ -194,6 +194,17 @@ in
           desc = "Line Diagnostics";
         };
       }
+      {
+        mode = [
+          "i"
+          "n"
+        ];
+        key = "<esc>";
+        action = "<cmd>noh<cr><esc>";
+        options = {
+          desc = "Escape and Clear hlsearch";
+        };
+      }
     ];
 
     # Plugins
