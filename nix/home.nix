@@ -250,6 +250,8 @@ in
         #nerd-fonts
         nerd-fonts.blex-mono
         mpv
+        typst
+        zathura
       ]
       ++ (
         if pkgs.stdenv.isLinux then
