@@ -213,12 +213,13 @@
     description = "sandmhan";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-      vi
+      vim
     	kdePackages.kate
 	    htop-vim
 	    pavucontrol
 	    home-manager
       git
+      gnumake
     ];
   };
 
