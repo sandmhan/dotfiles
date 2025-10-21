@@ -20,8 +20,8 @@
 
 outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
   (
-    flake-utils.lib.eachDefaultSystem (system:
       let
+        system = "x86_64-linux";
         pkgs = import nixpkgs { inherit system; };
 
         # ---- SYSTEM SETTINGS ---- #
@@ -47,16 +47,19 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
         };
       in {
         # Only define nixosConfiguration on Linux systems
-        nixosConfigurations = nixpkgs.lib.optionalAttrs (system == "x86_64-linux") {
+        nixosConfigurations = {
           gaia = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             modules = [
               ./configuration.nix
               # stylix.nixosModules.stylix
             ];
+            specialArgs = {
+                inherit systemSettings userSettings nixvim;
+            };
           };
         };
-      })
+      }
   )
   // {
     # Top-level home-manager configurations
