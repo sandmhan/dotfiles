@@ -80,28 +80,6 @@ in
 
   programs.alacritty = {
     enable = true;
-    settings = {
-      # font = {
-      # 	normal = {
-      # 		family = font;
-      # 		style = "Regular";
-      # 	};
-      # 	bold = {
-      # 		family = font;
-      # 		style = "Bold";
-      # 	};
-      # 	italic = {
-      # 		family = font;
-      # 		style = "Italic";
-      # 	};
-      # 	bold_italic = {
-      # 		family = font;
-      # 		style = "Bold Italic";
-      # 	};
-
-      # 	size = 16;
-      # };
-    };
   };
 
   programs.qutebrowser = {
@@ -309,6 +287,7 @@ in
         mpv
         typst
         zathura
+        legcord
       ]
       ++ (
         if pkgs.stdenv.isLinux then
