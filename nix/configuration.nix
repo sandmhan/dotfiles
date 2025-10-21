@@ -213,17 +213,12 @@
     description = "sandmhan";
     extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    	neovim
+      vi
     	kdePackages.kate
-	vlc
-	legcord
-	htop-vim
-    	tmux
-	pavucontrol
-	moonlight-qt
-	gnumake
-	home-manager
-    #  thunderbird
+	    htop-vim
+	    pavucontrol
+	    home-manager
+      git
     ];
   };
 
