@@ -1,4 +1,4 @@
-.PHONY: macman sandmhan
+.PHONY: sandmhan macman
 
-macman sandmhan:
+sandmhan macman:
 	home-manager switch --flake .#$@
