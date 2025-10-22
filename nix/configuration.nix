@@ -60,11 +60,11 @@
   };
 
   # Lid close settings
-  services.logind.settings.Login = {
-    HandleLidSwitch = "suspend-then-hibernate";
-    HandleLidSwitchExternalPower = "suspend";
-    HandleLidSwitchDocked = "ignore";
-  };
+  #services.logind.settings.Login = {
+  #  HandleLidSwitch = "suspend-then-hibernate";
+  #  HandleLidSwitchExternalPower = "suspend";
+  #  HandleLidSwitchDocked = "ignore";
+  #};
 
 
   networking.hostName = "gaia"; # Define your hostname.
