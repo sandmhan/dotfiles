@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-25.05";
+    nixos-hardware.url = "github:NixOs/nixos-hardware/master";
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,7 +19,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
+outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-utils, ... }:
   (
       let
         system = "x86_64-linux";
@@ -50,8 +51,12 @@ outputs = { self, nixpkgs, home-manager, stylix, nixvim, flake-utils, ... }:
         nixosConfigurations = {
           gaia = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
+
+            # Hardware specific configuration for Framework 13
+
             modules = [
               ./configuration.nix
+              nixos-hardware.nixosModules.framework-amd-ai-300-series
               # stylix.nixosModules.stylix
             ];
             specialArgs = {

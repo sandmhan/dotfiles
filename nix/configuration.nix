@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, lib, ... }:
 {
   imports =
     [ # Include the results of the hardware scan.
@@ -23,6 +23,49 @@
   boot.extraModprobeConfig = ''
     options v4l2loopback devices=1 video_nr=2 card_label="RTSP_Camera" exclusive_caps=1
   '';
+
+  # Enable Amd microcode updates
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+  # Use latest kernel.
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # Enable AMD CPU scaling (amd-pstate driver for better energy efficiency)
+  # https://www.kernel.org/doc/html/latest/admin-guide/pm/amd-pstate.html
+  # Since we use linuxPackages_latest (currently 6.17+), we always use active mode
+  boot.kernelParams = [ "amd_pstate=active" ];
+# Enable BIOS updates
+  services.fwupd.enable = true;
+
+  # Disable power-profiles-daemon (conflicts with auto-cpufreq)
+  services.power-profiles-daemon.enable = false;
+
+  # Power saving and management
+  services.auto-cpufreq.enable = true;
+  services.auto-cpufreq.settings = {
+    battery = {
+      governor = "powersave";
+      turbo = "never";
+    };
+    charger = {
+      governor = "performance";
+      turbo = "auto";
+    };
+  };
+
+  # Enable graphics
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  # Lid close settings
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
+  };
+
 
   networking.hostName = "gaia"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -78,9 +121,6 @@
     # Hint electron apps to use wayland
     NIXOS_OZONE_WL = "1";
   };
-
-  hardware.graphics.enable = true;
-  hardware.nvidia.modesetting.enable = true;
 
   # udev rules for QMK setup
   services.udev.extraRules =
