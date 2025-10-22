@@ -265,6 +265,12 @@ in
     };
   };
 
+  home.keyboard = {
+    layout = "us";
+    options = [ "caps_toggle:escape"];
+
+  };
+
   fonts.fontconfig.enable = true;
 
   nixpkgs.config = {
@@ -288,6 +294,8 @@ in
         typst
         zathura
         legcord
+        bitwarden-desktop
+        bitwarden-cli
       ]
       ++ (
         if pkgs.stdenv.isLinux then
