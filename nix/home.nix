@@ -88,6 +88,17 @@ in
     # 	nixpkgs = "https://github.com/NixOS/nixpkgs";
     # 	home-manager = "https://github.com/nix-community/home-manager";
     # };
+
+    searchEngines = {
+      w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
+      aw = "https://wiki.archlinux.org/?search={}";
+      nw = "https://wiki.nixos.org/index.php?search={}";
+      g = "https://www.google.com/search?hl=en&amp;q={}";
+    };
+
+    settings = {
+      tabs.position = "left";
+    };
   };
 
   # Nixvim configuration

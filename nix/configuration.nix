@@ -87,8 +87,8 @@
   security.pam.services = {
     sudo.fprintAuth = true; # Enable fingerprint for sudo
     su.fprintAuth = true; # Enable fingerprint for su
-    login.fprintAuth = true; # Keep for login
-    hyprland.fprintAuth = false; # Keep for Hyprland
+    login.fprintAuth = true; # Enable for login
+    hyprland.fprintAuth = false; # Enable for Hyprland
   };
 
   networking.hostName = "gaia"; # Define your hostname.
