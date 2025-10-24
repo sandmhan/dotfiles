@@ -75,6 +75,9 @@ in
     shellAliases = {
       ll = "ls -l";
       ".." = "cd ..";
+      gs = "git status";
+      ga = "git add";
+      gc = "git commit -m";
     };
 
     bashrcExtra = "set -o vi";
