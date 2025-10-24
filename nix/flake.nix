@@ -73,7 +73,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
         pkgs = import nixpkgs { system = "x86_64-linux"; };
         modules = [
           ./home.nix
-          nixvim.homeManagerModules.nixvim
+          nixvim.homeModules.nixvim
           stylix.homeModules.stylix
         ];
         extraSpecialArgs = {
