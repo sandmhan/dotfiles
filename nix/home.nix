@@ -42,8 +42,10 @@ in
 
   programs.git = {
     enable = true;
-    userEmail = "austinsanders0105@gmail.com";
-    userName = "sandmhan";
+    settings.user = {
+      email = "austinsanders0105@gmail.com";
+      name = "sandmhan";
+    };
   };
 
   programs.tmux = {
@@ -91,13 +93,17 @@ in
 
     searchEngines = {
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
-      aw = "https://wiki.archlinux.org/?search={}";
-      nw = "https://wiki.nixos.org/index.php?search={}";
       g = "https://www.google.com/search?hl=en&amp;q={}";
+      hm = "https://home-manager-options.extranix.com/?query={}&release=release-25.05";
     };
 
     settings = {
-      tabs.position = "left";
+      tabs = {
+        position = "left";
+        max_width = 1;
+        show = "switching";
+      };
+      scrolling.smooth = true;
     };
   };
 
