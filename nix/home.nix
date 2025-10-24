@@ -95,6 +95,7 @@ in
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
       g = "https://www.google.com/search?hl=en&amp;q={}";
       hm = "https://home-manager-options.extranix.com/?query={}&release=release-25.05";
+      y = "https://www.youtube.com/results?search_query={}";
     };
 
     settings = {
