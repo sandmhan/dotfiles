@@ -89,16 +89,13 @@ in
 
   programs.qutebrowser = {
     enable = true;
-    # quickmarks = {
-    # 	nixpkgs = "https://github.com/NixOS/nixpkgs";
-    # 	home-manager = "https://github.com/nix-community/home-manager";
-    # };
 
     searchEngines = {
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
       g = "https://www.google.com/search?hl=en&amp;q={}";
       hm = "https://home-manager-options.extranix.com/?query={}&release=release-25.05";
       y = "https://www.youtube.com/results?search_query={}";
+      np = "https://search.nixos.org/packages?channel=unstable&query={}";
     };
 
     settings = {
@@ -108,6 +105,22 @@ in
         show = "switching";
       };
       scrolling.smooth = true;
+
+      #content.javascript.log_message.excludes = {
+      #  "userscript:_qute_stylesheet" = [
+      #    "*Refused to apply inline style because it violates the following Content Security Policy directive: *"
+      #  ];
+      #  "userscript:_qute_js" = [
+      #    "*TrustedHTML*"
+      #  ];
+      #};
+
+      #extraConfig = ''
+      #  c.content.javascript.log_message.excludes = {
+      #    'userscript:_qute_stylesheet' : '*Refused to apply inline style because it violates the following Content Security Policy directive: *',
+      #    'userscript:_qute_js' : '*TrustedHTML*'
+      #  }
+      #'';
     };
   };
 
@@ -233,6 +246,7 @@ in
           clangd.enable = true;
           cmake.enable = true;
           tinymist.enable = true;
+          marksman.enable = true;
         };
 
         keymaps = {
@@ -288,7 +302,7 @@ in
 
   home.keyboard = {
     layout = "us";
-    options = [ "caps_toggle:escape"];
+    options = [ "caps_toggle:escape" ];
 
   };
 
