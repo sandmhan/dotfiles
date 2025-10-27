@@ -7,6 +7,8 @@
   pkgs,
   inputs,
   lib,
+  systemSettings,
+  userSettings,
   ...
 }:
 {
@@ -102,7 +104,7 @@
   networking.networkmanager.enable = true;
 
   # Set your time zone.
-  time.timeZone = inputs.systemSettings.timezone;
+  time.timeZone = systemSettings.timezone;
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
