@@ -30,7 +30,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
           system = system;
           hostname = "gaia";
           profile = "personal";
-          timezone = "America/Chicago";
+          timezone = "America/New_York";
           locale = "en_US.UTF-8";
           bootMode = "uefi";
           bootMountPath = "/boot";
@@ -60,7 +60,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
               # stylix.nixosModules.stylix
             ];
             specialArgs = {
-                inherit systemSettings userSettings nixvim;
+                inherit systemSettings userSettings;
             };
           };
         };
