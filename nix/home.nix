@@ -103,6 +103,7 @@ in
       hm = "https://home-manager-options.extranix.com/?query={}&release=release-25.05";
       y = "https://www.youtube.com/results?search_query={}";
       np = "https://search.nixos.org/packages?channel=unstable&query={}";
+      no = "https://search.nixos.org/options?channel=unstable&query={}";
     };
 
     settings = {
