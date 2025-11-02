@@ -113,23 +113,13 @@ in
         show = "switching";
       };
       scrolling.smooth = true;
-
-      #content.javascript.log_message.excludes = {
-      #  "userscript:_qute_stylesheet" = [
-      #    "*Refused to apply inline style because it violates the following Content Security Policy directive: *"
-      #  ];
-      #  "userscript:_qute_js" = [
-      #    "*TrustedHTML*"
-      #  ];
-      #};
-
-      #extraConfig = ''
-      #  c.content.javascript.log_message.excludes = {
-      #    'userscript:_qute_stylesheet' : '*Refused to apply inline style because it violates the following Content Security Policy directive: *',
-      #    'userscript:_qute_js' : '*TrustedHTML*'
-      #  }
-      #'';
     };
+    extraConfig = ''
+      c.content.javascript.log_message.excludes = {
+        'userscript:_qute_stylesheet' : ['*Refused to apply inline style because it violates the following Content Security Policy directive: *'],
+        'userscript:_qute_js' : ['*TrustedHTML*']
+      }
+    '';
   };
 
   # Nixvim configuration
@@ -315,6 +305,8 @@ in
   };
 
   fonts.fontconfig.enable = true;
+
+  wayland.windowManager.sway.enable = true;
 
   nixpkgs.config = {
     allowUnfree = true;
