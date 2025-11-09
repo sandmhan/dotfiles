@@ -84,7 +84,6 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
             wm = "hyprland";
             font = "BlexMono Nerd Font";
           };
-          inherit nixvim;
         };
       };
 
@@ -103,7 +102,6 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
             wm = "hyprland";
             font = "BlexMono Nerd Font";
           };
-          inherit nixvim;
         };
       };
     };
