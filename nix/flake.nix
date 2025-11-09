@@ -60,7 +60,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
               # stylix.nixosModules.stylix
             ];
             specialArgs = {
-                inherit systemSettings userSettings;
+                inherit systemSettings;
             };
           };
         };

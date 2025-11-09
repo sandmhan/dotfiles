@@ -8,7 +8,6 @@
   inputs,
   lib,
   systemSettings,
-  userSettings,
   ...
 }:
 {
