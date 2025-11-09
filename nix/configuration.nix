@@ -87,9 +87,21 @@
 
   # Configure PAM for fingerprint authentication
   security.pam.services = {
-    sudo.fprintAuth = true; # Enable fingerprint for sudo
-    su.fprintAuth = true; # Enable fingerprint for su
-    login.fprintAuth = true; # Enable for login
+
+    sudo = {
+      fprintAuth = true; # Enable fingerprint for sudo
+      rules.auth.fprintd.settings.timeout = 10;
+    };
+
+    su = {
+      fprintAuth = true; # Enable fingerprint for su
+    };
+
+    login = {
+      fprintAuth = true; # Enable for login
+      nodelay = true;
+    };
+
     hyprland.fprintAuth = false; # Enable for Hyprland
   };
 
@@ -285,7 +297,7 @@
       kdePackages.kate
       htop-vim
       pavucontrol
-      home-manager
+      #home-manager
       git
       gnumake
     ];

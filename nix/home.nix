@@ -34,7 +34,7 @@ in
 
       # Optional: emoji font, if you want emojis to render properly
       emoji = {
-        package = pkgs.noto-fonts-emoji;
+        package = pkgs.noto-fonts-color-emoji;
         name = "Noto Color Emoji";
       };
     };
@@ -100,7 +100,7 @@ in
     searchEngines = {
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
       g = "https://www.google.com/search?hl=en&amp;q={}";
-      hm = "https://home-manager-options.extranix.com/?query={}&release=release-25.05";
+      hm = "https://home-manager-options.extranix.com/?query={}&release=release-master";
       y = "https://www.youtube.com/results?search_query={}";
       np = "https://search.nixos.org/packages?channel=unstable&query={}";
       no = "https://search.nixos.org/options?channel=unstable&query={}";
@@ -113,6 +113,9 @@ in
         show = "switching";
       };
       scrolling.smooth = true;
+
+      # Remove the finished downloads after 5 second
+      downloads.remove_finished = 5000;
     };
     extraConfig = ''
       c.content.javascript.log_message.excludes = {
@@ -241,7 +244,23 @@ in
         servers = {
           nil_ls.enable = true;
           nixd.enable = true;
-          clangd.enable = true;
+          clangd = {
+            enable = true;
+            #config = {
+            #  cmd = [
+            #    "clangd"
+            #    "--background-index"
+            #  ];
+            #  filetypes = [
+            #    "c"
+            #    "cpp"
+            #  ];
+            #  root_markers = [
+            #    "CMakeLists.txt"
+            #    ".git"
+            #  ];
+            #};
+          };
           cmake.enable = true;
           tinymist.enable = true;
           marksman.enable = true;
@@ -326,8 +345,10 @@ in
         #nerd-fonts
         nerd-fonts.blex-mono
         mpv
-        typst
-        zathura
+        typst # typesetter language compiler
+        pdfpc # pdf as presentation viewer
+        zathura # minimalist pdf viewer
+        libreoffice
         legcord
         bitwarden-desktop
         bitwarden-cli
