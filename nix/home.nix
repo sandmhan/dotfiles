@@ -2,7 +2,6 @@
   lib,
   pkgs,
   userSettings,
-  nixvim,
   ...
 }:
 let
