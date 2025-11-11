@@ -18,20 +18,18 @@ in
   programs.home-manager.enable = true;
 
   imports = [
-   ./homeModules/browser.nix
-   ./homeModules/terminal.nix
-   ./homeModules/nvim.nix
-   ./homeModules/stylix.nix
-   ./homeModules/git.nix
-   ./homeModules/wm.nix
+    ./homeModules/browser.nix
+    ./homeModules/terminal.nix
+    ./homeModules/nvim.nix
+    ./homeModules/stylix.nix
+    ./homeModules/git.nix
+    ./homeModules/wm.nix
   ];
-
 
   home.keyboard = {
     layout = "us";
     options = [ "caps_toggle:escape" ];
   };
-
 
   nixpkgs.config = {
     allowUnfree = true;
