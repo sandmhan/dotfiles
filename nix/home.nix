@@ -24,6 +24,7 @@ in
     ./homeModules/stylix.nix
     ./homeModules/git.nix
     ./homeModules/wm.nix
+    ./homeModules/login.nix
   ];
 
   home.keyboard = {
