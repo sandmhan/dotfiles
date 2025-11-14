@@ -32,6 +32,7 @@ in
       inherit up;
       inherit right;
 
+      # Currently have waybar set to turn on upon startup. Not sure if it should be here instead
       bars = [ ];
 
       focus = {
@@ -60,6 +61,10 @@ in
         "${modifier}+R" =
           "exec ${pkgs.rofi}/bin/rofi -show combi -modes combi -combi-modes 'window,drun,run' ";
         "${modifier}+B" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
+        "${modifier}+${left}" = "focus left";
+        "${modifier}+${right}" = "focus right";
+        "${modifier}+${up}" = "focus up";
+        "${modifier}+${down}" = "focus down";
         "Ctrl+Mod1+M" = "mode move";
         "Ctrl+Mod1+R" = "mode resize";
         "${modifier}+Shift+Backslash" = "layout toggle split";
@@ -92,9 +97,9 @@ in
 
       modes = {
         move = {
-          Comma = "move container to workspace prev; workspace prev";
           Escape = "mode default";
-          Period = "move container to workspace next; workspace next";
+          ${left} = "move container to workspace prev; workspace prev";
+          ${right} = "move container to workspace next; workspace next";
           S = "move scratchpad";
         }
         // builtins.listToAttrs (
@@ -120,10 +125,10 @@ in
 
         resize = {
           Escape = "mode default";
-          left = "resize shrink width 10 px";
-          down = "resize grow height 10 px";
-          up = "resize shrink height 10 px";
-          right = "resize grow width 10 px";
+          ${left} = "resize shrink width 10 px";
+          ${down} = "resize grow height 10 px";
+          ${up} = "resize shrink height 10 px";
+          ${right} = "resize grow width 10 px";
         };
       };
 
