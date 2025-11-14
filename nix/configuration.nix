@@ -97,8 +97,14 @@
     };
 
     login = {
-      fprintAuth = true; # Enable for login
+      enable = true;
+      fprintAuth = false; # Enable for login. Doesn't work properly with SDDM. See https://discourse.nixos.org/t/plasma-6-login-screen-is-broken/57742/24?u=sandmhan
       nodelay = true;
+    };
+
+    swaylock = {
+      enable = true;
+      fprintAuth = true;
     };
 
     hyprland.fprintAuth = false; # Enable for Hyprland
@@ -144,7 +150,10 @@
   };
 
   # Enable the KDE Plasma Desktop Environment.
-  services.displayManager.sddm.enable = true;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
+  };
   services.desktopManager.plasma6.enable = true;
 
   # Enabling hyprland
