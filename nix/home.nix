@@ -25,6 +25,7 @@ in
     ./homeModules/git.nix
     ./homeModules/wm.nix
     ./homeModules/login.nix
+    ./homeModules/bluetooth.nix
   ];
 
   home.keyboard = {
