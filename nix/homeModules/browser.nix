@@ -23,6 +23,8 @@
       };
       scrolling.smooth = true;
 
+      colors.webpage.darkmode.enabled = true;
+
       # Remove the finished downloads after 5 second
       downloads.remove_finished = 5000;
     };
