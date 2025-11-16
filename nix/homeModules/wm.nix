@@ -19,6 +19,7 @@ in
       rofi
       waybar
       autotiling
+      nwg-displays # GUI monitor management
     ];
   };
 
@@ -33,7 +34,9 @@ in
       inherit right;
 
       # Currently have waybar set to turn on upon startup. Not sure if it should be here instead
-      bars = [ ];
+      bars = [{
+        command = lib.getExe pkgs.waybar;
+      }];
 
       focus = {
         followMouse = false;
@@ -56,11 +59,11 @@ in
       };
 
       keybindings = {
-        "${modifier}+T" = "exec ${pkgs.alacritty}/bin/alacritty";
+        "${modifier}+Return" = "exec ${pkgs.alacritty}/bin/alacritty";
         "${modifier}+C" = "kill";
         "${modifier}+R" =
           "exec ${pkgs.rofi}/bin/rofi -show combi -modes combi -combi-modes 'window,drun,run' ";
-        "${modifier}+B" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
+        "${modifier}+T" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
         "${modifier}+${left}" = "focus left";
         "${modifier}+${right}" = "focus right";
         "${modifier}+${up}" = "focus up";
@@ -98,8 +101,12 @@ in
       modes = {
         move = {
           Escape = "mode default";
-          ${left} = "move container to workspace prev; workspace prev";
-          ${right} = "move container to workspace next; workspace next";
+          Comma = "move container to workspace prev; workspace prev";
+          Period = "move container to workspace next; workspace next";
+          "${left}" = "move left";
+          "${right}" = "move right";
+          "${up}" = "move up";
+          "${down}" = "move down";
           S = "move scratchpad";
         }
         // builtins.listToAttrs (
@@ -134,7 +141,6 @@ in
 
       startup = [
         { command = lib.getExe pkgs.autotiling; }
-        { command = lib.getExe pkgs.waybar; }
       ];
 
       window = {
