@@ -57,7 +57,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
             modules = [
               ./configuration.nix
               nixos-hardware.nixosModules.framework-amd-ai-300-series
-              # stylix.nixosModules.stylix
+              stylix.nixosModules.stylix
             ];
             specialArgs = {
                 inherit systemSettings;

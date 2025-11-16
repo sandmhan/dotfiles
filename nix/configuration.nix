@@ -5,7 +5,6 @@
 {
   config,
   pkgs,
-  inputs,
   lib,
   systemSettings,
   ...
@@ -16,6 +15,10 @@
     ./hardware-configuration.nix
   ];
 
+  stylix = {
+    enable = true;
+    base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-hard.yaml";
+  };
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -84,6 +87,9 @@
   # Enable fingerprint reader
   services.fprintd.enable = true;
 
+  # Needed to setup Sway using Home Manager
+  security.polkit.enable = true;
+
   # Configure PAM for fingerprint authentication
   security.pam.services = {
 
@@ -103,8 +109,13 @@
     };
 
     swaylock = {
-      enable = true;
+      enable = false;
       fprintAuth = true;
+      text = ''
+        auth sufficient pam_unix.so try_first_pass likeauth nullok
+        auth sufficient pam_fprintd.so
+        auth include login
+      '';
     };
 
     hyprland.fprintAuth = false; # Enable for Hyprland
@@ -151,8 +162,8 @@
 
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
+    enable = false;
+    wayland.enable = false;
   };
   services.desktopManager.plasma6.enable = true;
 
@@ -160,6 +171,11 @@
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
+  };
+
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true;
   };
 
   environment.sessionVariables = {
