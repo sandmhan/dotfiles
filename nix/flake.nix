@@ -14,10 +14,7 @@
     };
     nixvim = {
       url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+      inputs.nixpkgs.follows = "nixpkgs"; }; flake-utils.url = "github:numtide/flake-utils"; };
 
 outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-utils, ... }:
   (
@@ -43,7 +40,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
           username = "sandmhan";
           email = "austinsanders0105@gmail.com";
           theme = "";
-          wm = "hyprland";
+          wm = "sway";
           font = "BlexMono";
         };
       in {
