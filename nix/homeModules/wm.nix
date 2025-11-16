@@ -20,6 +20,7 @@ in
       waybar
       autotiling
       nwg-displays # GUI monitor management
+      networkmanager
     ];
   };
 
@@ -70,10 +71,13 @@ in
         "${modifier}+${right}" = "focus right";
         "${modifier}+${up}" = "focus up";
         "${modifier}+${down}" = "focus down";
-        "Ctrl+Mod1+M" = "mode move";
-        "Ctrl+Mod1+R" = "mode resize";
         "${modifier}+Shift+Backslash" = "layout toggle split";
         "${modifier}+Shift+G" = "layout toggle splitv tabbed";
+
+        ## Modes
+        "Ctrl+${modifier}+M" = "mode move";
+        "Ctrl+${modifier}+R" = "mode resize";
+        "Ctrl+${modifier}+S" = "mode session";
       }
       // builtins.listToAttrs (
         builtins.concatMap
