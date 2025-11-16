@@ -165,11 +165,11 @@
     enable = false;
     wayland.enable = false;
   };
-  services.desktopManager.plasma6.enable = true;
+  services.desktopManager.plasma6.enable = false;
 
   # Enabling hyprland
   programs.hyprland = {
-    enable = true;
+    enable = false;
     xwayland.enable = true;
   };
 
