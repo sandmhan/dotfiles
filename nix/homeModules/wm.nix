@@ -34,9 +34,11 @@ in
       inherit right;
 
       # Currently have waybar set to turn on upon startup. Not sure if it should be here instead
-      bars = [{
-        command = lib.getExe pkgs.waybar;
-      }];
+      bars = [
+        {
+          command = lib.getExe pkgs.waybar;
+        }
+      ];
 
       focus = {
         followMouse = false;
@@ -137,11 +139,54 @@ in
           ${up} = "resize shrink height 10 px";
           ${right} = "resize grow width 10 px";
         };
+
+         session = {
+                  # Session = launch:
+                  # [h]ibernate [p]oweroff [r]eboot
+                  # [s]uspend [l]ockscreen log[o]ut
+                  Escape = "mode default";
+                  Return = "mode default";
+                  "h" = "exec ${pkgs.systemd}/bin/systemctl hibernate, mode default";
+                  "p" = "exec ${pkgs.systemd}/bin/systemctl poweroff, mode default";
+                  "r" = "exec ${pkgs.systemd}/bin/systemctl reboot, mode default";
+                  "s" = "exec ${pkgs.systemd}/bin/systemctl suspend, mode default";
+                  "l" = "exec ${pkgs.swaylock}/bin/swaylock, mode default";
+                  "o" = "exec ${pkgs.sway}/bin/swaymsg exit, mode default";
+                };
       };
 
       startup = [
         { command = lib.getExe pkgs.autotiling; }
+        { command = lib.getExe pkgs.alacritty; }
+        #{ command = lib.getExe pkgs.qutebrowser; }
+        { command = lib.getExe pkgs.legcord; }
       ];
+
+      assigns = {
+        "1" = [
+          # Terminal
+          { app_id = "Alacritty"; }
+        ];
+        "2" = [
+          # Browser
+          { app_id = ".*qutebrowser"; }
+          { app_id = "firefox"; }
+        ];
+        "3" = [
+          # Entertainment
+          { class = "discord"; }
+          { class = "vesktop"; }
+          { class = "legcord"; }
+        ];
+        "4" = [
+          # Office
+          { app_id = "libreoffice-*"; }
+        ];
+        "5" = [
+          # Secrets
+          { app_id = "Bitwarden"; }
+        ];
+      };
 
       window = {
         titlebar = false;
