@@ -24,6 +24,63 @@ in
     ];
   };
 
+  programs.waybar = {
+        enable = true;
+        systemd.enable = true;
+        #style = ./waybar.css;
+        settings = {
+          mainBar = {
+            layer = "top";
+            position = "top";
+            height = 16;
+            output = [
+              "eDP-1"
+              "DP-4"
+            ];
+            modules-left = ["sway/workspaces" "mpris"];
+            modules-center = ["clock"];
+            modules-right = ["battery" "memory" "cpu" "tray"];
+
+            battery = {
+              format = "{capacity}% {icon}";
+              format-icons = [" " " " " " " " " "];
+              interval = 60;
+              states = {
+                warning = 30;
+                critical = 15;
+              };
+            };
+
+            memory = {
+              interval = 30;
+              format = "{}%  ";
+              max-length = 10;
+            };
+
+            tray = {
+              icon-size = 24;
+              spacing = 8;
+            };
+
+            "sway/workspaces" = {
+              disable-scroll = true;
+              all-outputs = false;
+            };
+
+            cpu.format = "{usage}% ";
+
+            clock = {
+              format = "   {:%R}";
+              tooltip-format = "<tt><span>{calendar}</span></tt>";
+              calendar.format = {
+                days = "<span color='#ecc6d9'><b>{}</b></span>";
+                today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+              };
+            };
+          };
+        };
+      };
+
   wayland.windowManager.sway = {
     enable = true;
     checkConfig = false;
@@ -34,10 +91,8 @@ in
       inherit up;
       inherit right;
 
-      # Currently have waybar set to turn on upon startup. Not sure if it should be here instead
       bars = [
         {
-          command = lib.getExe pkgs.waybar;
         }
       ];
 
