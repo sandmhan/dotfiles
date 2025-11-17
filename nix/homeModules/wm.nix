@@ -16,8 +16,6 @@ in
 {
   home = {
     packages = with pkgs; [
-      rofi
-      waybar
       autotiling
       nwg-displays # GUI monitor management
       networkmanager
@@ -26,7 +24,7 @@ in
 
   programs.waybar = {
         enable = true;
-        systemd.enable = true;
+        systemd.enable = false;
         #style = ./waybar.css;
         settings = {
           mainBar = {
@@ -93,6 +91,7 @@ in
 
       bars = [
         {
+          command = lib.getExe pkgs.waybar;
         }
       ];
 
@@ -121,6 +120,8 @@ in
         "${modifier}+C" = "kill";
         "${modifier}+R" =
           "exec ${pkgs.rofi}/bin/rofi -show combi -modes combi -combi-modes 'window,drun,run' ";
+        "${modifier}+P" =
+          "exec ${pkgs.rofi}/bin/rofi -show power-menu:rofi-power-menu ";
         "${modifier}+T" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
         "${modifier}+${left}" = "focus left";
         "${modifier}+${right}" = "focus right";
