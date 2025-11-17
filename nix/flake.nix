@@ -39,7 +39,7 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
         userSettings = {
           username = "sandmhan";
           email = "austinsanders0105@gmail.com";
-          theme = "";
+          theme = "gruvbox-dark-hard";
           wm = "sway";
           font = "BlexMono";
         };
@@ -77,8 +77,8 @@ outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, flake-u
           userSettings = {
             username = "sandmhan";
             email = "austinsanders0105@gmail.com";
-            theme = "";
-            wm = "hyprland";
+            theme = "gruvbox-dark-hard";
+            wm = "sway";
             font = "BlexMono Nerd Font";
           };
         };
