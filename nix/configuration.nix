@@ -109,7 +109,7 @@
     };
 
     swaylock = {
-      enable = false;
+      enable = true;
       fprintAuth = true;
       text = ''
         auth sufficient pam_unix.so try_first_pass likeauth nullok
