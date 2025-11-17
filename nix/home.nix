@@ -26,6 +26,7 @@ in
     ./homeModules/wm.nix
     ./homeModules/login.nix
     ./homeModules/bluetooth.nix
+    ./homeModules/rofi.nix
   ];
 
   home.keyboard = {

@@ -9,14 +9,14 @@
   home = {
     packages = with pkgs; [
       rofi
+      rofi-power-menu
     ];
   };
 
   programs.rofi = {
 
     enable = true;
-
-    font = userSettings.font;
+    plugins = [];
 
   };
 
