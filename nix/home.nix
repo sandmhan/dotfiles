@@ -61,6 +61,7 @@ in
         bitwarden-cli
         openvpn
         qbittorrent
+        xfce.thunar
       ]
       ++ (
         if pkgs.stdenv.isLinux then
