@@ -85,7 +85,7 @@
   };
 
   # Enable fingerprint reader
-  services.fprintd.enable = true;
+  services.fprintd.enable = false;
 
   # Needed to setup Sway using Home Manager
   security.polkit.enable = true;
@@ -109,7 +109,7 @@
     };
 
     swaylock = {
-      enable = true;
+      enable = false;
       fprintAuth = true;
       text = ''
         auth sufficient pam_unix.so try_first_pass likeauth nullok
@@ -165,7 +165,27 @@
     enable = false;
     wayland.enable = false;
   };
+
+  services.displayManager.ly = {
+    enable = true;
+    settings = {
+      # See https://github.com/fairyglade/ly/blob/v1.0.2/res/config.ini for setting info
+      pam = true;
+      animation = "gameoflife";
+      bigclock = "en";
+      sleep_cmd = "systemctl sleep";
+      vi-mode = true;
+      initial_info_text = "~Konbanwatagwan, minnaslime~";
+      hide_borders = true;
+      hide_version_string = true;
+      hide_key_hints = true;
+      load = true;
+      save = true;
+    };
+  };
+
   services.desktopManager.plasma6.enable = false;
+
 
   # Enabling hyprland
   programs.hyprland = {
