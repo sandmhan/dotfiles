@@ -84,11 +84,11 @@
     persistent = true; # Run on next boot if timer was missed
   };
 
-  # Enable fingerprint reader
-  services.fprintd.enable = false;
-
   # Needed to setup Sway using Home Manager
   security.polkit.enable = true;
+
+  # Enable fingerprint reader
+  services.fprintd.enable = false;
 
   # Configure PAM for fingerprint authentication
   security.pam.services = {
