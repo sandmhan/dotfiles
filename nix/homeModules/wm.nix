@@ -23,61 +23,172 @@ in
   };
 
   programs.waybar = {
-        enable = true;
-        systemd.enable = false;
-        #style = ./waybar.css;
-        settings = {
-          mainBar = {
-            layer = "top";
-            position = "top";
-            height = 16;
-            output = [
-              "eDP-1"
-              "DP-4"
-            ];
-            modules-left = ["sway/workspaces" "mpris"];
-            modules-center = ["clock"];
-            modules-right = ["battery" "memory" "cpu" "tray"];
+    enable = true;
+    systemd.enable = false;
+    #style = ./waybar.css;
+    settings = {
 
-            battery = {
-              format = "{capacity}% {icon}";
-              format-icons = [" " " " " " " " " "];
-              interval = 60;
-              states = {
-                warning = 30;
-                critical = 15;
-              };
-            };
+      mainBar = {
+        layer = "top";
+        position = "top";
+        height = 16;
+        output = [
+          "eDP-1"
+          "DP-4"
+        ];
+        modules-left = [
+          "sway/workspaces"
+          "sway/mode"
+          "sway/window"
+        ];
+        modules-center = [
+          "clock"
+        ];
+        modules-right = [
+          "pulseaudio"
+          "network"
+          "mpd"
+          "temperature"
+          "memory"
+          "cpu"
+          "battery"
+          "tray"
+        ];
 
-            memory = {
-              interval = 30;
-              format = "{}%  ";
-              max-length = 10;
-            };
+        network = {
+          interface = "{essid}";
+          format = "{ifname}";
+          format-wifi = "{essid} ({signalStrength}%) ";
+          format-ethernet = "{ipaddr}/{cidr} 󰊗";
+          format-disconnected = ""; # An empty format will hide the module
+          tooltip-format = "{ifname} via {gwaddr} 󰊗";
+          tooltip-format-wifi = "{essid} ({signalStrength}%) ";
+          tooltip-format-ethernet = "{ifname} ";
+          tooltip-format-disconnected = "Disconnected";
+          max-length = 5;
+        };
 
-            tray = {
-              icon-size = 24;
-              spacing = 8;
-            };
+        "sway/window" = {
+          icon = true;
+          format = "{app_id}";
+        };
 
-            "sway/workspaces" = {
-              disable-scroll = true;
-              all-outputs = false;
-            };
+        "sway/workspaces" = {
+          disable-scroll = true;
+          all-outputs = true;
+        };
 
-            cpu.format = "{usage}% ";
+        pulseaudio = {
+          format = "{icon} {volume}%";
+          format-bluetooth = "{icon}  {volume}%";
+          format-muted = "";
+          format-icons = {
+            default = ["" ""];
+          };
+          scroll-step = 1;
+          on-click = "pavucontrol";
+          ignored-sinks = [ "Easy Effects Sink" ];
+        };
 
-            clock = {
-              format = "   {:%R}";
-              tooltip-format = "<tt><span>{calendar}</span></tt>";
-              calendar.format = {
-                days = "<span color='#ecc6d9'><b>{}</b></span>";
-                today = "<span color='#ff6699'><b><u>{}</u></b></span>";
-              };
-            };
+        battery = {
+          format = "{icon}{capacity}%";
+          format-icons = [
+            " "
+            " "
+            " "
+            " "
+            " "
+          ];
+          interval = 60;
+          states = {
+            warning = 30;
+            critical = 15;
           };
         };
+
+        cpu.format = " {usage}%";
+
+        memory = {
+          interval = 30;
+          format = " {}%";
+          max-length = 10;
+        };
+
+        tray = {
+          icon-size = 24;
+          spacing = 8;
+        };
+
+        clock = {
+          format = " {:%R %x}";
+          tooltip-format = "<tt><span>{calendar}</span></tt>";
+          calendar.format = {
+            days = "<span color='#ecc6d9'><b>{}</b></span>";
+            today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+          };
+        };
+
+        "custom/hello-from-waybar" = {
+          format = "hello {}";
+          max-length = 40;
+          interval = "once";
+          exec = pkgs.writeShellScript "hello-from-waybar" ''
+            echo "from within waybar"
+          '';
+        };
       };
+
+      # mainBar = {
+      #   layer = "top";
+      #   position = "top";
+      #   height = 16;
+      #   output = [
+      #     "eDP-1"
+      #     "DP-4"
+      #   ];
+      #   modules-left = ["sway/workspaces" "mpris"];
+      #   modules-center = ["clock"];
+      #   modules-right = ["battery" "memory" "cpu" "tray"];
+
+      #   battery = {
+      #     format = "{capacity}% {icon}";
+      #     format-icons = [" " " " " " " " " "];
+      #     interval = 60;
+      #     states = {
+      #       warning = 30;
+      #       critical = 15;
+      #     };
+      #   };
+
+      #   memory = {
+      #     interval = 30;
+      #     format = "{}%  ";
+      #     max-length = 10;
+      #   };
+
+      #   tray = {
+      #     icon-size = 24;
+      #     spacing = 8;
+      #   };
+
+      #   "sway/workspaces" = {
+      #     disable-scroll = true;
+      #     all-outputs = false;
+      #   };
+
+      #   cpu.format = "{usage}% ";
+
+      #   clock = {
+      #     format = "   {:%R}";
+      #     tooltip-format = "<tt><span>{calendar}</span></tt>";
+      #     calendar.format = {
+      #       days = "<span color='#ecc6d9'><b>{}</b></span>";
+      #       today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+      #     };
+      #   };
+      # };
+    };
+  };
 
   wayland.windowManager.sway = {
     enable = true;
@@ -120,8 +231,7 @@ in
         "${modifier}+C" = "kill";
         "${modifier}+R" =
           "exec ${pkgs.rofi}/bin/rofi -show combi -modes combi -combi-modes 'window,drun,run' ";
-        "${modifier}+P" =
-          "exec ${pkgs.rofi}/bin/rofi -show power-menu:rofi-power-menu ";
+        "${modifier}+P" = "exec ${pkgs.rofi}/bin/rofi -show power-menu:rofi-power-menu ";
         "${modifier}+T" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
         "${modifier}+${left}" = "focus left";
         "${modifier}+${right}" = "focus right";
@@ -200,19 +310,19 @@ in
           ${right} = "resize grow width 10 px";
         };
 
-         session = {
-                  # Session = launch:
-                  # [h]ibernate [p]oweroff [r]eboot
-                  # [s]uspend [l]ockscreen log[o]ut
-                  Escape = "mode default";
-                  Return = "mode default";
-                  "h" = "exec ${pkgs.systemd}/bin/systemctl hibernate, mode default";
-                  "p" = "exec ${pkgs.systemd}/bin/systemctl poweroff, mode default";
-                  "r" = "exec ${pkgs.systemd}/bin/systemctl reboot, mode default";
-                  "s" = "exec ${pkgs.systemd}/bin/systemctl suspend, mode default";
-                  "l" = "exec ${pkgs.swaylock}/bin/swaylock, mode default";
-                  "o" = "exec ${pkgs.sway}/bin/swaymsg exit, mode default";
-                };
+        session = {
+          # Session = launch:
+          # [h]ibernate [p]oweroff [r]eboot
+          # [s]uspend [l]ockscreen log[o]ut
+          Escape = "mode default";
+          Return = "mode default";
+          "h" = "exec ${pkgs.systemd}/bin/systemctl hibernate, mode default";
+          "p" = "exec ${pkgs.systemd}/bin/systemctl poweroff, mode default";
+          "r" = "exec ${pkgs.systemd}/bin/systemctl reboot, mode default";
+          "s" = "exec ${pkgs.systemd}/bin/systemctl suspend, mode default";
+          "l" = "exec ${pkgs.swaylock}/bin/swaylock, mode default";
+          "o" = "exec ${pkgs.sway}/bin/swaymsg exit, mode default";
+        };
       };
 
       startup = [
@@ -235,7 +345,8 @@ in
         "3" = [
           # Entertainment
           { class = "discord"; }
-          { class = "vesktop"; }
+          { app_id = "vesktop"; }
+          { app_id = "legcord"; }
           { class = "legcord"; }
         ];
         "4" = [
