@@ -6,6 +6,7 @@ This directory contains all configuration files for managing both **NixOS** syst
 
 ## 🗂 Folder Structure
 
+```plaintext
 ├── configuration.nix # System-level configuration (for NixOS)
 ├── hardware-configuration.nix # Auto-generated hardware config (for NixOS)
 ├── home.nix # User-level Home Manager configuration
@@ -14,6 +15,7 @@ This directory contains all configuration files for managing both **NixOS** syst
 ├── themes/ # Color schemes, fonts, or Stylix-related files
 ├── Makefile # Simple build shortcuts
 └── README.md # This documentation
+```
 
 
 ---
