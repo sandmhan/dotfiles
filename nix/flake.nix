@@ -16,9 +16,14 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nvf = {
+      url = "github:NotAShelf/nvf";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, nvf, ... }:
   let
     # Shared user settings
     baseUserSettings = {
@@ -73,6 +78,7 @@
           ./home.nix
           nixvim.homeModules.nixvim
           stylix.homeModules.stylix
+
         ];
         extraSpecialArgs = {
           userSettings = linuxUserSettings;
@@ -85,6 +91,7 @@
           ./home.nix
           nixvim.homeModules.nixvim
           stylix.homeModules.stylix
+          nvf.homeManagerModules.default
         ];
         extraSpecialArgs = {
           userSettings = macUserSettings;
