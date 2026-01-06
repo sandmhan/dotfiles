@@ -20,7 +20,8 @@ in
   imports = [
     ./homeModules/browser.nix
     ./homeModules/terminal.nix
-    ./homeModules/nvim.nix
+    #./homeModules/nvim.nix
+    ./homeModules/nvf.nix
     ./homeModules/stylix.nix
     ./homeModules/git.nix
     ./homeModules/wm.nix

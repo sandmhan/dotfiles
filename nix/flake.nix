@@ -78,7 +78,7 @@
           ./home.nix
           nixvim.homeModules.nixvim
           stylix.homeModules.stylix
-
+          nvf.homeManagerModules.default
         ];
         extraSpecialArgs = {
           userSettings = linuxUserSettings;
@@ -91,7 +91,6 @@
           ./home.nix
           nixvim.homeModules.nixvim
           stylix.homeModules.stylix
-          nvf.homeManagerModules.default
         ];
         extraSpecialArgs = {
           userSettings = macUserSettings;

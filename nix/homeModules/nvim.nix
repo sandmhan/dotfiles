@@ -1,8 +1,15 @@
 {
   lib,
+  pkgs,
   ...
 }:
 {
+  home = {
+    packages = with pkgs; [
+      clang-tools
+    ];
+  };
+
   programs.nixvim = {
     enable = true;
     defaultEditor = true;
@@ -95,6 +102,16 @@
         action = "<cmd>lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<cr>";
         options = {
           desc = "Mini-File: Open directory of current file";
+        };
+      }
+      {
+        mode = [
+          "n"
+        ];
+        key = "<leader>cp";
+        action = "<cmd>MarkdownPreview<cr>";
+        options = {
+          desc = "MarkdownPreview: Render the current markdown file";
         };
       }
     ];
