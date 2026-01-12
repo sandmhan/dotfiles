@@ -13,7 +13,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    ./systemModules/jellyfin.nix
+    #./systemModules/jellyfin.nix
   ];
 
   stylix = {
@@ -376,6 +376,7 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
