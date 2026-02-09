@@ -69,6 +69,12 @@
           desc = "Next Buffer Navigation";
         }
         {
+          key = "<leader>bd";
+          mode = [ "n" ];
+          action = "<cmd>bdelete<CR>";
+          desc = "Close Current Buffer";
+        }
+        {
           key = "<esc>";
           mode = [ "n" "i" ];
           action = "<cmd>noh<cr><esc>";
