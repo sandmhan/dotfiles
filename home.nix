@@ -62,7 +62,9 @@ in
         bitwarden-cli
         openvpn
         qbittorrent
-        xfce.thunar
+        xfce.thunar # File Explorer
+        bashmount # Disk Manager
+        pulsemixer # Audio Manager
       ]
       ++ (
         if pkgs.stdenv.isLinux then
