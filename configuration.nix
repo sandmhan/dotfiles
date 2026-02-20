@@ -15,6 +15,7 @@
     ./hardware-configuration.nix
     #./systemModules/jellyfin.nix
     # ./systemModules/frigate.nix
+    ./systemModules/matrix.nix
   ];
 
   stylix = {

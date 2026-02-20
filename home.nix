@@ -65,6 +65,7 @@ in
         xfce.thunar # File Explorer
         bashmount # Disk Manager
         pulsemixer # Audio Manager
+        element-desktop # Matrix chat client
       ]
       ++ (
         if pkgs.stdenv.isLinux then
