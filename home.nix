@@ -49,7 +49,7 @@ in
         hello
         alacritty
         kitty
-        nixfmt-rfc-style # styling nix files
+        nixfmt # styling nix files
         qmk
         nerd-fonts.blex-mono
         mpv
@@ -62,7 +62,7 @@ in
         bitwarden-cli
         openvpn
         qbittorrent
-        xfce.thunar # File Explorer
+        thunar # File Explorer
         bashmount # Disk Manager
         pulsemixer # Audio Manager
         element-desktop # Matrix chat client
