@@ -47,7 +47,7 @@
 
     # User settings per-machine
     linuxUserSettings = baseUserSettings // {
-      theme = "gruvbox-dark-hard";
+      theme = "gigavolt";
       wm = "sway";
     };
 
@@ -67,6 +67,21 @@
         specialArgs = {
           inherit systemSettings;
           userSettings = linuxUserSettings;
+        };
+      };
+
+      testServer = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings //
+            {
+              username = "testServer";
+            };
+
+           inherit systemSettings;
         };
       };
     };
