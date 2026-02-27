@@ -19,6 +19,9 @@
   time.timeZone = systemSettings.timezone;
   i18n.defaultLocale = systemSettings.locale;
 
+  # Trusted users for uploading nix store paths
+  nix.settings.trusted-users = ["root" userSettings.username ];
+
   # Basic CLI tools you'll always want when SSHing in
   environment.systemPackages = with pkgs; [
     htop

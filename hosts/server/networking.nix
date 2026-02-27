@@ -9,6 +9,14 @@
     # rather than here so the common module stays flexible
   };
 
+  systemd.network = {
+    enable = true;
+    networks."10-ethernet" = {
+      matchConfig.Name = "en* eth*";
+      networkConfig.DHCP = "yes";
+    };
+  };
+
   # systemd-networkd waits for the network before proceeding but doesn't
   # block boot forever if a link is slow to come up
   systemd.network.wait-online.anyInterface = true;

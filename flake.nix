@@ -70,18 +70,54 @@
         };
       };
 
-      testServer = nixpkgs.lib.nixosSystem {
+      initialProxmoxVMA = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/server
         ];
         specialArgs = {
-          userSettings = baseUserSettings //
-            {
-              username = "testServer";
-            };
+          userSettings = baseUserSettings;
 
-           inherit systemSettings;
+           systemSettings = systemSettings //
+            {
+              hostname = "initialProxmoxVMA";
+            }
+            ;
+        };
+      };
+
+      proxmoxVM = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+          ./hosts/server/hardware-configuration.nix
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+
+           systemSettings = systemSettings //
+            {
+              hostname = "baseProxmox";
+            }
+            ;
+        };
+      };
+
+      nvr = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+          ./hosts/server/hardware-configuration.nix
+          ./hosts/nvr
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+
+           systemSettings = systemSettings //
+            {
+              hostname = "nvr";
+            }
+            ;
         };
       };
     };
