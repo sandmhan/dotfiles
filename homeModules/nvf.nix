@@ -29,20 +29,22 @@
 
       options = {
         relativenumber = true; # Relative Line numbers
-        number = true; # Display the absolute line numver of the current line
+        number = true; # Display the absolute line number of the current line
         scrolloff = 5; # Number of screen lines shown around the cursor
         # Tab options
         tabstop = 2; # Number of spaces a <Tab> in the text stands for (local to buffer)
         shiftwidth = 2; # Number of spaces used for each step of (auto)indent (local to buffer)
         expandtab = true; # Expand <Tab> to spaces in Insert mode (local to buffer)
-        autoindent = true; # Do clever autoindenting
+        autoindent = true; # Do clever auto-indenting
       };
-
 
       keymaps = [
         {
           key = "j";
-          mode = ["n" "x"];
+          mode = [
+            "n"
+            "x"
+          ];
           silent = true;
           expr = true;
           action = "v:count == 0 ? 'gj' : 'j'";
@@ -50,7 +52,10 @@
         }
         {
           key = "k";
-          mode = ["n" "x"];
+          mode = [
+            "n"
+            "x"
+          ];
           silent = true;
           expr = true;
           action = "v:count == 0 ? 'gk' : 'k'";
@@ -76,14 +81,16 @@
         }
         {
           key = "<esc>";
-          mode = [ "n" "i" ];
+          mode = [
+            "n"
+            "i"
+          ];
           action = "<cmd>noh<cr><esc>";
           desc = "Escape and Clear hlsearch";
         }
         {
           key = "<leader>e";
           mode = [ "n" ];
-          #lua = true;
           action = ":lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<cr>";
           desc = "Mini-File: Open directory of current file";
         }
@@ -116,19 +123,22 @@
       mini.files.enable = true;
 
       # Navigation
-      utility.motion.flash-nvim.enable = true;
+      utility = {
 
-      # Markdown Previewer
-      utility.preview.markdownPreview.enable = true;
+        motion.flash-nvim.enable = true;
 
-      # Development Assistance
-      utility.nix-develop.enable = true;
+        # Markdown Previewer
+        preview.markdownPreview.enable = true;
 
-      # Hotkey Cheatsheet
+        # Development Assistance
+        nix-develop.enable = true;
+
+        # Color Picker/Renderer
+        ccc.enable = true;
+      };
+
+      # Hotkey cheat sheet
       binds.whichKey.enable = true;
-
-      # Random Cool Plugins
-      utility.ccc.enable = true;
 
       # List of plugins to load at startup
       startPlugins = [
@@ -158,6 +168,48 @@
         # Spellchecking
         harper-ls = {
           enable = true;
+        };
+      };
+
+      languages = {
+        enableFormat = true;
+
+        enableTreesitter = true;
+        enableExtraDiagnostics = true;
+
+        nix = {
+          enable = true;
+          extraDiagnostics.enable = true;
+          treesitter.enable = true;
+          format.type = [ "nixfmt" ];
+          lsp = {
+            enable = true;
+            servers = [ "nixd" ];
+          };
+        };
+
+        typst = {
+          enable = true;
+          treesitter.enable = true;
+          format.type = [ "typstyle" ];
+          lsp = {
+            enable = true;
+            servers = [ "tinymist" ];
+          };
+        };
+
+        clang = {
+          enable = true;
+          treesitter.enable = true;
+          lsp = {
+            enable = true;
+            servers = [ "clangd" ];
+          };
+
+          dap = {
+            enable = true;
+            debugger = "lldb-vscode";
+          };
         };
       };
 
