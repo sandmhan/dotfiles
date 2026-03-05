@@ -4,10 +4,8 @@
   ...
 }:
 {
-
   programs.nvf = {
     enable = true;
-
     settings.vim = {
       viAlias = true;
       vimAlias = true;
@@ -146,6 +144,16 @@
 
       optPlugins = [
       ];
+
+      # Autocomplete tool
+      autocomplete.blink-cmp = {
+        enable = true;
+        friendly-snippets.enable = true;
+        mappings = {
+          scrollDocsDown = "<C-f>";
+          scrollDocsUp = "<C-g>";
+        };
+      };
 
       lsp = {
         enable = true;
