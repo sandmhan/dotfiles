@@ -129,5 +129,6 @@ This will create a `vma.zst` file that can then be transferred over to the Proxm
 > Note: if provisioned resources need to be modified, CPU cores and RAM can be changed through `qm set <vmid> --<cores/memory> <value>`
 > If storage needs to be changed, it may be smoother to just regenerate the VMA with a different disk size
 
+### Copying a flake host configuration to the new VM
 
-
+Build the config locally and push to the remote host: `nixos-rebuild switch --target-host sandmhan@<target_hostname or ip> --flake .#<target_configuration> --sudo`
