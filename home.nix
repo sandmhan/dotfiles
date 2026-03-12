@@ -21,7 +21,7 @@ in
     ./homeModules/browser.nix
     ./homeModules/terminal.nix
     #./homeModules/nvim.nix
-    ./homeModules/nvf.nix
+    ./homeModules/nvf
     ./homeModules/stylix.nix
     ./homeModules/git.nix
     ./homeModules/wm.nix
