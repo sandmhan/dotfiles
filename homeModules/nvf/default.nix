@@ -17,6 +17,8 @@
     ./editing.nix
     ./git.nix
     ./notes.nix
+    ./toggles.nix
+    ./ui.nix
   ];
 
   programs.nvf = {

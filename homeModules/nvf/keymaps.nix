@@ -74,13 +74,13 @@
         }
         # fzf-lua keymaps
         {
-          key = "<leader>ff";
+          key = "<leader><leader>";
           mode = [ "n" ];
           action = "<cmd>FzfLua files<cr>";
           desc = "Find files";
         }
         {
-          key = "<leader>fg";
+          key = "<leader>/";
           mode = [ "n" ];
           action = "<cmd>FzfLua live_grep<cr>";
           desc = "Live grep";

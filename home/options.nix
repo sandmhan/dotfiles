@@ -1,0 +1,73 @@
+{
+  lib,
+  ...
+}:
+{
+  options.myHome = with lib; {
+    profiles = {
+      enableDesktop = mkEnableOption "desktop environment with GUI applications";
+      enableDevelopment = mkEnableOption "development tools and IDE configurations";
+      enableGaming = mkEnableOption "gaming packages and configurations";
+      enableMedia = mkEnableOption "media applications (mpv, image viewers, etc.)";
+      enableOffice = mkEnableOption "office suite and productivity apps";
+      enableSocial = mkEnableOption "social applications (Discord, Matrix, etc.)";
+      enableVirtualization = mkEnableOption "virtualization tools (Docker, QEMU, etc.)";
+    };
+
+    features = {
+      # Terminal features
+      enableAdvancedShell = mkEnableOption "advanced shell features (starship, direnv, etc.)";
+      enableGitExtensions = mkEnableOption "extended git tools (gitui, gh, etc.)";
+      enableTerminalUtils = mkEnableOption "advanced terminal utilities (ripgrep, fd, bat, etc.)";
+
+      # Desktop features
+      enableWindowManager = mkEnableOption "window manager (Sway/Hyprland)";
+      enableDisplayManager = mkEnableOption "display manager and login screen";
+      enableAudioTools = mkEnableOption "audio management tools";
+      enableBluetoothTools = mkEnableOption "Bluetooth management";
+      enableNetworkTools = mkEnableOption "network management GUI tools";
+
+      # Development features
+      enableClaudeCode = mkEnableOption "Claude Code configuration";
+      enableNixvim = mkEnableOption "Nixvim/Neovim configuration";
+      enableContainerTools = mkEnableOption "container development tools";
+
+      # System features
+      enableFonts = mkEnableOption "custom fonts and typography";
+      enableTheming = mkEnableOption "Stylix theming system";
+      enableSecurity = mkEnableOption "security tools (Bitwarden, VPN, etc.)";
+    };
+
+    platform = {
+      # Platform-specific options
+      enableLinuxSpecific = mkOption {
+        type = lib.types.bool;
+        default = true;  # Will be set properly in configs
+        description = "Enable Linux-specific packages and configurations";
+      };
+
+      enableDarwinSpecific = mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Enable macOS-specific packages and configurations";
+      };
+
+      isHeadless = mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether this is a headless system (no GUI)";
+      };
+
+      isWSL = mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Whether this is running under WSL";
+      };
+    };
+
+    user = {
+      enableKeyboardCustomization = mkEnableOption "custom keyboard layouts and options";
+      enableDotfileSymlinks = mkEnableOption "symlink dotfiles to home directory";
+    };
+  };
+}

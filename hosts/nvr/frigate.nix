@@ -10,7 +10,6 @@
   services.frigate = {
     enable = true;
     hostname = "0.0.0.0";
-    # bind_addr = "0.0.0.0";
 
     settings = {
       mqtt.enabled = true;

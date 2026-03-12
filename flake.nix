@@ -45,16 +45,31 @@
       gpuType = "amd";
     };
 
-    # User settings per-machine
+    # User settings per-machine/platform
     linuxUserSettings = baseUserSettings // {
-      theme = "gigavolt";
+      theme = "gruvbox-dark-hard";
       wm = "sway";
     };
 
     macUserSettings = baseUserSettings // {
-      theme = "";
-      wm = "hyprland";
+      theme = "gruvbox-dark-hard";  # Enable theming for terminal
+      wm = "";  # No WM for macOS
     };
+
+    wslUserSettings = baseUserSettings // {
+      theme = "gruvbox-dark-hard";
+      wm = "";  # No WM for WSL
+    };
+
+    # Helper function to create home configurations
+    mkHomeConfiguration = system: userSettings: modules:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+        inherit modules;
+        extraSpecialArgs = {
+          inherit userSettings;
+        };
+      };
   in {
     nixosConfigurations = {
       gaia = nixpkgs.lib.nixosSystem {
@@ -120,33 +135,58 @@
             ;
         };
       };
+
+      matrix = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+          ./hosts/server/hardware-configuration.nix
+          ./systemModules/matrix.nix
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+
+           systemSettings = systemSettings //
+            {
+              hostname = "matrix";
+            }
+            ;
+        };
+      };
     };
 
     homeConfigurations = {
-      sandmhan = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        modules = [
-          ./home.nix
-          nixvim.homeModules.nixvim
-          stylix.homeModules.stylix
-          nvf.homeManagerModules.default
-        ];
-        extraSpecialArgs = {
-          userSettings = linuxUserSettings;
-        };
-      };
+      # Linux desktop configuration (full desktop environment)
+      sandmhan = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
+        ./home/profiles/desktop.nix
+        nixvim.homeModules.nixvim
+        stylix.homeModules.stylix
+        nvf.homeManagerModules.default
+      ];
 
-      macman = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.aarch64-darwin;
-        modules = [
-          ./home.nix
-          nixvim.homeModules.nixvim
-          stylix.homeModules.stylix
-        ];
-        extraSpecialArgs = {
-          userSettings = macUserSettings;
-        };
-      };
+      # macOS configuration (terminal-focused)
+      macman = mkHomeConfiguration "aarch64-darwin" macUserSettings [
+        ./home/profiles/macos.nix
+        nixvim.homeModules.nixvim
+        stylix.homeModules.stylix
+        nvf.homeManagerModules.default
+      ];
+
+      # WSL configuration (terminal-focused)
+      wslman = mkHomeConfiguration "x86_64-linux" wslUserSettings [
+        ./home/profiles/wsl.nix
+        nixvim.homeModules.nixvim
+        stylix.homeModules.stylix
+        nvf.homeManagerModules.default
+      ];
+
+      # Terminal-only Linux configuration (for servers/headless systems)
+      terminalman = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
+        ./home/profiles/terminal.nix
+        nixvim.homeModules.nixvim
+        stylix.homeModules.stylix
+        nvf.homeManagerModules.default
+      ];
     };
   };
 }

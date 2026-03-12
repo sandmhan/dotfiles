@@ -1,6 +1,19 @@
 # NixOS & Home Manager Configuration
 
-This directory contains all configuration files for managing both **NixOS** systems and **Home Manager** environments using a unified **flake-based** setup.
+This directory contains all configuration files for managing both **NixOS** systems and **Home Manager** environments using a unified **flake-based** setup with a modern **option-based configuration system**.
+
+## 🚀 Quick Start
+
+**New to this configuration?**
+
+Option 1: **Automated Setup** (Recommended)
+```bash
+git clone <your-forked-repository> ~/dotfiles && cd ~/dotfiles && ./scripts/bootstrap.sh
+```
+
+Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete step-by-step instructions for macOS and WSL.
+
+**Existing users?** The configuration now uses an option-based system. See the [Migration Guide](#migration-from-old-system) below.
 
 ---
 
@@ -8,105 +21,183 @@ This directory contains all configuration files for managing both **NixOS** syst
 
 ```plaintext
 .
-├── configs                      # Non-nix configurations
-│   └── keyboard
-│       └── silakka54
-│           └── sandmhan
-│               ├── config.h
-│               └── keymap.c
-├── configuration.nix            # Desktop configuration
-├── flake.lock
-├── flake.nix                    # High-level flake for DD host and homelab
-├── hardware-configuration.nix   # Desktop hardware config
-├── homeModules                  # Home Manager configurations
-│   ├── bluetooth.nix
-│   ├── browser.nix
+├── BOOTSTRAP.md                 # 🚀 Setup guide for macOS and WSL
+├── CLAUDE.md                    # Claude Code project documentation
+├── configuration.nix            # Desktop NixOS configuration
+├── flake.nix                    # Main flake with all configurations
+├── home/                        # 🆕 New option-based Home Manager system
+│   ├── options.nix              # Complete option definitions
+│   ├── implementations/         # Implementation modules
+│   │   ├── core.nix             # Essential modules (always enabled)
+│   │   ├── terminal.nix         # Terminal environment
+│   │   ├── desktop.nix          # GUI applications
+│   │   ├── development.nix      # Development tools
+│   │   └── theming.nix          # Theming and fonts
+│   └── profiles/                # Declarative configuration profiles
+│       ├── README.md            # Profile customization guide
+│       ├── terminal.nix         # Base terminal profile
+│       ├── desktop.nix          # Full desktop profile
+│       ├── macos.nix            # macOS-optimized profile
+│       └── wsl.nix              # WSL-optimized profile
+├── homeModules/                 # 📦 Legacy individual modules (still used)
 │   ├── claude.nix               # Claude Code configuration
-│   ├── claude
-│   │   ├── rules
-│   │   │   ├── homelab.md       # Homelab development rules
-│   │   │   └── nix-conventions.md
-│   │   └── skills
-│   │       └── nix-flake.md     # Nix flake development skill
-│   ├── git.nix
-│   ├── login.nix
-│   ├── nvf                      # Modular Neovim configuration
+│   ├── claude/                  # Claude Code skills and rules
+│   ├── git.nix, terminal.nix    # Individual feature modules
+│   ├── nvf/                     # Modular Neovim configuration
 │   │   ├── default.nix          # Entry point
-│   │   ├── options.nix          # Editor options
-│   │   ├── keymaps.nix          # Key mappings
-│   │   ├── visuals.nix          # Visual plugins
+│   │   ├── keymaps.nix          # Key mappings and leader
 │   │   ├── lsp.nix              # LSP servers
-│   │   ├── languages.nix        # Language configs
-│   │   ├── completion.nix       # Autocomplete
-│   │   ├── treesitter.nix       # Treesitter
-│   │   └── utility.nix          # Utility plugins
-│   ├── nvim.nix
-│   ├── rofi.nix
-│   ├── stylix.nix
-│   ├── terminal.nix
-│   └── wm.nix
-├── home.nix                     # Base Home Manager module
-├── hosts                        # Hosts for homelab
-│   ├── nvr                      # Video recorder
-│   │   ├── default.nix
-│   │   └── frigate.nix
-│   └── server                   # Baseline Proxmox server config
-│       ├── default.nix
-│       ├── hardware-configuration.nix
-│       ├── networking.nix
-│       └── ssh.nix
-├── Makefile                     # Recipes for easy rebuilds
-├── README.md                    # You are here!
-├── scripts
-│   └── webcam.sh
-└── systemModules                # NixOS system modules
-    ├── frigate.nix
-    ├── jellyfin.nix
-    └── matrix.nix
+│   │   ├── completion.nix       # Autocomplete system
+│   │   └── ...                  # Other nvf modules
+│   └── ...                      # Other legacy modules
+├── hosts/                       # Homelab host configurations
+│   ├── server/                  # Base Proxmox VM configuration
+│   └── nvr/                     # Network Video Recorder
+├── systemModules/               # NixOS system modules
+│   ├── frigate.nix              # Video surveillance
+│   ├── jellyfin.nix             # Media server
+│   └── matrix.nix               # Chat server
+├── Makefile                     # Build shortcuts
+└── ...                          # Other files
 ```
 
 ---
 
 ## Overview
 
-This repository uses **Nix flakes** to declaratively manage both system and user environments.
-It unifies **NixOS**, **Home Manager**, and **Stylix** configuration into one reproducible setup that can be applied to multiple systems or users.
+This repository uses **Nix flakes** to declaratively manage both system and user environments with a modern **option-based configuration system** for maximum flexibility and ease of use.
 
-Key components:
+It unifies **NixOS**, **Home Manager**, and **Stylix** configuration into one reproducible setup that can be applied across multiple platforms (Linux, macOS, WSL).
+
+### 🆕 New Option-Based System
+
+The configuration now uses `lib.mkOption` and `lib.mkEnableOption` for:
+- **Declarative Configuration**: `myHome.features.enableGitExtensions = true` vs manual imports
+- **Composable Profiles**: Inherit and override settings easily
+- **Platform Detection**: Automatic Linux/macOS/WSL handling
+- **Type Safety**: Proper validation and documentation
+- **Conflict Resolution**: Priority-based option merging
+
+### Key Components:
 - **NixOS** for system-level configuration
-- **Home Manager** for user-level configuration
-- **Stylix** for theming and font consistency
-- **nvf** for modular Neovim configuration
+- **Home Manager** with option-based profiles for user environments
+- **Stylix** for consistent theming and fonts
+- **nvf** for modular, feature-rich Neovim configuration
 - **Claude Code** for AI-assisted development with custom skills and rules
-- **Makefile** for quick rebuild commands
+- **Platform Support**: Linux desktop, macOS, WSL, and headless systems
 
 ---
 
 ## Home Manager
 
-### Configuration
+### Available Configurations
 
-Your user configuration lives in [`home.nix`](./home.nix).
-It manages:
-- Shell setup and environment variables
-- Terminal and editor configuration (Alacritty, Neovim via nvf)
-- Fonts and color themes (via Stylix)
-- Installed CLI tools and desktop apps
-- Claude Code settings, skills, and rules
+The new option-based system provides four ready-to-use configurations:
 
-### Usage
+| Configuration | Platform | Description |
+|---------------|----------|-------------|
+| `sandmhan` | Linux Desktop | Full desktop environment with GUI apps, window manager, development tools |
+| `macman` | macOS | Terminal-focused with development tools, optimized for macOS |
+| `wslman` | WSL2 | Terminal environment with container tools, WSL-optimized |
+| `terminalman` | Linux Headless | Terminal-only for servers and headless systems |
 
-The provided `Makefile` defines shortcuts for applying specific Home Manager profiles:
+### Quick Usage
 
 ```bash
-# Apply Home Manager configuration for macOS user
-make macman
+# Apply configurations
+make sandmhan     # Linux desktop (full GUI)
+make macman       # macOS terminal environment
+make wslman       # WSL development environment
+make terminalman  # Linux headless/server
 
-# Apply Home Manager configuration for Linux user
-make sandmhan
+# Or manually with Home Manager
+home-manager switch --flake .#macman
 ```
 
-Each target corresponds to a `homeConfigurations` entry in `flake.nix`.
+### What Each Configuration Includes
+
+**Terminal Profile** (base for all):
+- Git, Neovim (nvf), tmux, bash with advanced features
+- Development tools: Claude Code, terminal utilities
+- Cross-platform theming with Stylix
+
+**Desktop Profile** (extends terminal):
+- Window manager (Sway), browser, media apps
+- GUI applications: file manager, password manager, office suite
+- Audio tools, Bluetooth management
+
+**Platform-Specific Optimizations**:
+- **macOS**: Uses native system integration, excludes Linux-specific tools
+- **WSL**: Includes container tools, excludes GUI components
+- **Headless**: Focus on terminal productivity and development
+
+### Customization with Options
+
+Create custom profiles by setting options instead of manually importing modules:
+
+```nix
+# Example: Custom gaming profile
+{
+  imports = [ ./home/profiles/desktop.nix ];
+
+  myHome = {
+    profiles = {
+      enableGaming = true;           # Enable gaming packages
+      enableVirtualization = true;  # For game development
+    };
+
+    features = {
+      enableContainerTools = true;  # For game servers
+      enableSecurity = false;       # Disable if not needed
+    };
+  };
+}
+```
+
+**Available Options** (see `home/options.nix` for complete list):
+- `myHome.profiles.*` - High-level feature sets (desktop, development, gaming, media, office, social, virtualization)
+- `myHome.features.*` - Granular controls (shell tools, git extensions, theming, security, containers)
+- `myHome.platform.*` - Platform settings (headless, WSL, Linux/macOS detection)
+
+**Custom Profile Guide**: See [home/profiles/README.md](./home/profiles/README.md) for detailed customization instructions.
+
+---
+
+## Migration from Old System
+
+**Existing users**: The configuration structure has been modernized. Here's how to migrate:
+
+### Old vs New
+
+**Before** (manual imports):
+```nix
+imports = [
+  ./homeModules/terminal.nix
+  ./homeModules/git.nix
+] ++ lib.optionals condition [ ./homeModules/desktop.nix ];
+```
+
+**After** (declarative options):
+```nix
+myHome.profiles.enableDesktop = true;
+myHome.features.enableGitExtensions = true;
+```
+
+### Migration Steps
+
+1. **Backup**: Save your current `home.nix` configuration
+2. **Choose Profile**: Pick the closest match (`terminal`, `desktop`, `macos`, `wsl`)
+3. **Test**: Apply the new configuration: `home-manager switch --flake .#profilename`
+4. **Customize**: Add options to match your previous setup
+5. **Verify**: Check that all your tools and settings are preserved
+
+### What Changed
+
+- ✅ **Easier**: Options instead of complex imports
+- ✅ **Flexible**: Override settings without conflicts
+- ✅ **Platform-aware**: Automatic Linux/macOS detection
+- ✅ **Documented**: Self-documenting through option descriptions
+- ✅ **Maintainable**: Clear separation of concerns
 
 ---
 

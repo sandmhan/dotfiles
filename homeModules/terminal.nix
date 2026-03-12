@@ -5,6 +5,9 @@
 
   programs.bash = {
     enable = true;
+    sessionVariables = {
+      EDITOR = "nvim";
+    };
     shellAliases = {
       ll = "ls -l";
       ".." = "cd ..";

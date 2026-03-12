@@ -4,9 +4,13 @@
   ...
 }:
 {
+  # Enable incoming requests to frigate web server
+  networking.firewall.allowedTCPPorts = [ 5000 ];
+
   services.frigate = {
     enable = true;
-    hostname = "localhost";
+    hostname = "0.0.0.0";
+    bind_addr = "0.0.0.0";
 
     settings = {
       mqtt.enabled = true;

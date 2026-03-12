@@ -1,6 +1,7 @@
-.PHONY: sandmhan macman gaia full update clean
+.PHONY: sandmhan macman wslman terminalman gaia full update clean
 
-sandmhan macman:
+# Home Manager configurations
+sandmhan macman wslman terminalman:
 	home-manager switch --flake .#$@
 
 gaia:
