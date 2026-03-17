@@ -20,10 +20,10 @@
     };
 
     features = {
-      # Keep terminal features from parent
-      # enableAdvancedShell = true; (inherited)
-      # enableGitExtensions = true; (inherited)
-      # enableTerminalUtils = true; (inherited)
+      # Minimal disruption overrides - disable intrusive new features
+      enableAdvancedShell = false;     # Disable starship prompt, direnv, zoxide
+      enableGitExtensions = false;     # Disable gitui, gh, lazygit, delta
+      # enableTerminalUtils = true;    # Keep useful tools (ripgrep, fd, bat, eza) - inherited
 
       # Desktop features
       enableWindowManager = true;
