@@ -49,12 +49,12 @@
           action = "<cmd>lua vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())<cr>";
           desc = "Toggle inlay hints";
         }
-        # Toggle conceallevel (markdown rendering)
+        # Toggle markdown rendering (render-markdown-nvim plugin)
         {
           key = "<leader>uc";
           mode = [ "n" ];
-          action = "<cmd>lua vim.opt.conceallevel = vim.o.conceallevel == 0 and 2 or 0<cr>";
-          desc = "Toggle conceal (markdown render)";
+          action = "<cmd>RenderMarkdown toggle<cr>";
+          desc = "Toggle markdown rendering";
         }
         # Toggle signcolumn (gutter signs)
         {

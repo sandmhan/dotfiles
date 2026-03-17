@@ -36,14 +36,14 @@
         {
           key = "H";
           mode = [ "n" ];
-          action = "<cmd>bprevious<CR>";
-          desc = "Previous Buffer Navigation";
+          action = "<cmd>BufferLineCyclePrev<CR>";
+          desc = "Previous Buffer Navigation (Visual Order)";
         }
         {
           key = "L";
           mode = [ "n" ];
-          action = "<cmd>bnext<CR>";
-          desc = "Next Buffer Navigation";
+          action = "<cmd>BufferLineCycleNext<CR>";
+          desc = "Next Buffer Navigation (Visual Order)";
         }
         {
           key = "<leader>bd";
