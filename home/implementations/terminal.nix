@@ -24,7 +24,7 @@ in
       eza
       tree
       htop
-      neofetch
+      fastfetch
     ] ++ lib.optionals cfg.features.enableGitExtensions [
       gitui
       gh
