@@ -211,7 +211,19 @@ in
         newWindow = "focus";
       };
 
+      gaps = {
+        inner = 0;
+        outer = 0;
+      };
+
       defaultWorkspace = "workspace number 1";
+
+      output = {
+        "*" = {
+          scale = "2.0";  # Default 200% scaling for high-DPI laptop
+        };
+      };
+
       input = {
         "type:touchpad" = {
           click_method = "clickfinger";
@@ -247,10 +259,14 @@ in
         "${modifier}+M" = "exec ${pkgs.alacritty}/bin/alacritty --class floating-bashmount -e ${pkgs.bashmount}/bin/bashmount";
         "${modifier}+D" = "exec ${pkgs.nwg-displays}/bin/nwg-displays";
 
+        # Floating window toggle
+        "${modifier}+Shift+Space" = "floating toggle";
+
         ## Modes
         "Ctrl+${modifier}+M" = "mode move";
         "Ctrl+${modifier}+R" = "mode resize";
         "Ctrl+${modifier}+S" = "mode session";
+        "Ctrl+${modifier}+Z" = "mode scale";
       }
       // builtins.listToAttrs (
         builtins.concatMap
@@ -330,6 +346,21 @@ in
           "l" = "exec ${pkgs.swaylock}/bin/swaylock, mode default";
           "o" = "exec ${pkgs.sway}/bin/swaymsg exit, mode default";
         };
+
+        scale = {
+          # Scale mode: set display scaling (baseline: 200%)
+          # [0] 200% (default) [1] 100% (easy access) [2] 150% [3] 180% [4] 220% [5] 250%
+          Escape = "mode default";
+          Return = "mode default";
+          "0" = "output * scale 2.0";      # 200% (your default)
+          "1" = "output * scale 1.0";      # 100% (easy access for small UI)
+          "2" = "output * scale 1.5";      # 150% (smaller than default)
+          "3" = "output * scale 1.8";      # 180% (slightly smaller)
+          "4" = "output * scale 2.2";      # 220% (slightly larger)
+          "5" = "output * scale 2.5";      # 250% (much larger)
+          "minus" = "output * scale 1.8";  # Scale down from default
+          "equal" = "output * scale 2.2";  # Scale up from default
+        };
       };
 
       startup = [
@@ -357,7 +388,7 @@ in
           { class = "legcord"; }
         ];
         "4" = [
-          # Office
+          # Office & 3D Printing
           { app_id = "libreoffice-*"; }
         ];
         "5" = [
@@ -368,6 +399,7 @@ in
 
       window = {
         titlebar = false;
+        border = 0;
 
         commands = [
           {
@@ -389,6 +421,18 @@ in
           {
             criteria = { app_id = "nwg-displays"; };
             command = "floating enable, resize set 800 600";
+          }
+          {
+            criteria = { app_id = "orca-slicer"; };
+            command = "floating enable, move position center";
+          }
+          {
+            criteria = { class = "orca-slicer"; };
+            command = "floating enable, move position center";
+          }
+          {
+            criteria = { class = "OrcaSlicer"; };
+            command = "floating enable, move position center";
           }
         ];
       };

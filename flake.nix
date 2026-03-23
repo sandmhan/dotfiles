@@ -28,7 +28,7 @@
     # Shared user settings
     baseUserSettings = {
       username = "sandmhan";
-      email = "austinsanders0105@gmail.com";
+      email = "work@example.com";
       font = "BlexMono Nerd Font";
     };
 
@@ -82,75 +82,6 @@
         specialArgs = {
           inherit systemSettings;
           userSettings = linuxUserSettings;
-        };
-      };
-
-      initialProxmoxVMA = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./hosts/server
-        ];
-        specialArgs = {
-          userSettings = baseUserSettings;
-
-           systemSettings = systemSettings //
-            {
-              hostname = "initialProxmoxVMA";
-            }
-            ;
-        };
-      };
-
-      proxmoxVM = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./hosts/server
-          ./hosts/server/hardware-configuration.nix
-        ];
-        specialArgs = {
-          userSettings = baseUserSettings;
-
-           systemSettings = systemSettings //
-            {
-              hostname = "baseProxmox";
-            }
-            ;
-        };
-      };
-
-      nvr = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./hosts/server
-          ./hosts/server/hardware-configuration.nix
-          ./hosts/nvr
-        ];
-        specialArgs = {
-          userSettings = baseUserSettings;
-
-           systemSettings = systemSettings //
-            {
-              hostname = "nvr";
-            }
-            ;
-        };
-      };
-
-      matrix = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./hosts/server
-          ./hosts/server/hardware-configuration.nix
-          ./systemModules/matrix.nix
-        ];
-        specialArgs = {
-          userSettings = baseUserSettings;
-
-           systemSettings = systemSettings //
-            {
-              hostname = "matrix";
-            }
-            ;
         };
       };
     };

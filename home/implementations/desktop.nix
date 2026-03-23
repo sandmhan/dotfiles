@@ -6,6 +6,17 @@
 }:
 let
   cfg = config.myHome;
+
+  # Pin bitwarden-desktop to stable version to avoid electron build issues
+  # Use older nixpkgs with working electron/bitwarden (before electron 39 issues)
+  oldNixpkgs = import (pkgs.fetchFromGitHub {
+    owner = "NixOS";
+    repo = "nixpkgs";
+    rev = "nixos-24.05"; # Stable release before electron 39 issues
+    sha256 = "OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=";
+  }) { inherit (pkgs) system; };
+
+  bitwarden-desktop-stable = oldNixpkgs.bitwarden-desktop;
 in
 {
   # Always import desktop modules, control with options
@@ -15,6 +26,7 @@ in
     ../../homeModules/login.nix
     ../../homeModules/bluetooth.nix
     ../../homeModules/browser.nix
+    ../../homeModules/3d_printing.nix
   ];
 
   # Desktop packages
@@ -42,7 +54,7 @@ in
     ]
     # Security applications
     ++ lib.optionals cfg.features.enableSecurity [
-      bitwarden-desktop
+      bitwarden-desktop-stable  # Pinned version to avoid electron build issues
       bitwarden-cli
       openvpn
     ]

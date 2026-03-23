@@ -13,9 +13,7 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    #./systemModules/jellyfin.nix
-    # ./systemModules/frigate.nix
-    ./systemModules/matrix.nix
+    # homelab modules removed for work branch
   ];
 
   stylix = {
@@ -278,8 +276,8 @@
     ### Micro
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2a03", ATTRS{idProduct}=="0037", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
 
-    # hid_listen
-    KERNEL=="hidraw*", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
+    # hid_listen - Fixed for Vial WebHID access
+    KERNEL=="hidraw*", MODE="0660", GROUP="users", TAG+="uaccess", TAG+="udev-acl"
 
     # hid bootloaders
     ## QMK HID
