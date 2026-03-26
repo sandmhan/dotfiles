@@ -4,6 +4,8 @@
 {
   imports = [
     ./terminal.nix
+    ../implementations/moonlight.nix
+    ../implementations/sunshine.nix
   ];
 
   # macOS-specific profile configuration
@@ -22,6 +24,9 @@
       enableDisplayManager = false;  # Use macOS login
       enableAudioTools = false;  # Use native macOS audio controls
       enableNetworkTools = false;  # Use native macOS network settings
+
+      # Remote desktop features
+      enableSunshine = true;  # Game streaming server (cross-platform)
     };
 
     user = {

@@ -38,8 +38,8 @@
       enableContainerTools = true;  # More useful on desktop
 
       # Remote desktop features
-      enableMoonlight = true;   # Game streaming client (for connecting to work machine)
-      enableSunshine = false;   # Server not needed on home laptop
+      enableMoonlight = false;  # Client not needed on work machine
+      enableSunshine = true;    # Game streaming server (for home laptop to connect)
 
       # System features
       enableSecurity = true;  # Bitwarden, VPN, etc. useful on desktop
