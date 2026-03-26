@@ -15,6 +15,8 @@ in
     ../../homeModules/login.nix
     ../../homeModules/bluetooth.nix
     ../../homeModules/browser.nix
+    ./moonlight.nix
+    ./sunshine.nix
   ];
 
   # Desktop packages
