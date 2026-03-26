@@ -37,6 +37,10 @@
       # enableNixvim = true; (inherited)
       enableContainerTools = true;  # More useful on desktop
 
+      # Remote desktop features
+      enableMoonlight = true;   # Game streaming client (for connecting to work machine)
+      enableSunshine = false;   # Server not needed on home laptop
+
       # System features
       enableSecurity = true;  # Bitwarden, VPN, etc. useful on desktop
     };

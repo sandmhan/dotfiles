@@ -32,6 +32,10 @@
       enableNixvim = mkEnableOption "Nixvim/Neovim configuration";
       enableContainerTools = mkEnableOption "container development tools";
 
+      # Remote desktop features
+      enableMoonlight = mkEnableOption "Moonlight game streaming client";
+      enableSunshine = mkEnableOption "Sunshine game streaming server";
+
       # System features
       enableFonts = mkEnableOption "custom fonts and typography";
       enableTheming = mkEnableOption "Stylix theming system";

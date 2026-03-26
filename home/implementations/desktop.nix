@@ -27,6 +27,8 @@ in
     ../../homeModules/bluetooth.nix
     ../../homeModules/browser.nix
     ../../homeModules/3d_printing.nix
+    ./moonlight.nix
+    ./sunshine.nix
   ];
 
   # Desktop packages
