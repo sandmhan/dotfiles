@@ -354,6 +354,7 @@ in
           { class = "discord"; }
           { app_id = "vesktop"; }
           { app_id = "legcord"; }
+          { app_id = "electron"; }
           { class = "legcord"; }
         ];
         "4" = [

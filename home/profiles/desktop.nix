@@ -31,6 +31,7 @@
       enableAudioTools = true;
       enableBluetoothTools = true;
       enableNetworkTools = true;
+      enable3DPrinting = true;
 
       # Development features (keep from parent)
       # enableClaudeCode = true; (inherited)

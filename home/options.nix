@@ -26,6 +26,7 @@
       enableAudioTools = mkEnableOption "audio management tools";
       enableBluetoothTools = mkEnableOption "Bluetooth management";
       enableNetworkTools = mkEnableOption "network management GUI tools";
+      enable3DPrinting = mkEnableOption "3D printing tools (FreeCAD, OrcaSlicer, OpenSCAD)";
 
       # Development features
       enableClaudeCode = mkEnableOption "Claude Code configuration";

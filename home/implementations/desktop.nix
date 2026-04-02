@@ -62,6 +62,13 @@ in
     ++ lib.optionals cfg.profiles.enableGaming [
       qbittorrent
     ]
+    # 3D printing tools
+    ++ lib.optionals cfg.features.enable3DPrinting [
+      orca-slicer
+      freecad
+      openscad
+      qidi-studio
+    ]
     # Linux-specific desktop packages
     ++ lib.optionals (cfg.platform.enableLinuxSpecific && cfg.profiles.enableDesktop) [
       parsec-bin
