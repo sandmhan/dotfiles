@@ -413,7 +413,11 @@ in
       };
     };
 
-    extraConfig = "";
+    # Include runtime-switchable window colors (overrides Stylix's build-time colors).
+    # Sway processes config top-to-bottom; this include at the end always wins.
+    extraConfig = ''
+      include ~/.local/share/active-sway.conf
+    '';
 
   };
 }
