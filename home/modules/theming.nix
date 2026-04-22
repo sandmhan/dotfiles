@@ -8,16 +8,16 @@
 let
   cfg = config.myHome;
 
-  # Resolve active theme: check ~/.config/active-theme, fall back to userSettings
   activeTheme = userSettings.theme;
-
   themesDir = ../../themes;
 
+  # Theme switcher: updates flake.nix activeTheme variable, then runs HM switch
   theme-switch = pkgs.writeShellScriptBin "theme-switch" ''
     set -euo pipefail
-    THEMES_DIR="''${HOME}/dotfiles/themes"
+    DOTFILES="''${HOME}/dotfiles"
+    THEMES_DIR="''${DOTFILES}/themes"
 
-    # Build theme list with polarity labels
+    # Build theme list with polarity labels for Rofi
     THEME=$(ls -1d "''${THEMES_DIR}"/*/  \
       | xargs -I{} basename {} \
       | while read t; do
@@ -28,16 +28,15 @@ let
       | ${pkgs.gawk}/bin/awk '{print $1}')
 
     [[ -z "''${THEME}" ]] && exit 0
-    [[ -d "''${THEMES_DIR}/''${THEME}" ]] || { ${pkgs.libnotify}/bin/notify-send "Theme ''\'''${THEME}' not found"; exit 1; }
+    [[ -d "''${THEMES_DIR}/''${THEME}" ]] || { ${pkgs.libnotify}/bin/notify-send "Theme not found" "''${THEME}"; exit 1; }
 
-    # Persist selection
-    mkdir -p "''${HOME}/.config"
-    echo "''${THEME}" > "''${HOME}/.config/active-theme"
+    # Update activeTheme in flake.nix (pure — no --impure needed)
+    ${pkgs.gnused}/bin/sed -i 's|activeTheme = ".*";|activeTheme = "'"''${THEME}"'";|' "''${DOTFILES}/flake.nix"
 
-    # Fast HM rebuild (only theme configs change — near-instant)
+    # Fast HM rebuild (only theme configs change)
     ${pkgs.libnotify}/bin/notify-send "Switching theme..." "''${THEME}"
-    cd "''${HOME}/dotfiles"
-    ${pkgs.home-manager}/bin/home-manager switch --flake .#sandmhan --impure 2>&1 | tail -1
+    cd "''${DOTFILES}"
+    ${pkgs.home-manager}/bin/home-manager switch --flake .#sandmhan 2>&1 | tail -1
     ${pkgs.sway}/bin/swaymsg reload 2>/dev/null || true
     pol=$(cat "''${THEMES_DIR}/''${THEME}/polarity.txt" 2>/dev/null || echo "unknown")
     ${pkgs.libnotify}/bin/notify-send "Theme active" "''${THEME} (''${pol})"
