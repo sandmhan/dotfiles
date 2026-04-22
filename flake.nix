@@ -49,19 +49,30 @@
         gpuType = "amd";
       };
 
+      # Resolve active theme from ~/.config/active-theme if it exists,
+      # otherwise fall back to default. This enables hot-swap via theme-switch.
+      # Note: uses absolute path since flake eval is pure (no $HOME access).
+      defaultTheme = "gruvbox-dark-hard";
+      themeFile = /home/sandmhan/.config/active-theme;
+      activeTheme =
+        if builtins.pathExists themeFile then
+          builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile themeFile)
+        else
+          defaultTheme;
+
       # User settings per-machine/platform
       linuxUserSettings = baseUserSettings // {
-        theme = "gruvbox-dark-hard";
+        theme = activeTheme;
         wm = "sway";
       };
 
       macUserSettings = baseUserSettings // {
-        theme = "gruvbox-dark-hard";
+        theme = activeTheme;
         wm = "";
       };
 
       wslUserSettings = baseUserSettings // {
-        theme = "gruvbox-dark-hard";
+        theme = activeTheme;
         wm = "";
       };
 
@@ -77,7 +88,9 @@
           inherit modules;
           specialArgs = {
             inherit userSettings;
-            systemSettings = systemSettings // { inherit hostname; };
+            systemSettings = systemSettings // {
+              inherit hostname;
+            };
           };
         };
 

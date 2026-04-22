@@ -41,6 +41,13 @@
       enableFonts = mkEnableOption "custom fonts and typography";
       enableTheming = mkEnableOption "Stylix theming system";
       enableSecurity = mkEnableOption "security tools (Bitwarden, VPN, etc.)";
+
+      # Theme selection
+      theme = mkOption {
+        type = lib.types.str;
+        default = "gruvbox-dark-hard";
+        description = "Active base16 color scheme name (must match a directory in themes/)";
+      };
     };
 
     platform = {

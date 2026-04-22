@@ -19,6 +19,9 @@
 
   stylix = {
     enable = true;
+    # System-level theme stays at a neutral default; HM-level Stylix
+    # handles the active user theme via theme-switch. This avoids
+    # needing nixos-rebuild for theme changes.
     base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-hard.yaml";
   };
   # Bootloader.

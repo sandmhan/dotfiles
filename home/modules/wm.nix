@@ -235,7 +235,8 @@ in
         "${modifier}+R" =
           "exec ${pkgs.rofi}/bin/rofi -show combi -modes combi -combi-modes 'window,drun,run' ";
         "${modifier}+P" = "exec ${pkgs.rofi}/bin/rofi -show power-menu:rofi-power-menu ";
-        "${modifier}+T" = "exec pkill -SIGUSR1 waybar"; # only works if waybar has already been started
+        "${modifier}+T" = "exec pkill -SIGUSR1 waybar"; # toggle waybar visibility
+        "${modifier}+Shift+T" = "exec theme-switch"; # Rofi theme picker
         "${modifier}+${left}" = "focus left";
         "${modifier}+${right}" = "focus right";
         "${modifier}+${up}" = "focus up";
