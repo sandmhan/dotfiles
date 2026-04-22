@@ -8,16 +8,59 @@ let
   cfg = config.myHome;
 in
 {
-  # Always import desktop modules, control with options
   imports = [
     ../../homeModules/wm.nix
-    ../../homeModules/rofi.nix
-    ../../homeModules/login.nix
-    ../../homeModules/bluetooth.nix
-    ../../homeModules/browser.nix
     ./moonlight.nix
     ./sunshine.nix
   ];
+
+  # Rofi application launcher
+  programs.rofi = lib.mkIf cfg.features.enableWindowManager {
+    enable = true;
+    plugins = [ ];
+  };
+
+  # Swaylock screen locker
+  programs.swaylock = lib.mkIf cfg.features.enableWindowManager {
+    enable = true;
+    settings = {
+      color = lib.mkForce "808080";
+      font-size = 24;
+      indicator-idle-visible = false;
+      indicator-radius = 100;
+      line-color = "ffffff";
+      show-failed-attempts = true;
+    };
+  };
+
+  # Qutebrowser
+  programs.qutebrowser = lib.mkIf cfg.profiles.enableDesktop {
+    enable = true;
+    searchEngines = {
+      w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
+      g = "https://www.google.com/search?hl=en&amp;q={}";
+      hm = "https://home-manager-options.extranix.com/?query={}&release=master";
+      y = "https://www.youtube.com/results?search_query={}";
+      np = "https://search.nixos.org/packages?channel=unstable&query={}";
+      no = "https://search.nixos.org/options?channel=unstable&query={}";
+    };
+    settings = {
+      tabs = {
+        position = "left";
+        max_width = 1;
+        show = "switching";
+      };
+      scrolling.smooth = true;
+      colors.webpage.darkmode.enabled = true;
+      downloads.remove_finished = 5000;
+    };
+    extraConfig = ''
+      c.content.javascript.log_message.excludes = {
+        'userscript:_qute_stylesheet' : ['*Refused to apply inline style because it violates the following Content Security Policy directive: *'],
+        'userscript:_qute_js' : ['*TrustedHTML*']
+      }
+    '';
+  };
 
   # Desktop packages
   home.packages =
@@ -26,6 +69,16 @@ in
     lib.optionals cfg.profiles.enableDesktop [
       alacritty
       kitty
+    ]
+    # Rofi and power menu
+    ++ lib.optionals cfg.features.enableWindowManager [
+      rofi
+      rofi-power-menu
+      swaylock
+    ]
+    # Bluetooth
+    ++ lib.optionals cfg.features.enableBluetoothTools [
+      bluetui
     ]
     # Media applications
     ++ lib.optionals cfg.profiles.enableMedia [

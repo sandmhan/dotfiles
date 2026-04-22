@@ -1,15 +1,21 @@
 {
   lib,
   pkgs,
+  userSettings,
   ...
 }:
 {
-  imports = [
-    ../../homeModules/git.nix
-  ];
-
   # Always enable home-manager
   programs.home-manager.enable = true;
+
+  # Git configuration
+  programs.git = {
+    enable = true;
+    settings.user = {
+      email = userSettings.email;
+      name = userSettings.username;
+    };
+  };
 
   # Base nixpkgs configuration
   nixpkgs.config = {
