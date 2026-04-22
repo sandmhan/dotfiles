@@ -5,10 +5,10 @@
 {
   imports = [
     ../options.nix
-    ../implementations/core.nix
-    ../implementations/terminal.nix
-    ../implementations/development.nix
-    ../implementations/theming.nix
+    ../modules/core.nix
+    ../modules/terminal.nix
+    ../modules/development.nix
+    ../modules/theming.nix
   ];
 
   # Terminal profile configuration - use mkDefault for easy overrides

@@ -5,7 +5,7 @@
 {
   imports = [
     ./terminal.nix
-    ../implementations/desktop.nix
+    ../modules/desktop.nix
   ];
 
   # Desktop profile configuration - extends terminal profile
