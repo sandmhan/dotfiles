@@ -9,7 +9,7 @@ let
 in
 {
   imports = [
-    ../../homeModules/wm.nix
+    ./wm.nix
     ./moonlight.nix
     ./sunshine.nix
   ];

@@ -165,7 +165,7 @@
                 users.agent = {
                   imports = [
                     ./home/profiles/terminal.nix
-                    ./homeModules/claude-agent.nix
+                    ./home/modules/claude-agent.nix
                     stylix.homeModules.stylix
                     nvf.homeManagerModules.default
                   ];

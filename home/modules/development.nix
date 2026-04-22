@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.myHome;
-  claudeDir = ../../homeModules/claude;
+  claudeDir = ./claude;
 in
 {
   # Claude Code configuration

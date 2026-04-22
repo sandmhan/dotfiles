@@ -41,7 +41,7 @@ let
 in
 {
   imports = [
-    ../../homeModules/nvf
+    ./nvf
   ];
 
   # Bash configuration
