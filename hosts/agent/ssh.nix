@@ -55,10 +55,8 @@
   # Agent user SSH configuration
   users.users.agent = {
     openssh.authorizedKeys.keys = [
-      # TODO: Replace with actual SSH public key for agent access
-      # This should be a dedicated key pair for the agent VM
-      # Generate with: ssh-keygen -t ed25519 -C "agent-vm-access" -f ~/.ssh/agent_vm_ed25519
-      # "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... agent-vm-access"
+      # Your public key for passwordless SSH access
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3neihyMjSxDeNGI3rrrfEK2xltJ5fF8bmpU4IKqJWC framework"
     ];
   };
 

@@ -18,25 +18,12 @@
       # BIOS configuration
       bios = "ovmf";  # UEFI boot
 
-      # Storage configuration
-      scsi0 = "local-zfs:vm-999-disk-0,size=40G";
-
       # Network configuration
       net0 = "virtio=00:00:00:00:00:00,bridge=vmbr0,firewall=1";
 
       # Additional VM settings
       ostype = "l26";  # Linux kernel
-      agent = "1,fstrim_cloned_disks=1";
       onboot = "0";  # Don't auto-start
-      protection = "0";
-
-      # Performance optimizations
-      numa = "0";
-      cpu = "host";
-
-      # Hardware features
-      vga = "serial0";
-      serial0 = "socket";
 
       # Boot order
       boot = "order=scsi0";
