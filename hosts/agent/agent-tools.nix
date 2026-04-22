@@ -1,5 +1,10 @@
 # Agent VM Tools Configuration - Development and Debugging Tools
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   # Essential development packages
@@ -34,9 +39,9 @@
 
     # Container and virtualization tools
     docker-compose
-    dive  # Docker image analysis
-    ctop  # Container monitoring
-    lazydocker  # Docker TUI
+    dive # Docker image analysis
+    ctop # Container monitoring
+    lazydocker # Docker TUI
 
     # Network debugging
     netcat-gnu
@@ -70,8 +75,8 @@
 
     # File management
     ranger
-    mc  # Midnight Commander
-    eza  # Modern ls
+    mc # Midnight Commander
+    eza # Modern ls
 
     # Archive tools
     p7zip

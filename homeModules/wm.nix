@@ -83,7 +83,10 @@ in
           format-bluetooth = "{icon}  {volume}%";
           format-muted = "";
           format-icons = {
-            default = ["" ""];
+            default = [
+              ""
+              ""
+            ];
           };
           scroll-step = 1;
           on-click = "pavucontrol";
@@ -241,10 +244,14 @@ in
         "${modifier}+Shift+G" = "layout toggle splitv tabbed";
 
         # Quick settings windows
-        "${modifier}+N" = "exec ${pkgs.alacritty}/bin/alacritty --class floating-nmtui -e ${pkgs.networkmanager}/bin/nmtui";
-        "${modifier}+A" = "exec ${pkgs.alacritty}/bin/alacritty --class floating-pulsemixer -e ${pkgs.pulsemixer}/bin/pulsemixer";
-        "${modifier}+B" = "exec ${pkgs.alacritty}/bin/alacritty --class floating-bluetui -e ${pkgs.bluetui}/bin/bluetui";
-        "${modifier}+M" = "exec ${pkgs.alacritty}/bin/alacritty --class floating-bashmount -e ${pkgs.bashmount}/bin/bashmount";
+        "${modifier}+N" =
+          "exec ${pkgs.alacritty}/bin/alacritty --class floating-nmtui -e ${pkgs.networkmanager}/bin/nmtui";
+        "${modifier}+A" =
+          "exec ${pkgs.alacritty}/bin/alacritty --class floating-pulsemixer -e ${pkgs.pulsemixer}/bin/pulsemixer";
+        "${modifier}+B" =
+          "exec ${pkgs.alacritty}/bin/alacritty --class floating-bluetui -e ${pkgs.bluetui}/bin/bluetui";
+        "${modifier}+M" =
+          "exec ${pkgs.alacritty}/bin/alacritty --class floating-bashmount -e ${pkgs.bashmount}/bin/bashmount";
         "${modifier}+D" = "exec ${pkgs.nwg-displays}/bin/nwg-displays";
 
         ## Modes
@@ -372,30 +379,40 @@ in
 
         commands = [
           {
-            criteria = { app_id = "floating-nmtui"; };
+            criteria = {
+              app_id = "floating-nmtui";
+            };
             command = "floating enable, resize set 800 600";
           }
           {
-            criteria = { app_id = "floating-pulsemixer"; };
+            criteria = {
+              app_id = "floating-pulsemixer";
+            };
             command = "floating enable, resize set 800 600";
           }
           {
-            criteria = { app_id = "floating-bluetui"; };
+            criteria = {
+              app_id = "floating-bluetui";
+            };
             command = "floating enable, resize set 800 600";
           }
           {
-            criteria = { app_id = "floating-bashmount"; };
+            criteria = {
+              app_id = "floating-bashmount";
+            };
             command = "floating enable, resize set 800 600";
           }
           {
-            criteria = { app_id = "nwg-displays"; };
+            criteria = {
+              app_id = "nwg-displays";
+            };
             command = "floating enable, resize set 800 600";
           }
         ];
       };
     };
 
-    extraConfig = '''';
+    extraConfig = "";
 
   };
 }

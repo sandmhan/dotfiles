@@ -38,7 +38,7 @@ in
 
   home.packages = with pkgs; [
     tmux-sessionizer
-    fzf  # Required for tmux-sessionizer
+    fzf # Required for tmux-sessionizer
   ];
 
   programs.bash = {

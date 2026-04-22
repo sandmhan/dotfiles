@@ -14,38 +14,42 @@ in
   ];
 
   # Create service for Sunshine (Linux: systemd, macOS: launchd)
-  systemd.user.services.sunshine = lib.mkIf (cfg.features.enableSunshine && cfg.platform.enableLinuxSpecific) {
-    Unit = {
-      Description = "Sunshine Game Streaming Server";
-      After = [ "graphical-session.target" ];
-    };
+  systemd.user.services.sunshine =
+    lib.mkIf (cfg.features.enableSunshine && cfg.platform.enableLinuxSpecific)
+      {
+        Unit = {
+          Description = "Sunshine Game Streaming Server";
+          After = [ "graphical-session.target" ];
+        };
 
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.sunshine}/bin/sunshine";
-      Restart = "on-failure";
-      RestartSec = "5s";
-      # Sunshine needs access to display and input devices on Linux
-      Environment = [
-        "DISPLAY=:0"
-      ];
-    };
+        Service = {
+          Type = "simple";
+          ExecStart = "${pkgs.sunshine}/bin/sunshine";
+          Restart = "on-failure";
+          RestartSec = "5s";
+          # Sunshine needs access to display and input devices on Linux
+          Environment = [
+            "DISPLAY=:0"
+          ];
+        };
 
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
-  };
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
+      };
 
   # macOS launchd service
-  launchd.agents.sunshine = lib.mkIf (cfg.features.enableSunshine && cfg.platform.enableDarwinSpecific) {
-    enable = true;
-    config = {
-      ProgramArguments = [ "${pkgs.sunshine}/bin/sunshine" ];
-      Label = "org.homebrewformulas.sunshine";
-      RunAtLoad = true;
-      KeepAlive = true;
-    };
-  };
+  launchd.agents.sunshine =
+    lib.mkIf (cfg.features.enableSunshine && cfg.platform.enableDarwinSpecific)
+      {
+        enable = true;
+        config = {
+          ProgramArguments = [ "${pkgs.sunshine}/bin/sunshine" ];
+          Label = "org.homebrewformulas.sunshine";
+          RunAtLoad = true;
+          KeepAlive = true;
+        };
+      };
 
   # Desktop entry for manual launch
   xdg.desktopEntries = lib.mkIf cfg.features.enableSunshine {
@@ -55,7 +59,10 @@ in
       exec = "sunshine";
       icon = "sunshine";
       terminal = false;
-      categories = [ "Network" "Utility" ];
+      categories = [
+        "Network"
+        "Utility"
+      ];
     };
   };
 

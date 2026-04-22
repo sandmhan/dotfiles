@@ -18,7 +18,7 @@
     # GPU passthrough kernel parameters
     kernelParams = [
       # Enable IOMMU (uncomment based on CPU)
-      "intel_iommu=on"  # For Intel CPUs
+      "intel_iommu=on" # For Intel CPUs
       # "amd_iommu=on"  # For AMD CPUs
 
       # Bind GPU to VFIO (replace with your GPU's vendor:device ID)
@@ -35,23 +35,23 @@
   # Enable llama.cpp service
   services.llama-cpp = {
     enable = true;
-    host = "0.0.0.0";  # Listen on all interfaces for API access
+    host = "0.0.0.0"; # Listen on all interfaces for API access
     port = 8080;
     models = {
       # Default models directory
       modelsPath = "/var/lib/llama-cpp/models";
     };
     # GPU acceleration
-    acceleration = "cuda";  # or "opencl" depending on GPU
+    acceleration = "cuda"; # or "opencl" depending on GPU
   };
 
   # Additional GPU-related packages
   environment.systemPackages = with pkgs; [
-    cudatoolkit  # For NVIDIA GPU support
+    cudatoolkit # For NVIDIA GPU support
     # opencl-info  # For OpenCL GPU info
     # clinfo       # OpenCL platform info
-    nvtop        # GPU monitoring
-    lshw         # Hardware information
+    nvtop # GPU monitoring
+    lshw # Hardware information
   ];
 
   # Enable CUDA support
@@ -71,7 +71,7 @@
   # Optimize for AI workloads
   boot.kernel.sysctl = {
     # Increase shared memory for large models
-    "kernel.shmmax" = 68719476736;  # 64GB
+    "kernel.shmmax" = 68719476736; # 64GB
     "kernel.shmall" = 4294967296;
   };
 }

@@ -16,7 +16,8 @@ in
   ];
 
   # Terminal utilities
-  home.packages = with pkgs;
+  home.packages =
+    with pkgs;
     lib.optionals cfg.features.enableTerminalUtils [
       ripgrep
       fd
@@ -26,7 +27,8 @@ in
       htop
       fastfetch
       unzip
-    ] ++ lib.optionals cfg.features.enableGitExtensions [
+    ]
+    ++ lib.optionals cfg.features.enableGitExtensions [
       gitui
       gh
       lazygit
@@ -40,19 +42,16 @@ in
     zoxide.enable = true;
   };
 
-  # Keyboard layout (Linux only)
-  home.keyboard = lib.mkIf (cfg.user.enableKeyboardCustomization && cfg.platform.enableLinuxSpecific) {
-    layout = "us";
-    options = [ "caps:escape" ];
-  };
-
   # Set up home directory and username
   home = {
     username = userSettings.username;
     homeDirectory =
-      if cfg.platform.enableLinuxSpecific then "/home/${userSettings.username}"
-      else if cfg.platform.enableDarwinSpecific then "/Users/${userSettings.username}"
-      else throw "Unsupported platform";
+      if cfg.platform.enableLinuxSpecific then
+        "/home/${userSettings.username}"
+      else if cfg.platform.enableDarwinSpecific then
+        "/Users/${userSettings.username}"
+      else
+        throw "Unsupported platform";
 
     stateVersion = "24.11";
   };

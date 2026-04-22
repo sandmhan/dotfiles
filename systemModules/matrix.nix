@@ -3,7 +3,8 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   domain = "sandmhan.dev";
   matrixDomain = "matrix.${domain}";
   turnDomain = "turn.${domain}";
@@ -14,7 +15,7 @@
 
   clientConfig = {
     "m.homeserver".base_url = "https://${matrixDomain}";
-    "m.identity_server" = {};
+    "m.identity_server" = { };
   };
   serverConfig = {
     "m.server" = "${matrixDomain}:443";
@@ -24,7 +25,8 @@
     add_header Access-Control-Allow-Origin *;
     return 200 '${builtins.toJSON data}';
   '';
-in {
+in
+{
 
   ## ACME Settings
   security.acme = {
@@ -47,7 +49,7 @@ in {
 
     # Networking
 
-    listening-ips = [ "0.0.0.0"];
+    listening-ips = [ "0.0.0.0" ];
 
     # Ports
     listening-port = 3478;
@@ -79,7 +81,6 @@ in {
     '';
   };
 
-
   # Matrix setup
   services.matrix-synapse = {
     enable = true;
@@ -101,13 +102,16 @@ in {
       listeners = [
         {
           port = 8008;
-          bind_addresses = ["127.0.0.1"];
+          bind_addresses = [ "127.0.0.1" ];
           type = "http";
           tls = false;
           x_forwarded = true;
           resources = [
             {
-              names = ["client" "federation"];
+              names = [
+                "client"
+                "federation"
+              ];
               compress = true;
             }
           ];
@@ -141,7 +145,7 @@ in {
   # PostgreSQL setup
   services.postgresql = {
     enable = true;
-    ensureDatabases = ["matrix-synapse"];
+    ensureDatabases = [ "matrix-synapse" ];
     ensureUsers = [
       {
         name = "matrix-synapse";
@@ -179,10 +183,21 @@ in {
   };
 
   networking.firewall = {
-    allowedTCPPorts = [443 80 3478 5349];
-    allowedUDPPorts = [3478 5349];
+    allowedTCPPorts = [
+      443
+      80
+      3478
+      5349
+    ];
+    allowedUDPPorts = [
+      3478
+      5349
+    ];
     allowedUDPPortRanges = [
-      { from = 49152; to = 65535; }
+      {
+        from = 49152;
+        to = 65535;
+      }
     ];
 
   };

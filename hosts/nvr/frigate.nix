@@ -25,14 +25,17 @@
       cameras."fishtank".ffmpeg.inputs = [
         {
           path = "rtsp://192.168.50.174:554/ch0_0.h264";
-          roles = ["record"];
+          roles = [ "record" ];
         }
       ];
 
       cameras."office".ffmpeg.inputs = [
         {
           path = "rtsp://192.168.50.210:554/ch0_0.h264";
-          roles = ["detect" "record"];
+          roles = [
+            "detect"
+            "record"
+          ];
         }
       ];
 

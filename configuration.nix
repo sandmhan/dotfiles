@@ -15,7 +15,6 @@
     ./hardware-configuration.nix
     #./systemModules/jellyfin.nix
     # ./systemModules/frigate.nix
-    ./systemModules/matrix.nix
   ];
 
   stylix = {
@@ -189,7 +188,6 @@
 
   services.desktopManager.plasma6.enable = false;
 
-
   # Enabling hyprland
   programs.hyprland = {
     enable = false;
@@ -358,7 +356,10 @@
   nixpkgs.config.allowUnfree = true;
 
   # Enabling choice experimental features
-  nix.settings.experimental-features = "flakes nix-command";
+  nix.settings.experimental-features = [
+    "flakes"
+    "nix-command"
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -379,7 +380,6 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];

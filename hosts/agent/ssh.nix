@@ -1,5 +1,10 @@
 # Agent VM SSH Configuration - Hardened for Secure Access
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   # SSH service configuration
@@ -26,7 +31,7 @@
       # Disable unnecessary features
       PermitEmptyPasswords = false;
       PermitUserEnvironment = false;
-      AllowAgentForwarding = true;  # Needed for git operations
+      AllowAgentForwarding = true; # Needed for git operations
       AllowTcpForwarding = false;
       X11Forwarding = false;
       PrintMotd = false;
@@ -176,7 +181,7 @@
     description = "Run SSH monitoring";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnCalendar = "*:0/1";  # Every minute
+      OnCalendar = "*:0/1"; # Every minute
       Unit = "ssh-monitor.service";
     };
   };

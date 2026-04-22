@@ -20,7 +20,8 @@ in
   ];
 
   # Desktop packages
-  home.packages = with pkgs;
+  home.packages =
+    with pkgs;
     # GUI terminal emulators
     lib.optionals cfg.profiles.enableDesktop [
       alacritty

@@ -16,7 +16,7 @@
   programs.rofi = {
 
     enable = true;
-    plugins = [];
+    plugins = [ ];
 
   };
 

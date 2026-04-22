@@ -1,5 +1,10 @@
 # Agent VM Network Configuration - Isolated and Restricted
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   networking = {
@@ -48,7 +53,10 @@
     networkmanager.enable = false;
 
     # DNS configuration
-    nameservers = [ "1.1.1.1" "8.8.8.8" ];
+    nameservers = [
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
   };
 
   # Container network configuration

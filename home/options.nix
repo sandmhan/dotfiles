@@ -47,7 +47,7 @@
       # Platform-specific options
       enableLinuxSpecific = mkOption {
         type = lib.types.bool;
-        default = true;  # Will be set properly in configs
+        default = true; # Will be set properly in configs
         description = "Enable Linux-specific packages and configurations";
       };
 

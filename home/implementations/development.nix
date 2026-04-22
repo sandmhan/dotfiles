@@ -14,7 +14,8 @@ in
   ];
 
   # Development packages
-  home.packages = with pkgs;
+  home.packages =
+    with pkgs;
     # Development tools
     lib.optionals cfg.profiles.enableDevelopment [
       typst

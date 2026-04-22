@@ -1,5 +1,11 @@
 # Agent VM Image Configuration - Proxmox VMA Build
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
   imports = [
@@ -13,17 +19,17 @@
     qemuConf = {
       # Resource allocation for agent VM
       cores = 4;
-      memory = 8192;  # 8GB RAM for development tasks
+      memory = 8192; # 8GB RAM for development tasks
 
       # BIOS configuration
-      bios = "ovmf";  # UEFI boot
+      bios = "ovmf"; # UEFI boot
 
       # Network configuration
       net0 = "virtio=00:00:00:00:00:00,bridge=vmbr0,firewall=1";
 
       # Additional VM settings
-      ostype = "l26";  # Linux kernel
-      onboot = "0";  # Don't auto-start
+      ostype = "l26"; # Linux kernel
+      onboot = "0"; # Don't auto-start
 
       # Boot order
       boot = "order=scsi0";
@@ -109,7 +115,11 @@
       system_info = {
         default_user = {
           name = "agent";
-          groups = [ "wheel" "docker" "podman" ];
+          groups = [
+            "wheel"
+            "docker"
+            "podman"
+          ];
           sudo = [ "ALL=(ALL) NOPASSWD:ALL" ];
           shell = "/bin/bash";
         };
@@ -158,7 +168,10 @@
 
     # Enable flakes for the image
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       auto-optimise-store = true;
     };
 
@@ -194,7 +207,10 @@
   services.resolved = {
     enable = true;
     dnssec = "false";
-    fallbackDns = [ "1.1.1.1" "8.8.8.8" ];
+    fallbackDns = [
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
   };
 
   # Systemd-networkd for reliable networking

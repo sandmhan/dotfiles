@@ -1,5 +1,11 @@
 # Agent VM Hardware Configuration - Proxmox VM Environment
-{ config, lib, pkgs, modulesPath, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  modulesPath,
+  ...
+}:
 
 {
   imports = [
@@ -9,11 +15,21 @@
   # Boot loader configuration
   boot = {
     initrd = {
-      availableKernelModules = [ "ata_piix" "uhci_hcd" "virtio_pci" "virtio_scsi" "sd_mod" "sr_mod" ];
+      availableKernelModules = [
+        "ata_piix"
+        "uhci_hcd"
+        "virtio_pci"
+        "virtio_scsi"
+        "sd_mod"
+        "sr_mod"
+      ];
       kernelModules = [ ];
     };
 
-    kernelModules = [ "kvm-intel" "kvm-amd" ];
+    kernelModules = [
+      "kvm-intel"
+      "kvm-amd"
+    ];
     extraModulePackages = [ ];
 
     # Use GRUB for compatibility with base server config
@@ -40,7 +56,10 @@
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
-    options = [ "defaults" "noatime" ];
+    options = [
+      "defaults"
+      "noatime"
+    ];
   };
 
   fileSystems."/boot" = {
@@ -53,14 +72,19 @@
   fileSystems."/tmp" = {
     device = "tmpfs";
     fsType = "tmpfs";
-    options = [ "defaults" "noatime" "mode=1777" "size=2G" ];
+    options = [
+      "defaults"
+      "noatime"
+      "mode=1777"
+      "size=2G"
+    ];
   };
 
   # Swap configuration
   swapDevices = [
     {
       device = "/var/swapfile";
-      size = 2048;  # 2GB swap
+      size = 2048; # 2GB swap
     }
   ];
 
@@ -92,7 +116,7 @@
   # Virtualization settings
   virtualisation = {
     # Enable nested virtualization for container testing
-    kvmgt.enable = false;  # Not needed for this use case
+    kvmgt.enable = false; # Not needed for this use case
 
     # Container runtime configuration
     docker = {

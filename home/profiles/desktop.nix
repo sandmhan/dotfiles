@@ -1,4 +1,5 @@
 {
+  lib,
   ...
 }:
 {
@@ -10,45 +11,42 @@
   # Desktop profile configuration - extends terminal profile
   myHome = {
     profiles = {
-      enableDesktop = true;
-      enableDevelopment = true;  # Keep from terminal profile
-      enableMedia = true;
-      enableOffice = true;
-      enableSocial = true;
-      enableGaming = true;
-      enableVirtualization = false;  # Can be enabled per-user
+      enableDesktop = lib.mkDefault true;
+      enableDevelopment = lib.mkDefault true;
+      enableMedia = lib.mkDefault true;
+      enableOffice = lib.mkDefault true;
+      enableSocial = lib.mkDefault true;
+      enableGaming = lib.mkDefault true;
+      enableVirtualization = lib.mkDefault false;
     };
 
     features = {
       # Minimal disruption overrides - disable intrusive new features
-      enableAdvancedShell = false;     # Disable starship prompt, direnv, zoxide
-      enableGitExtensions = false;     # Disable gitui, gh, lazygit, delta
-      # enableTerminalUtils = true;    # Keep useful tools (ripgrep, fd, bat, eza) - inherited
+      enableAdvancedShell = lib.mkDefault false;
+      enableGitExtensions = lib.mkDefault false;
 
       # Desktop features
-      enableWindowManager = true;
-      enableDisplayManager = true;
-      enableAudioTools = true;
-      enableBluetoothTools = true;
-      enableNetworkTools = true;
-      enable3DPrinting = true;
+      enableWindowManager = lib.mkDefault true;
+      enableDisplayManager = lib.mkDefault true;
+      enableAudioTools = lib.mkDefault true;
+      enableBluetoothTools = lib.mkDefault true;
+      enableNetworkTools = lib.mkDefault true;
+      enable3DPrinting = lib.mkDefault true;
 
-      # Development features (keep from parent)
-      # enableClaudeCode = true; (inherited)
-      # enableNixvim = true; (inherited)
-      enableContainerTools = true;  # More useful on desktop
+      # Development features
+      enableContainerTools = lib.mkDefault true;
 
       # Remote desktop features
-      enableMoonlight = true;   # Game streaming client (for connecting to work machine)
-      enableSunshine = false;   # Server not needed on home laptop
+      enableMoonlight = lib.mkDefault true;
+      enableSunshine = lib.mkDefault false;
 
       # System features
-      enableSecurity = true;  # Bitwarden, VPN, etc. useful on desktop
+      enableSecurity = lib.mkDefault true;
     };
 
     platform = {
-      isHeadless = false;  # Override terminal profile
-      isWSL = false;
+      isHeadless = lib.mkDefault false;
+      isWSL = lib.mkDefault false;
     };
   };
 }

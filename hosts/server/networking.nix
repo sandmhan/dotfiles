@@ -22,5 +22,8 @@
   systemd.network.wait-online.anyInterface = true;
 
   # DNS — use your router or a local resolver; fallback to Cloudflare
-  networking.nameservers = [ "10.0.0.1" "1.1.1.1" ];
+  networking.nameservers = [
+    "10.0.0.1"
+    "1.1.1.1"
+  ];
 }

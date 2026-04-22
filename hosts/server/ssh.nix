@@ -3,7 +3,7 @@
   services.openssh = {
     enable = true;
     settings = {
-      PasswordAuthentication = false;   # keys only
+      PasswordAuthentication = false; # keys only
       PermitRootLogin = "no";
       X11Forwarding = false;
       # Harden ciphers — modern clients handle these fine

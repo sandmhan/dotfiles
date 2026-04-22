@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.llama-cpp;
@@ -37,16 +42,26 @@ in
     };
 
     acceleration = lib.mkOption {
-      type = lib.types.enum [ "cpu" "cuda" "opencl" "metal" ];
+      type = lib.types.enum [
+        "cpu"
+        "cuda"
+        "opencl"
+        "metal"
+      ];
       default = "cpu";
       description = "Hardware acceleration backend";
     };
 
     extraArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "Additional command line arguments";
-      example = [ "--ctx-size" "4096" "--threads" "8" ];
+      example = [
+        "--ctx-size"
+        "4096"
+        "--threads"
+        "8"
+      ];
     };
 
     environmentFile = lib.mkOption {
@@ -96,8 +111,8 @@ in
 
         # Resource limits
         LimitNOFILE = 65536;
-        MemoryHigh = "6G";  # Soft limit
-        MemoryMax = "7G";   # Hard limit for 8GB system
+        MemoryHigh = "6G"; # Soft limit
+        MemoryMax = "7G"; # Hard limit for 8GB system
 
         # Restart policy
         Restart = "always";
@@ -106,26 +121,37 @@ in
         # Environment
         EnvironmentFile = lib.optionalString (cfg.environmentFile != null) cfg.environmentFile;
 
-        ExecStart = let
-          modelArg = lib.optionalString (cfg.models.defaultModel != null)
-            "--model ${cfg.models.modelsPath}/${cfg.models.defaultModel}";
+        ExecStart =
+          let
+            modelArg = lib.optionalString (
+              cfg.models.defaultModel != null
+            ) "--model ${cfg.models.modelsPath}/${cfg.models.defaultModel}";
 
-          accelerationArgs = {
-            cuda = [ "--n-gpu-layers" "999" ];
-            opencl = [ "--opencl" ];
-            metal = [ "--metal" ];
-            cpu = [ ];
-          }.${cfg.acceleration};
+            accelerationArgs =
+              {
+                cuda = [
+                  "--n-gpu-layers"
+                  "999"
+                ];
+                opencl = [ "--opencl" ];
+                metal = [ "--metal" ];
+                cpu = [ ];
+              }
+              .${cfg.acceleration};
 
-          allArgs = [
-            "--host" cfg.host
-            "--port" (toString cfg.port)
-            "--models-path" cfg.models.modelsPath
-          ] ++ lib.optional (cfg.models.defaultModel != null) modelArg
+            allArgs = [
+              "--host"
+              cfg.host
+              "--port"
+              (toString cfg.port)
+              "--models-path"
+              cfg.models.modelsPath
+            ]
+            ++ lib.optional (cfg.models.defaultModel != null) modelArg
             ++ accelerationArgs
             ++ cfg.extraArgs;
-        in
-        "${cfg.package}/bin/llama-server ${lib.escapeShellArgs allArgs}";
+          in
+          "${cfg.package}/bin/llama-server ${lib.escapeShellArgs allArgs}";
       };
 
       # GPU access for CUDA

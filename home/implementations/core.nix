@@ -1,12 +1,8 @@
 {
   lib,
   pkgs,
-  config,
   ...
 }:
-let
-  cfg = config.myHome;
-in
 {
   imports = [
     ../../homeModules/git.nix
@@ -19,7 +15,6 @@ in
   nixpkgs.config = {
     allowUnfree = true;
     allowUnsupportedSystem = true;
-    allowBroken = true;
   };
 
   # Core packages that are always installed

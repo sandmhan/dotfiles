@@ -21,7 +21,10 @@ in
       exec = "moonlight";
       icon = "moonlight";
       terminal = false;
-      categories = [ "Game" "Network" ];
+      categories = [
+        "Game"
+        "Network"
+      ];
     };
   };
 }

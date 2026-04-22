@@ -11,8 +11,7 @@
     ];
   };
 
-  programs.swaylock =
-  {
+  programs.swaylock = {
     enable = true;
 
     settings = {

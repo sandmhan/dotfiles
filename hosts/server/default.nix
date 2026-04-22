@@ -20,7 +20,10 @@
   i18n.defaultLocale = systemSettings.locale;
 
   # Trusted users for uploading nix store paths
-  nix.settings.trusted-users = ["root" userSettings.username ];
+  nix.settings.trusted-users = [
+    "root"
+    userSettings.username
+  ];
 
   # Basic CLI tools you'll always want when SSHing in
   environment.systemPackages = with pkgs; [
@@ -32,7 +35,7 @@
     vim
     tmux
     lsof
-    ncdu        # disk usage explorer
+    ncdu # disk usage explorer
     ripgrep
     fd
     jq
@@ -42,7 +45,10 @@
 
   # Nix settings
   nix.settings = {
-    experimental-features = [ "nix-command" "flakes" ];
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     auto-optimise-store = true;
   };
 
@@ -82,5 +88,5 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "25.05"; # Did you read the comment?
 }

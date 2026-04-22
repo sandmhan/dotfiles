@@ -1,14 +1,20 @@
 # Agent VM - Autonomous Infrastructure Development Sandbox
 # Safe environment for Claude Code to operate with --dangerously-accept-permissions
-{ config, lib, pkgs, systemSettings, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  systemSettings,
+  ...
+}:
 
 {
   imports = [
-    ../server/default.nix  # Extend base Proxmox VM config
-    ./hardware-configuration.nix  # Hardware configuration
-    ./networking.nix       # Isolated network configuration
-    ./ssh.nix             # SSH access and hardening
-    ./agent-tools.nix     # Agent-specific tooling
+    ../server/default.nix # Extend base Proxmox VM config
+    ./hardware-configuration.nix # Hardware configuration
+    ./networking.nix # Isolated network configuration
+    ./ssh.nix # SSH access and hardening
+    ./agent-tools.nix # Agent-specific tooling
   ];
 
   # System identification
@@ -25,7 +31,10 @@
   users.users.agent = {
     isNormalUser = true;
     description = "Autonomous Agent User";
-    extraGroups = [ "wheel" "docker" ];
+    extraGroups = [
+      "wheel"
+      "docker"
+    ];
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       # SSH key will be configured in ssh.nix
