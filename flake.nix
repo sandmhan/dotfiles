@@ -12,11 +12,6 @@
       url = "github:nix-community/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixvim = {
-      url = "github:nix-community/nixvim";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nvf = {
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,7 +25,6 @@
       nixos-hardware,
       home-manager,
       stylix,
-      nixvim,
       nvf,
       ...
     }:
@@ -62,16 +56,32 @@
       };
 
       macUserSettings = baseUserSettings // {
-        theme = "gruvbox-dark-hard"; # Enable theming for terminal
-        wm = ""; # No WM for macOS
+        theme = "gruvbox-dark-hard";
+        wm = "";
       };
 
       wslUserSettings = baseUserSettings // {
         theme = "gruvbox-dark-hard";
-        wm = ""; # No WM for WSL
+        wm = "";
       };
 
-      # Helper function to create home configurations
+      # Helper to create Proxmox VM NixOS configurations
+      mkNixosSystem =
+        {
+          hostname,
+          modules ? [ ],
+          userSettings ? baseUserSettings,
+        }:
+        nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          inherit modules;
+          specialArgs = {
+            inherit userSettings;
+            systemSettings = systemSettings // { inherit hostname; };
+          };
+        };
+
+      # Helper to create Home Manager configurations
       mkHomeConfiguration =
         system: userSettings: modules:
         home-manager.lib.homeManagerConfiguration {
@@ -84,6 +94,7 @@
     in
     {
       nixosConfigurations = {
+        # Desktop — Framework 13 AMD (daily driver)
         gaia = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
@@ -97,81 +108,49 @@
           };
         };
 
-        initialProxmoxVMA = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          modules = [
-            ./hosts/server
-          ];
-          specialArgs = {
-            userSettings = baseUserSettings;
-
-            systemSettings = systemSettings // {
-              hostname = "initialProxmoxVMA";
-            };
-          };
+        # Proxmox VM base image (no hardware-configuration)
+        initialProxmoxVMA = mkNixosSystem {
+          hostname = "initialProxmoxVMA";
+          modules = [ ./hosts/server ];
         };
 
-        proxmoxVM = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+        # Generic Proxmox VM
+        proxmoxVM = mkNixosSystem {
+          hostname = "baseProxmox";
           modules = [
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
           ];
-          specialArgs = {
-            userSettings = baseUserSettings;
-
-            systemSettings = systemSettings // {
-              hostname = "baseProxmox";
-            };
-          };
         };
 
-        nvr = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+        # Network video recorder
+        nvr = mkNixosSystem {
+          hostname = "nvr";
           modules = [
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./hosts/nvr
           ];
-          specialArgs = {
-            userSettings = baseUserSettings;
-
-            systemSettings = systemSettings // {
-              hostname = "nvr";
-            };
-          };
         };
 
-        llama = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+        # LLM inference server
+        llama = mkNixosSystem {
+          hostname = "llama";
           modules = [
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./hosts/llama
           ];
-          specialArgs = {
-            userSettings = baseUserSettings;
-
-            systemSettings = systemSettings // {
-              hostname = "llama";
-            };
-          };
         };
 
-        matrix = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
+        # Matrix homeserver
+        matrix = mkNixosSystem {
+          hostname = "matrix";
           modules = [
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./systemModules/matrix.nix
           ];
-          specialArgs = {
-            userSettings = baseUserSettings;
-
-            systemSettings = systemSettings // {
-              hostname = "matrix";
-            };
-          };
         };
 
         # Agent sandbox VM for autonomous infrastructure development
@@ -187,7 +166,6 @@
                   imports = [
                     ./home/profiles/terminal.nix
                     ./homeModules/claude-agent.nix
-                    nixvim.homeModules.nixvim
                     stylix.homeModules.stylix
                     nvf.homeManagerModules.default
                   ];
@@ -206,7 +184,6 @@
               username = "agent";
               email = "agent@homelab.local";
             };
-
             systemSettings = systemSettings // {
               hostname = "agent-sandbox";
             };
@@ -224,7 +201,6 @@
               username = "agent";
               email = "agent@homelab.local";
             };
-
             systemSettings = systemSettings // {
               hostname = "agent-sandbox";
             };
@@ -233,37 +209,37 @@
       };
 
       homeConfigurations = {
-        # Linux desktop configuration (full desktop environment)
+        # Linux desktop (full desktop environment — Gaia daily driver)
         sandmhan = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
           ./home/profiles/desktop.nix
-          nixvim.homeModules.nixvim
           stylix.homeModules.stylix
           nvf.homeManagerModules.default
         ];
 
-        # macOS configuration (terminal-focused)
+        # macOS (terminal-focused)
         macman = mkHomeConfiguration "aarch64-darwin" macUserSettings [
           ./home/profiles/macos.nix
-          nixvim.homeModules.nixvim
           stylix.homeModules.stylix
           nvf.homeManagerModules.default
         ];
 
-        # WSL configuration (terminal-focused)
+        # WSL (terminal-focused)
         wslman = mkHomeConfiguration "x86_64-linux" wslUserSettings [
           ./home/profiles/wsl.nix
-          nixvim.homeModules.nixvim
           stylix.homeModules.stylix
           nvf.homeManagerModules.default
         ];
 
-        # Terminal-only Linux configuration (for servers/headless systems)
+        # Terminal-only Linux (servers/headless)
         terminalman = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
           ./home/profiles/terminal.nix
-          nixvim.homeModules.nixvim
           stylix.homeModules.stylix
           nvf.homeManagerModules.default
         ];
       };
+
+      # Formatter for `nix fmt`
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      formatter.aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt;
     };
 }
