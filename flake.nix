@@ -49,8 +49,8 @@
         gpuType = "amd";
       };
 
-      # Active theme — updated by theme-switch script (do not remove this comment)
-      # ACTIVE_THEME:
+      # Default build-time theme (Stylix bakes this into generated configs).
+      # Runtime theme switching uses OSC escape sequences — see home/modules/theming.nix.
       activeTheme = "gruvbox-dark-hard";
 
       # User settings per-machine/platform
