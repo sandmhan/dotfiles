@@ -184,6 +184,7 @@
               users.agent = {
                 imports = [
                   ./home/profiles/terminal.nix
+                  ./homeModules/claude-agent.nix
                   nixvim.homeModules.nixvim
                   stylix.homeModules.stylix
                   nvf.homeManagerModules.default

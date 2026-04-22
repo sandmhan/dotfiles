@@ -14,31 +14,18 @@
   # System identification
   networking.hostName = "agent-sandbox";
 
-  # Resource limits for safety
-  boot.kernel.sysctl = {
-    # Memory limits
-    "vm.max_map_count" = 262144;
-    # Network security
-    "net.ipv4.ip_forward" = 0;
-    "net.ipv4.conf.all.send_redirects" = 0;
-    "net.ipv4.conf.default.send_redirects" = 0;
-  };
+  # Additional resource limits are configured in hardware-configuration.nix
 
   # Container runtime for service testing
   virtualisation = {
     docker.enable = true;
-    podman = {
-      enable = true;
-      dockerCompat = true;
-      defaultNetwork.settings.dns_enabled = true;
-    };
   };
 
   # Agent user configuration
   users.users.agent = {
     isNormalUser = true;
     description = "Autonomous Agent User";
-    extraGroups = [ "wheel" "docker" "podman" ];
+    extraGroups = [ "wheel" "docker" ];
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       # SSH key will be configured in ssh.nix
@@ -62,6 +49,4 @@
     port = 9100;
     enabledCollectors = [ "systemd" ];
   };
-
-  system.stateVersion = "24.11";
 }

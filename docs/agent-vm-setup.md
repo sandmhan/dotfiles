@@ -26,17 +26,21 @@ The Agent VM is an autonomous sandbox environment where Claude Code can operate 
 ./scripts/deploy-agent-vm.sh ssh
 ```
 
-### 3. Install Claude Code
+### 3. Claude Code Ready to Use
+
+Claude Code is pre-installed and configured with autonomous permissions. Simply SSH in and start working:
 
 ```bash
 # Connect to the VM
 ./scripts/deploy-agent-vm.sh ssh
 
-# Install Claude Code (on the VM)
-curl -fsSL https://claude.ai/install | sh
+# Start Claude Code in autonomous mode
+claude-workspace
 
-# Set up workspace
-mkdir -p ~/workspace/{homelab,testing,deployments}
+# Or use specific workspace shortcuts
+claude-homelab     # Start in homelab workspace
+claude-testing     # Start in testing workspace  
+claude-deploy      # Start in deployment workspace
 ```
 
 ## Configuration
@@ -76,6 +80,7 @@ export AGENT_DISK_SIZE=40                 # Disk size in GB
 
 ### Development Environment
 
+- **Claude Code**: Pre-installed with autonomous permissions and agent-specific skills
 - **Tmux**: Pre-configured with sessionizer and session resurrection
 - **Development tools**: Git, Nix toolchain, container tools, network debugging
 - **Terminal optimization**: Modern CLI tools (bat, eza, ripgrep, fzf)
@@ -114,9 +119,10 @@ export AGENT_DISK_SIZE=40                 # Disk size in GB
 
 3. **Launch Claude Code**:
    ```bash
-   # In workspace directory
-   cd ~/workspace/homelab
-   claude --dir . --dangerously-accept-permissions
+   # Use pre-configured shortcuts for autonomous operation
+   claude-homelab        # Start in homelab workspace
+   claude-testing        # Start in testing workspace
+   claude-deploy         # Start in deployment workspace
    ```
 
 ### Tmux Sessions

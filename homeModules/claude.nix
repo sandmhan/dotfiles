@@ -54,7 +54,18 @@ in
 
     # Load skills from separate files
     skills = {
-      "nix-flake" = builtins.readFile "${claudeDir}/skills/nix-flake.md";
+      # Comprehensive Nix skills (from nix-agent-skills.zip)
+      "nix-bootstrap" = builtins.readFile "${claudeDir}/skills/nix-bootstrap/SKILL.md";
+      "nix-darwin" = builtins.readFile "${claudeDir}/skills/nix-darwin/SKILL.md";
+      "nix-debug" = builtins.readFile "${claudeDir}/skills/nix-debug/SKILL.md";
+      "nix-devshell" = builtins.readFile "${claudeDir}/skills/nix-devshell/SKILL.md";
+      "nix-flake" = builtins.readFile "${claudeDir}/skills/nix-flake/SKILL.md";
+      "nix-home-manager" = builtins.readFile "${claudeDir}/skills/nix-home-manager/SKILL.md";
+      "nix-lang" = builtins.readFile "${claudeDir}/skills/nix-lang/SKILL.md";
+
+      # Custom homelab and best practices skills (extracted from original nix-flake)
+      "nix-homelab" = builtins.readFile "${claudeDir}/skills/nix-homelab.md";
+      "nix-best-practices" = builtins.readFile "${claudeDir}/skills/nix-best-practices.md";
     };
 
     # Load rules from separate files

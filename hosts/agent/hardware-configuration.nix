@@ -30,8 +30,7 @@
       "consoleblank=0"
     ];
 
-    # Support for virtio modules
-    initrd.kernelModules = [ "virtio_balloon" "virtio_console" "virtio_rng" ];
+    # Additional virtio support is included in availableKernelModules above
 
     # Clean temporary files on boot
     tmp.cleanOnBoot = true;
@@ -120,20 +119,6 @@
             soft = 64000;
           };
         };
-      };
-    };
-
-    podman = {
-      enable = true;
-      autoPrune = {
-        enable = true;
-        dates = "weekly";
-        flags = [ "--all" ];
-      };
-      dockerCompat = true;
-      defaultNetwork.settings = {
-        dns_enabled = true;
-        ipv6_enabled = false;
       };
     };
 

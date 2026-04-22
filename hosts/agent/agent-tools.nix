@@ -13,7 +13,7 @@
     tree
     htop
     btop
-    neofetch
+    fastfetch
     unzip
     zip
     rsync
@@ -34,7 +34,6 @@
 
     # Container and virtualization tools
     docker-compose
-    podman-compose
     dive  # Docker image analysis
     ctop  # Container monitoring
     lazydocker  # Docker TUI
@@ -65,9 +64,9 @@
     nano
     bat
     less
-    grep
-    sed
-    awk
+    gnugrep
+    gnused
+    gawk
 
     # File management
     ranger
@@ -157,16 +156,6 @@
       yank
       resurrect
       continuum
-      {
-        plugin = mkTmuxPlugin {
-          pluginName = "tmux-sessionizer";
-          version = "1.0";
-          src = pkgs.writeTextDir "tmux-sessionizer.tmux" ''
-            #!/bin/bash
-            # Tmux sessionizer plugin stub
-          '';
-        };
-      }
     ];
   };
 
@@ -245,7 +234,6 @@
       alias nix-flake-check='nix flake check'
       alias nix-fmt='nixfmt .'
       alias docker-clean='docker system prune -af'
-      alias podman-clean='podman system prune -af'
 
       # Navigation functions
       workspace() {
@@ -284,7 +272,6 @@
         free -h
         echo "Running Containers:"
         docker ps 2>/dev/null || echo "Docker not available"
-        podman ps 2>/dev/null || echo "Podman not available"
         echo "Active tmux sessions:"
         tmux list-sessions 2>/dev/null || echo "No tmux sessions"
       }

@@ -25,6 +25,7 @@ in
       tree
       htop
       fastfetch
+      unzip
     ] ++ lib.optionals cfg.features.enableGitExtensions [
       gitui
       gh
