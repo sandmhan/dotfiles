@@ -1,0 +1,353 @@
+# Agent VM Setup Guide
+
+## Overview
+
+The Agent VM is an autonomous sandbox environment where Claude Code can operate with `--dangerously-accept-permissions` to develop, test, and deploy homelab infrastructure safely. This guide covers the complete setup process from building the VM to running autonomous tasks.
+
+## Quick Start
+
+### 1. Deploy the Agent VM
+
+```bash
+# Build and deploy the VM to Proxmox
+./scripts/deploy-agent-vm.sh deploy
+
+# Check status and get IP address
+./scripts/deploy-agent-vm.sh status
+```
+
+### 2. Set Up SSH Access
+
+```bash
+# Set up SSH keys for secure access
+./scripts/deploy-agent-vm.sh setup-keys
+
+# Test SSH connection
+./scripts/deploy-agent-vm.sh ssh
+```
+
+### 3. Install Claude Code
+
+```bash
+# Connect to the VM
+./scripts/deploy-agent-vm.sh ssh
+
+# Install Claude Code (on the VM)
+curl -fsSL https://claude.ai/install | sh
+
+# Set up workspace
+mkdir -p ~/workspace/{homelab,testing,deployments}
+```
+
+## Configuration
+
+### Environment Variables
+
+Configure the deployment by setting these environment variables:
+
+```bash
+export AGENT_VM_ID=900                    # VM ID on Proxmox
+export PROXMOX_HOST=proxmox.local         # Proxmox hostname
+export PROXMOX_USER=root                  # Proxmox username
+export PROXMOX_STORAGE=local-zfs          # Storage backend
+export AGENT_CPU_CORES=4                 # CPU cores
+export AGENT_MEMORY_MB=8192               # Memory in MB
+export AGENT_DISK_SIZE=40                 # Disk size in GB
+```
+
+### VM Specifications
+
+**Default Configuration:**
+- **CPU**: 4 cores (host passthrough for performance)
+- **Memory**: 8GB RAM (suitable for development tasks)
+- **Storage**: 40GB disk (extendable as needed)
+- **Network**: Bridged networking with firewall enabled
+- **OS**: NixOS with UEFI boot
+
+## Features
+
+### Security & Isolation
+
+- **Network isolation**: Restricted outbound access to essential services only
+- **Resource limits**: CPU, memory, and disk I/O constraints
+- **Container isolation**: Dedicated bridge network for container testing
+- **Firewall**: Restrictive rules with logging of blocked connections
+- **SSH hardening**: Key-only authentication with fail2ban protection
+
+### Development Environment
+
+- **Tmux**: Pre-configured with sessionizer and session resurrection
+- **Development tools**: Git, Nix toolchain, container tools, network debugging
+- **Terminal optimization**: Modern CLI tools (bat, eza, ripgrep, fzf)
+- **Shell configuration**: Optimized bash with helpful aliases and functions
+
+### Workspace Structure
+
+```
+/home/agent/
+├── workspace/          # Main development area
+│   ├── homelab/       # Infrastructure projects  
+│   ├── testing/       # Local test environments
+│   └── deployments/   # Deployment configurations
+├── templates/         # Reusable configuration templates
+├── scripts/           # Automation scripts
+└── logs/             # Agent operation logs
+```
+
+## Daily Operations
+
+### Starting Work
+
+1. **Connect to the VM**:
+   ```bash
+   ./scripts/deploy-agent-vm.sh ssh
+   ```
+
+2. **Start tmux session**:
+   ```bash
+   # Use sessionizer to navigate projects
+   tmux-sessionizer
+
+   # Or create specific session
+   tnew homelab-dev
+   ```
+
+3. **Launch Claude Code**:
+   ```bash
+   # In workspace directory
+   cd ~/workspace/homelab
+   claude --dir . --dangerously-accept-permissions
+   ```
+
+### Tmux Sessions
+
+The VM automatically creates and maintains tmux sessions:
+
+- **main**: Default session created on login
+- **homelab**: Infrastructure development
+- **testing**: Local testing and validation
+- **deployment**: VM/container deployment tasks
+- **monitoring**: System monitoring and logs
+
+**Tmux Shortcuts:**
+- `Ctrl+b f` - Launch sessionizer (fuzzy find projects)
+- `Alt+arrows` - Navigate panes without prefix
+- `Shift+arrows` - Switch windows
+- `Ctrl+b |` - Split horizontally
+- `Ctrl+b -` - Split vertically
+
+### Helpful Commands
+
+```bash
+# System status
+agent-status
+
+# Development shortcuts
+nix-build-dry           # Dry-run build
+nix-flake-check        # Validate flake
+nix-fmt                # Format Nix files
+
+# Container management
+docker-clean           # Clean Docker system
+podman-clean          # Clean Podman system
+
+# Quick navigation
+workspace homelab     # Navigate to workspace/homelab
+mkcd new-project      # Create and enter directory
+```
+
+## Claude Code Configuration
+
+### Agent-Specific Skills
+
+The agent VM comes with specialized skills for infrastructure development:
+
+- **nix-flake**: Flake development and management
+- **nix-homelab**: Proxmox/VM deployment patterns
+- **nix-lang**: Nix expression development
+- **nix-debug**: Build error resolution
+- **homelab-architect**: Infrastructure design patterns
+- **vm-deployment**: Automated VM provisioning
+- **container-management**: OCI service management
+
+### Recommended Prompts
+
+1. **System Context**:
+   ```
+   I'm an autonomous agent running in a sandbox VM designed for homelab infrastructure development. I have access to Nix tooling, container runtimes, and deployment scripts. My workspace is isolated and I can safely use --dangerously-accept-permissions.
+   ```
+
+2. **Safety Guidelines**:
+   ```
+   Operating boundaries:
+   - Develop and test configurations locally first
+   - Use container isolation for service testing
+   - Validate configurations before deployment
+   - Document all infrastructure changes
+   - Follow established Nix conventions
+   ```
+
+## Deployment Workflow
+
+### Testing New Services
+
+1. **Develop configuration**:
+   ```bash
+   cd ~/workspace/homelab
+   vim systemModules/new-service.nix
+   ```
+
+2. **Local validation**:
+   ```bash
+   nix build --dry-run .#nixosConfigurations.new-service
+   nix flake check
+   nixfmt systemModules/new-service.nix
+   ```
+
+3. **Container testing**:
+   ```bash
+   # Test OCI container locally
+   docker run --rm -p 8080:8080 new-service:latest
+   ```
+
+4. **VM deployment**:
+   ```bash
+   # Deploy to test VM
+   nixos-rebuild switch --target-host user@test-vm --flake .#new-service
+   ```
+
+### Service Development Cycle
+
+```mermaid
+graph TD
+    A[Develop Nix config] --> B[Local validation]
+    B --> C[Container testing]
+    C --> D[Test VM deployment]
+    D --> E{Tests pass?}
+    E -->|No| A
+    E -->|Yes| F[Production deployment]
+    F --> G[Monitoring & validation]
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**VM won't start:**
+```bash
+# Check VM status on Proxmox
+ssh root@proxmox.local "qm status 900"
+
+# Check logs
+ssh root@proxmox.local "journalctl -u qmeventd"
+```
+
+**SSH connection failed:**
+```bash
+# Regenerate SSH keys
+rm ~/.ssh/agent_vm_ed25519*
+./scripts/deploy-agent-vm.sh setup-keys
+```
+
+**Build failures:**
+```bash
+# Update flake inputs
+nix flake update
+
+# Check syntax
+nixfmt --check .
+
+# Validate configuration
+nix flake check
+```
+
+### Resource Monitoring
+
+Monitor resource usage from within the VM:
+
+```bash
+# System overview
+agent-status
+
+# Detailed monitoring
+htop            # Process monitoring
+iotop           # I/O monitoring  
+nethogs         # Network usage
+docker stats    # Container resources
+```
+
+### Log Locations
+
+- **System logs**: `journalctl -f`
+- **SSH access**: `/var/log/ssh-monitor.log`
+- **Container logs**: `docker logs <container>` / `podman logs <container>`
+- **Agent activity**: `~/logs/`
+
+## Maintenance
+
+### Regular Tasks
+
+1. **Update configurations**:
+   ```bash
+   ./scripts/deploy-agent-vm.sh config
+   ```
+
+2. **System updates**:
+   ```bash
+   # On the VM
+   sudo nixos-rebuild switch --upgrade-all
+   ```
+
+3. **Cleanup**:
+   ```bash
+   # Clean old generations
+   sudo nix-collect-garbage -d
+   
+   # Clean containers
+   docker system prune -af
+   podman system prune -af
+   ```
+
+### Backup Important Data
+
+The VM workspace should be backed up regularly:
+
+```bash
+# From host system
+rsync -av agent@<vm-ip>:~/workspace/ ./backups/agent-workspace/
+```
+
+### Rebuilding VM
+
+If the VM needs to be rebuilt:
+
+```bash
+# Destroy old VM
+./scripts/deploy-agent-vm.sh destroy
+
+# Deploy new VM
+./scripts/deploy-agent-vm.sh deploy
+
+# Restore workspace (if backed up)
+scp -r ./backups/agent-workspace/ agent@<vm-ip>:~/workspace/
+```
+
+## Next Steps
+
+After setting up the basic agent VM:
+
+1. **Configure Claude Code skills** - Set up agent-specific skills and prompts
+2. **Develop automation scripts** - Create deployment and testing automation  
+3. **Set up monitoring** - Configure service health checks and alerting
+4. **Create templates** - Build reusable service configuration templates
+5. **Document workflows** - Establish procedures for common infrastructure tasks
+
+## Security Considerations
+
+- **Network isolation**: The VM has restricted network access
+- **Resource limits**: CPU, memory, and disk usage are monitored and limited
+- **Container isolation**: Services run in isolated container networks
+- **SSH hardening**: Key-only authentication with intrusion detection
+- **Regular updates**: System and security updates should be applied regularly
+
+The agent VM provides a safe, isolated environment for infrastructure experimentation while maintaining security boundaries to protect your broader homelab network.

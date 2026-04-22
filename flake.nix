@@ -136,6 +136,24 @@
         };
       };
 
+      llama = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/server
+          ./hosts/server/hardware-configuration.nix
+          ./hosts/llama
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+
+           systemSettings = systemSettings //
+            {
+              hostname = "llama";
+            }
+            ;
+        };
+      };
+
       matrix = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
@@ -149,6 +167,66 @@
            systemSettings = systemSettings //
             {
               hostname = "matrix";
+            }
+            ;
+        };
+      };
+
+      # Agent sandbox VM for autonomous infrastructure development
+      agent-sandbox = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/agent
+          home-manager.nixosModules.home-manager
+          {
+            home-manager = {
+              useUserPackages = true;
+              users.agent = {
+                imports = [
+                  ./home/profiles/terminal.nix
+                  nixvim.homeModules.nixvim
+                  stylix.homeModules.stylix
+                  nvf.homeManagerModules.default
+                ];
+              };
+              extraSpecialArgs = {
+                userSettings = linuxUserSettings // {
+                  username = "agent";
+                  email = "agent@homelab.local";
+                };
+              };
+            };
+          }
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "agent";
+            email = "agent@homelab.local";
+          };
+
+           systemSettings = systemSettings //
+            {
+              hostname = "agent-sandbox";
+            }
+            ;
+        };
+      };
+
+      # Agent VM VMA image for Proxmox deployment
+      agentVMA = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/agent/image.nix
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "agent";
+            email = "agent@homelab.local";
+          };
+
+           systemSettings = systemSettings //
+            {
+              hostname = "agent-sandbox";
             }
             ;
         };
