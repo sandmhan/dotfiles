@@ -404,15 +404,19 @@ let
     mkdir -p "$HOME/.config"
     echo "$THEME" > "$HOME/.config/active-theme"
 
-    # ── 1. Terminal: OSC escape sequences ─────────────────────────────────
-    source "$THEMES_DIR/$THEME.sh"
-
-    # ── 2. Terminal: propagate to all tmux panes ───────────────────────────
-    if [ -n "''${TMUX:-}" ]; then
-      for pane in $(${pkgs.tmux}/bin/tmux list-panes -a -F '#{pane_id}'); do
-        ${pkgs.tmux}/bin/tmux send-keys -t "$pane" "source $THEMES_DIR/$THEME.sh" Enter 2>/dev/null || true
-      done
-    fi
+    # ── 1. Terminal: write OSC sequences directly to all open pty slaves ──
+    # theme-switch runs without a controlling terminal (launched by sway),
+    # so sourcing the script in-process does nothing. Instead we write
+    # directly to each /dev/pts slave the user owns:
+    #   - standalone alacritty/kitty: the terminal emulator reads from its
+    #     pty master and processes the OSC colour sequences immediately
+    #   - tmux client tty: tmux is in raw mode, sequences pass straight
+    #     through to the outer terminal (alacritty)
+    #   - tmux inner pane ptys: tmux intercepts OSC 4 silently — harmless
+    for pts in /dev/pts/[0-9]*; do
+      [ -w "$pts" ] && [ -c "$pts" ] || continue
+      bash "$THEMES_DIR/$THEME.sh" > "$pts" 2>/dev/null || true
+    done
 
     # ── 3. Sway: override window border colors and reload ──────────────────
     cat "$THEMES_DIR/$THEME-sway.conf" > "$HOME/.local/share/active-sway.conf"
