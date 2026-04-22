@@ -117,22 +117,22 @@ let
         COLORS_EOF
 
               # ── 4. Tmux colour config (mirrors Stylix/tinted-theming template) ──
-          cat > "$out/$name-tmux.conf" << TMUX_EOF
-    # Base16 theme: $name — runtime override (sourced by active-tmux.conf)
-    set-option -g  status-style                  "fg=#$base05,bg=#$base01"
-    set-window-option -g window-status-style     "fg=#$base05,bg=#$base01"
-    set-window-option -g window-status-current-style "fg=#$base0A,bg=#$base01"
-    set-option -g  pane-border-style             "fg=#$base01"
-    set-option -g  pane-active-border-style      "fg=#$base04"
-    set-option -g  message-style                 "fg=#$base05,bg=#$base02"
-    set-option -g  message-command-style         "fg=#$base05,bg=#$base02"
-    set-option -g  display-panes-active-colour   "#$base04"
-    set-option -g  display-panes-colour          "#$base01"
-    set-window-option -g clock-mode-colour       "#$base0D"
-    set-window-option -g mode-style              "fg=#$base04,bg=#$base02"
-    set-window-option -g window-status-bell-style "fg=#$base01,bg=#$base08"
-    set-window-option -g window-status-activity-style "fg=#$base05,bg=#$base01"
-    TMUX_EOF
+              cat > "$out/$name-tmux.conf" << TMUX_EOF
+        # Base16 theme: $name — runtime override (sourced by active-tmux.conf)
+        set-option -g  status-style                  "fg=#$base05,bg=#$base01"
+        set-window-option -g window-status-style     "fg=#$base05,bg=#$base01"
+        set-window-option -g window-status-current-style "fg=#$base0A,bg=#$base01"
+        set-option -g  pane-border-style             "fg=#$base01"
+        set-option -g  pane-active-border-style      "fg=#$base04"
+        set-option -g  message-style                 "fg=#$base05,bg=#$base02"
+        set-option -g  message-command-style         "fg=#$base05,bg=#$base02"
+        set-option -g  display-panes-active-colour   "#$base04"
+        set-option -g  display-panes-colour          "#$base01"
+        set-window-option -g clock-mode-colour       "#$base0D"
+        set-window-option -g mode-style              "fg=#$base04,bg=#$base02"
+        set-window-option -g window-status-bell-style "fg=#$base01,bg=#$base08"
+        set-window-option -g window-status-activity-style "fg=#$base05,bg=#$base01"
+        TMUX_EOF
 
           # ── 5. Rofi complete minimal theme ─────────────────────────────────
               cat > "$out/$name-rofi.rasi" << RASI_EOF
@@ -440,11 +440,16 @@ let
     done
 
     # ── Phase 3: all GUI reloads fired concurrently ──────────────────────────
-    # Waybar is a standalone layer-shell process — SIGUSR2 reloads CSS only.
-    # Sway reloads the include file for border colours (does NOT restart waybar).
-    # Tmux servers source the new colour conf via their socket.
+    # Waybar: SIGUSR2 reloads CSS. Note: waybar recreates its window on reload,
+    #   causing a brief flicker — this is a waybar limitation.
+    # Sway window colours: send client.* IPC commands directly — no swaymsg
+    #   reload needed. The include file ensures colours survive a sway restart.
+    # Tmux: source the new conf via each server's socket.
     pkill -SIGUSR2 waybar 2>/dev/null &
-    ${pkgs.sway}/bin/swaymsg reload 2>/dev/null &
+    grep '^client\.' "$THEMES_DIR/$THEME-sway.conf" \
+      | while IFS= read -r line; do
+          ${pkgs.sway}/bin/swaymsg "$line" 2>/dev/null || true
+        done &
     for sock in /tmp/tmux-"$(id -u)"/*; do
       [ -S "$sock" ] && ${pkgs.tmux}/bin/tmux -S "$sock" \
         source-file "$HOME/.local/share/active-tmux.conf" 2>/dev/null &
