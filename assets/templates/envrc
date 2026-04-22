@@ -1,4 +1,0 @@
-# Automatically load the Nix flake dev shell when entering this directory.
-# Requires: direnv (https://direnv.net) + nix-direnv (https://github.com/nix-community/nix-direnv)
-# After creating this file, run: direnv allow
-use flake
