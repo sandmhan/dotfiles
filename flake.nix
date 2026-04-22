@@ -87,7 +87,7 @@
         gaia = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
-            ./configuration.nix
+            ./hosts/gaia
             nixos-hardware.nixosModules.framework-13-7040-amd
             stylix.nixosModules.stylix
           ];

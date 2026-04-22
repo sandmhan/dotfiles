@@ -13,8 +13,8 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
-    #./systemModules/jellyfin.nix
-    # ./systemModules/frigate.nix
+    #../../systemModules/jellyfin.nix
+    # ../../systemModules/frigate.nix
   ];
 
   stylix = {
