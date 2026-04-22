@@ -203,11 +203,9 @@ in
       inherit up;
       inherit right;
 
-      bars = [
-        {
-          command = lib.getExe pkgs.waybar;
-        }
-      ];
+      # No sway-managed bars — waybar runs as a standalone layer-shell
+      # process via startup so swaymsg reload doesn't kill/restart it.
+      bars = [ ];
 
       focus = {
         followMouse = false;
@@ -342,6 +340,7 @@ in
 
       startup = [
         { command = lib.getExe pkgs.autotiling; }
+        { command = lib.getExe pkgs.waybar; }
         { command = lib.getExe pkgs.alacritty; }
         #{ command = lib.getExe pkgs.qutebrowser; }
         { command = lib.getExe pkgs.legcord; }

@@ -19,206 +19,224 @@ let
   #   <name>-colors.css    — GTK @define-color declarations for waybar
   #   <name>-rofi.rasi     — complete minimal rofi theme
   themeScripts = pkgs.runCommand "base16-theme-scripts" { } ''
-        mkdir -p $out
+            mkdir -p $out
 
-        for dir in ${themesDir}/*/; do
-          name=$(basename "$dir")
-          yaml="$dir/$name.yaml"
-          [ -f "$yaml" ] || continue
+            for dir in ${themesDir}/*/; do
+              name=$(basename "$dir")
+              yaml="$dir/$name.yaml"
+              [ -f "$yaml" ] || continue
 
-          extract() { grep "^$1:" "$yaml" | sed 's/.*"\(.*\)".*/\1/' | head -1; }
+              extract() { grep "^$1:" "$yaml" | sed 's/.*"\(.*\)".*/\1/' | head -1; }
 
-          base00=$(extract base00)
-          base01=$(extract base01)
-          base02=$(extract base02)
-          base03=$(extract base03)
-          base04=$(extract base04)
-          base05=$(extract base05)
-          base06=$(extract base06)
-          base07=$(extract base07)
-          base08=$(extract base08)
-          base09=$(extract base09)
-          base0A=$(extract base0A)
-          base0B=$(extract base0B)
-          base0C=$(extract base0C)
-          base0D=$(extract base0D)
-          base0E=$(extract base0E)
-          base0F=$(extract base0F)
+              base00=$(extract base00)
+              base01=$(extract base01)
+              base02=$(extract base02)
+              base03=$(extract base03)
+              base04=$(extract base04)
+              base05=$(extract base05)
+              base06=$(extract base06)
+              base07=$(extract base07)
+              base08=$(extract base08)
+              base09=$(extract base09)
+              base0A=$(extract base0A)
+              base0B=$(extract base0B)
+              base0C=$(extract base0C)
+              base0D=$(extract base0D)
+              base0E=$(extract base0E)
+              base0F=$(extract base0F)
 
-          polarity="dark"
-          [ -f "$dir/polarity.txt" ] && polarity=$(cat "$dir/polarity.txt" | tr -d '\n')
+              polarity="dark"
+              [ -f "$dir/polarity.txt" ] && polarity=$(cat "$dir/polarity.txt" | tr -d '\n')
 
-          # ── 1. Terminal OSC escape script ──────────────────────────────────
-          cat > "$out/$name.sh" << THEME_EOF
-    #!/usr/bin/env bash
-    # Base16 theme: $name ($polarity)
-    # Sets terminal color palette via OSC escape sequences
+              # ── 1. Terminal OSC escape script ──────────────────────────────────
+              cat > "$out/$name.sh" << THEME_EOF
+        #!/usr/bin/env bash
+        # Base16 theme: $name ($polarity)
+        # Sets terminal color palette via OSC escape sequences
 
-    set_color() {
-      local idx=\$1 hex=\$2
-      local r=\''${hex:0:2} g=\''${hex:2:2} b=\''${hex:4:2}
-      printf '\033]4;%d;rgb:%s/%s/%s\033\\' "\$idx" "\$r" "\$g" "\$b"
-    }
+        set_color() {
+          local idx=\$1 hex=\$2
+          local r=\''${hex:0:2} g=\''${hex:2:2} b=\''${hex:4:2}
+          printf '\033]4;%d;rgb:%s/%s/%s\033\\' "\$idx" "\$r" "\$g" "\$b"
+        }
 
-    set_color 0  "$base00"
-    set_color 1  "$base08"
-    set_color 2  "$base0B"
-    set_color 3  "$base0A"
-    set_color 4  "$base0D"
-    set_color 5  "$base0E"
-    set_color 6  "$base0C"
-    set_color 7  "$base05"
-    set_color 8  "$base03"
-    set_color 9  "$base09"
-    set_color 10 "$base0B"
-    set_color 11 "$base0A"
-    set_color 12 "$base0D"
-    set_color 13 "$base0E"
-    set_color 14 "$base0C"
-    set_color 15 "$base07"
+        set_color 0  "$base00"
+        set_color 1  "$base08"
+        set_color 2  "$base0B"
+        set_color 3  "$base0A"
+        set_color 4  "$base0D"
+        set_color 5  "$base0E"
+        set_color 6  "$base0C"
+        set_color 7  "$base05"
+        set_color 8  "$base03"
+        set_color 9  "$base09"
+        set_color 10 "$base0B"
+        set_color 11 "$base0A"
+        set_color 12 "$base0D"
+        set_color 13 "$base0E"
+        set_color 14 "$base0C"
+        set_color 15 "$base07"
 
-    export BASE16_THEME="$name"
-    export BASE16_POLARITY="$polarity"
-    THEME_EOF
-          chmod +x "$out/$name.sh"
+        export BASE16_THEME="$name"
+        export BASE16_POLARITY="$polarity"
+        THEME_EOF
+              chmod +x "$out/$name.sh"
 
-          # ── 2. Sway window color declarations ──────────────────────────────
-          # Placed at end of sway config via include — last declaration wins.
-          cat > "$out/$name-sway.conf" << SWAY_EOF
-    # Base16 theme: $name
-    # client.focused    <border>   <bg>       <text>     <indicator> <child>
-    client.focused          #$base0D #$base0D #$base00 #$base0C  #$base0D
-    client.focused_inactive #$base02 #$base01 #$base05 #$base03  #$base01
-    client.unfocused        #$base01 #$base00 #$base03 #$base01  #$base00
-    client.urgent           #$base08 #$base08 #$base00 #$base08  #$base08
-    client.placeholder      #$base00 #$base00 #$base05 #$base00  #$base00
-    client.background       #$base00
-    SWAY_EOF
+              # ── 2. Sway window color declarations ──────────────────────────────
+              # Placed at end of sway config via include — last declaration wins.
+              cat > "$out/$name-sway.conf" << SWAY_EOF
+        # Base16 theme: $name
+        # client.focused    <border>   <bg>       <text>     <indicator> <child>
+        client.focused          #$base0D #$base0D #$base00 #$base0C  #$base0D
+        client.focused_inactive #$base02 #$base01 #$base05 #$base03  #$base01
+        client.unfocused        #$base01 #$base00 #$base03 #$base01  #$base00
+        client.urgent           #$base08 #$base08 #$base00 #$base08  #$base08
+        client.placeholder      #$base00 #$base00 #$base05 #$base00  #$base00
+        client.background       #$base00
+        SWAY_EOF
 
-          # ── 3. Waybar GTK color variable declarations ───────────────────────
-          # Imported by style.css at waybar startup and on SIGUSR2 reload.
-          cat > "$out/$name-colors.css" << COLORS_EOF
-    @define-color base00 #$base00;
-    @define-color base01 #$base01;
-    @define-color base02 #$base02;
-    @define-color base03 #$base03;
-    @define-color base04 #$base04;
-    @define-color base05 #$base05;
-    @define-color base06 #$base06;
-    @define-color base07 #$base07;
-    @define-color base08 #$base08;
-    @define-color base09 #$base09;
-    @define-color base0A #$base0A;
-    @define-color base0B #$base0B;
-    @define-color base0C #$base0C;
-    @define-color base0D #$base0D;
-    @define-color base0E #$base0E;
-    @define-color base0F #$base0F;
-    COLORS_EOF
+              # ── 3. Waybar GTK color variable declarations ───────────────────────
+              # Imported by style.css at waybar startup and on SIGUSR2 reload.
+              cat > "$out/$name-colors.css" << COLORS_EOF
+        @define-color base00 #$base00;
+        @define-color base01 #$base01;
+        @define-color base02 #$base02;
+        @define-color base03 #$base03;
+        @define-color base04 #$base04;
+        @define-color base05 #$base05;
+        @define-color base06 #$base06;
+        @define-color base07 #$base07;
+        @define-color base08 #$base08;
+        @define-color base09 #$base09;
+        @define-color base0A #$base0A;
+        @define-color base0B #$base0B;
+        @define-color base0C #$base0C;
+        @define-color base0D #$base0D;
+        @define-color base0E #$base0E;
+        @define-color base0F #$base0F;
+        COLORS_EOF
 
-          # ── 4. Rofi complete minimal theme ─────────────────────────────────
-          cat > "$out/$name-rofi.rasi" << RASI_EOF
-    * {
-      background-color: #$base00;
-      text-color:       #$base05;
-      border-color:     #$base0D;
-    }
+              # ── 4. Tmux colour config (mirrors Stylix/tinted-theming template) ──
+          cat > "$out/$name-tmux.conf" << TMUX_EOF
+    # Base16 theme: $name — runtime override (sourced by active-tmux.conf)
+    set-option -g  status-style                  "fg=#$base05,bg=#$base01"
+    set-window-option -g window-status-style     "fg=#$base05,bg=#$base01"
+    set-window-option -g window-status-current-style "fg=#$base0A,bg=#$base01"
+    set-option -g  pane-border-style             "fg=#$base01"
+    set-option -g  pane-active-border-style      "fg=#$base04"
+    set-option -g  message-style                 "fg=#$base05,bg=#$base02"
+    set-option -g  message-command-style         "fg=#$base05,bg=#$base02"
+    set-option -g  display-panes-active-colour   "#$base04"
+    set-option -g  display-panes-colour          "#$base01"
+    set-window-option -g clock-mode-colour       "#$base0D"
+    set-window-option -g mode-style              "fg=#$base04,bg=#$base02"
+    set-window-option -g window-status-bell-style "fg=#$base01,bg=#$base08"
+    set-window-option -g window-status-activity-style "fg=#$base05,bg=#$base01"
+    TMUX_EOF
 
-    window {
-      background-color: @background-color;
-      border: 2px;
-      padding: 5px;
-    }
+          # ── 5. Rofi complete minimal theme ─────────────────────────────────
+              cat > "$out/$name-rofi.rasi" << RASI_EOF
+        * {
+          background-color: #$base00;
+          text-color:       #$base05;
+          border-color:     #$base0D;
+        }
 
-    mainbox {
-      border: 0;
-      padding: 0;
-    }
+        window {
+          background-color: @background-color;
+          border: 2px;
+          padding: 5px;
+        }
 
-    inputbar {
-      children: [prompt, textbox-prompt-colon, entry];
-      background-color: #$base01;
-      padding: 6px;
-    }
+        mainbox {
+          border: 0;
+          padding: 0;
+        }
 
-    prompt {
-      spacing: 0;
-      text-color: #$base0D;
-    }
+        inputbar {
+          children: [prompt, textbox-prompt-colon, entry];
+          background-color: #$base01;
+          padding: 6px;
+        }
 
-    textbox-prompt-colon {
-      expand: false;
-      str: ":";
-      margin: 0 0.3em 0 0;
-      text-color: @text-color;
-    }
+        prompt {
+          spacing: 0;
+          text-color: #$base0D;
+        }
 
-    entry {
-      spacing: 0;
-      text-color: @text-color;
-    }
+        textbox-prompt-colon {
+          expand: false;
+          str: ":";
+          margin: 0 0.3em 0 0;
+          text-color: @text-color;
+        }
 
-    listview {
-      fixed-height: 0;
-      border: 2px 0 0;
-      border-color: #$base01;
-      padding: 2px 0 0;
-      spacing: 2px;
-      scrollbar: false;
-    }
+        entry {
+          spacing: 0;
+          text-color: @text-color;
+        }
 
-    element {
-      border: 0;
-      padding: 5px;
-    }
+        listview {
+          fixed-height: 0;
+          border: 2px 0 0;
+          border-color: #$base01;
+          padding: 2px 0 0;
+          spacing: 2px;
+          scrollbar: false;
+        }
 
-    element.normal.normal {
-      background-color: @background-color;
-      text-color: @text-color;
-    }
+        element {
+          border: 0;
+          padding: 5px;
+        }
 
-    element.normal.active {
-      background-color: @background-color;
-      text-color: #$base0B;
-    }
+        element.normal.normal {
+          background-color: @background-color;
+          text-color: @text-color;
+        }
 
-    element.normal.urgent {
-      background-color: @background-color;
-      text-color: #$base08;
-    }
+        element.normal.active {
+          background-color: @background-color;
+          text-color: #$base0B;
+        }
 
-    element.selected.normal {
-      background-color: #$base0D;
-      text-color: #$base00;
-    }
+        element.normal.urgent {
+          background-color: @background-color;
+          text-color: #$base08;
+        }
 
-    element.selected.active {
-      background-color: #$base0B;
-      text-color: #$base00;
-    }
+        element.selected.normal {
+          background-color: #$base0D;
+          text-color: #$base00;
+        }
 
-    element.selected.urgent {
-      background-color: #$base08;
-      text-color: #$base00;
-    }
+        element.selected.active {
+          background-color: #$base0B;
+          text-color: #$base00;
+        }
 
-    element.alternate.normal {
-      background-color: #$base01;
-      text-color: @text-color;
-    }
+        element.selected.urgent {
+          background-color: #$base08;
+          text-color: #$base00;
+        }
 
-    element.alternate.active {
-      background-color: #$base01;
-      text-color: #$base0B;
-    }
+        element.alternate.normal {
+          background-color: #$base01;
+          text-color: @text-color;
+        }
 
-    element.alternate.urgent {
-      background-color: #$base01;
-      text-color: #$base08;
-    }
-    RASI_EOF
+        element.alternate.active {
+          background-color: #$base01;
+          text-color: #$base0B;
+        }
 
-        done
+        element.alternate.urgent {
+          background-color: #$base01;
+          text-color: #$base08;
+        }
+        RASI_EOF
+
+            done
   '';
 
   # Waybar structural CSS. Colors come from the imported colors.css which
@@ -400,45 +418,46 @@ let
       exit 1
     }
 
-    # Persist selection for new shells
-    mkdir -p "$HOME/.config"
+    mkdir -p "$HOME/.config" "$HOME/.config/waybar" "$HOME/.config/rofi" "$HOME/.local/share"
     echo "$THEME" > "$HOME/.config/active-theme"
 
-    # ── 1. Terminal: write OSC sequences directly to all open pty slaves ──
-    # theme-switch runs without a controlling terminal (launched by sway),
-    # so sourcing the script in-process does nothing. Instead we write
-    # directly to each /dev/pts slave the user owns:
-    #   - standalone alacritty/kitty: the terminal emulator reads from its
-    #     pty master and processes the OSC colour sequences immediately
-    #   - tmux client tty: tmux is in raw mode, sequences pass straight
-    #     through to the outer terminal (alacritty)
-    #   - tmux inner pane ptys: tmux intercepts OSC 4 silently — harmless
+    pol="?"
+    [ -f "$LOCAL_THEMES/$THEME/polarity.txt" ] && pol=$(tr -d '\n' < "$LOCAL_THEMES/$THEME/polarity.txt")
+
+    # ── Phase 1: write all config files (fast disk writes, no signals yet) ──
+    cat "$THEMES_DIR/$THEME-sway.conf"  > "$HOME/.local/share/active-sway.conf"
+    cat "$THEMES_DIR/$THEME-colors.css" > "$HOME/.config/waybar/colors.css"
+    cat "$THEMES_DIR/$THEME-rofi.rasi"  > "$HOME/.config/rofi/active-theme.rasi"
+    cat "$THEMES_DIR/$THEME-tmux.conf"  > "$HOME/.local/share/active-tmux.conf"
+
+    # ── Phase 2: terminal ANSI colours — write to all open pty slaves ───────
+    # Standalone terminals: alacritty reads from its pty master → OSC applied.
+    # Tmux client tty: raw mode, sequences pass through to outer terminal.
+    # Tmux inner panes: tmux intercepts OSC 4 silently — harmless.
     for pts in /dev/pts/[0-9]*; do
       [ -w "$pts" ] && [ -c "$pts" ] || continue
       bash "$THEMES_DIR/$THEME.sh" > "$pts" 2>/dev/null || true
     done
 
-    # ── 3. Sway: override window border colors and reload ──────────────────
-    cat "$THEMES_DIR/$THEME-sway.conf" > "$HOME/.local/share/active-sway.conf"
-    ${pkgs.sway}/bin/swaymsg reload 2>/dev/null || true
+    # ── Phase 3: all GUI reloads fired concurrently ──────────────────────────
+    # Waybar is a standalone layer-shell process — SIGUSR2 reloads CSS only.
+    # Sway reloads the include file for border colours (does NOT restart waybar).
+    # Tmux servers source the new colour conf via their socket.
+    pkill -SIGUSR2 waybar 2>/dev/null &
+    ${pkgs.sway}/bin/swaymsg reload 2>/dev/null &
+    for sock in /tmp/tmux-"$(id -u)"/*; do
+      [ -S "$sock" ] && ${pkgs.tmux}/bin/tmux -S "$sock" \
+        source-file "$HOME/.local/share/active-tmux.conf" 2>/dev/null &
+    done
 
-    # ── 4. Waybar: write new color vars and reload CSS ─────────────────────
-    mkdir -p "$HOME/.config/waybar"
-    cat "$THEMES_DIR/$THEME-colors.css" > "$HOME/.config/waybar/colors.css"
-    pkill -SIGUSR2 waybar 2>/dev/null || true
-
-    # ── 5. Rofi: write new theme (each invocation is fresh) ────────────────
-    cat "$THEMES_DIR/$THEME-rofi.rasi" > "$HOME/.config/rofi/active-theme.rasi"
-
-    # ── 6. GTK dark/light preference ──────────────────────────────────────
-    pol="?"
-    [ -f "$LOCAL_THEMES/$THEME/polarity.txt" ] && pol=$(tr -d '\n' < "$LOCAL_THEMES/$THEME/polarity.txt")
+    # ── Phase 4: background ancillary updates ───────────────────────────────
     if [ "$pol" = "dark" ]; then
-      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'" 2>/dev/null || true
+      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'" 2>/dev/null &
     elif [ "$pol" = "light" ]; then
-      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-light'" 2>/dev/null || true
+      ${pkgs.dconf}/bin/dconf write /org/gnome/desktop/interface/color-scheme "'prefer-light'" 2>/dev/null &
     fi
 
+    wait
     ${pkgs.libnotify}/bin/notify-send "Theme active" "$THEME ($pol)"
   '';
 in
@@ -461,6 +480,7 @@ in
     };
     targets.waybar.enable = false;
     targets.rofi.enable = false;
+    targets.tmux.enable = false;
     # Wallpaper infrastructure — ready to enable when desired:
     # image = pkgs.fetchurl {
     #   url = builtins.readFile "${themesDir}/${activeTheme}/backgroundurl.txt";
@@ -493,6 +513,13 @@ in
     install -m 644 "${themeScripts}/$ACTIVE-colors.css"   "$HOME/.config/waybar/colors.css"
     install -m 644 "${themeScripts}/$ACTIVE-sway.conf"    "$HOME/.local/share/active-sway.conf"
     install -m 644 "${themeScripts}/$ACTIVE-rofi.rasi"    "$HOME/.config/rofi/active-theme.rasi"
+    install -m 644 "${themeScripts}/$ACTIVE-tmux.conf"    "$HOME/.local/share/active-tmux.conf"
+  '';
+
+  # Tmux: source runtime theme on every new server start (overrides Stylix defaults).
+  # Uses if-shell so headless configs don't break if the file doesn't exist yet.
+  programs.tmux.extraConfig = lib.mkAfter ''
+    if-shell 'test -f ${homeDir}/.local/share/active-tmux.conf' 'source-file ${homeDir}/.local/share/active-tmux.conf'
   '';
 
   # Auto-source active terminal theme on new shell
