@@ -22,7 +22,7 @@
   # Optimize for building
   nix.settings = {
     max-jobs = "auto";          # Use all available cores
-    cores = 6;                  # All VM cores for single builds
+    cores = 4;                  # All VM cores for single builds (Dell node limit)
     builders-use-substitutes = true;
 
     # Large build sandbox and parallel builds
