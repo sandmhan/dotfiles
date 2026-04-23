@@ -347,9 +347,9 @@ Remember: Your goal is to advance homelab infrastructure development safely and 
   # Git configuration for agent commits
   programs.git = {
     enable = true;
-    userName = lib.mkForce "Autonomous Agent";
-    userEmail = lib.mkForce "agent@homelab.local";
-    extraConfig = {
+    settings = {
+      user.name = lib.mkForce "Autonomous Agent";
+      user.email = lib.mkForce "agent@homelab.local";
       init.defaultBranch = "main";
       pull.rebase = true;
       push.autoSetupRemote = true;
