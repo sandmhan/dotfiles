@@ -217,7 +217,7 @@
       agentVMA = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/agent/image.nix
+          ./hosts/agent
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {
