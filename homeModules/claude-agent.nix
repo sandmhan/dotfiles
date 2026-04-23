@@ -20,9 +20,9 @@ let
       exit 0
     fi
 
-    # Download and install Claude Code
+    # Download and install Claude Code using full path to curl
     echo "Installing Claude Code..."
-    curl -fsSL https://claude.ai/install | sh
+    ${pkgs.curl}/bin/curl -fsSL https://claude.ai/install | ${pkgs.bash}/bin/sh
 
     # Add to PATH for current session
     export PATH="$HOME/.local/bin:$PATH"
