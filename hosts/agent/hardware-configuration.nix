@@ -36,17 +36,11 @@
     tmp.cleanOnBoot = true;
   };
 
-  # File systems configuration - Generic for VMA images
+  # File systems configuration - Match VMA structure (single partition)
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = "/dev/vda1";  # Match actual VMA partition
     fsType = "ext4";
     options = [ "defaults" "noatime" ];
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/boot";
-    fsType = "vfat";
-    options = [ "defaults" ];
   };
 
   # Tmpfs for better performance
