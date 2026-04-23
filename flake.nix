@@ -199,7 +199,7 @@
                   ./home/profiles/terminal.nix
                   ./homeModules/claude-agent.nix
                   nixvim.homeModules.nixvim
-                  stylix.homeModules.stylix
+                  # stylix removed - not needed for headless agent environment
                   nvf.homeManagerModules.default
                 ];
               };
