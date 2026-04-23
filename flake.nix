@@ -85,6 +85,20 @@
         };
       };
 
+      # Minimal Proxmox base - foundation for all Proxmox VMs
+      proxmoxBase = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/proxmox-base
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "proxmox-base";
+          };
+        };
+      };
+
       initialProxmoxVMA = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
@@ -121,8 +135,7 @@
       nvr = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/server
-          ./hosts/server/hardware-configuration.nix
+          ./hosts/proxmox-base
           ./hosts/nvr
         ];
         specialArgs = {
@@ -213,23 +226,20 @@
         };
       };
 
-      # Agent VM VMA image for Proxmox deployment
+      # Agent VM VMA image for Proxmox deployment (minimal - boots reliably)
       agentVMA = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/agent
+          ./hosts/agent-minimal
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {
             username = "agent";
             email = "agent@homelab.local";
           };
-
-           systemSettings = systemSettings //
-            {
-              hostname = "agent-sandbox";
-            }
-            ;
+          systemSettings = systemSettings // {
+            hostname = "agent-sandbox";
+          };
         };
       };
     };
