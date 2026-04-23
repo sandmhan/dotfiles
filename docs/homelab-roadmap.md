@@ -157,9 +157,133 @@ This frees up **50% more resources** for additional services or the Gaming PC tr
 | **nvr** | 105 | 2 | 4GB | — (uses ai API for detection) | 30GB + NAS mount | 3 |
 | **fitness** | 107 | 1 | 1GB | — | 20GB | 3 |
 | **gaming** | 108 | 6 | 12GB | 1080 Ti or 3060 | 200GB | 4 |
-| **agent-sandbox** | 900 | 4 | 8GB | — | 40GB | Done |
+| **agent-sandbox** | 105 | 4 | 8GB | — | 24GB | Done |
+| **nixos-builder** | 200 | 6 | 12GB | — | 100GB | 1 |
 
 > Note: VMs that need GPU passthrough can only run on the Gaming PC node. Lightweight services run on the Dell now and can be migrated later.
+
+---
+
+## NixOS Builder Infrastructure
+
+### Dedicated Build Server Concept
+
+**Problem**: Current deployment workflow requires laptop to remain powered and connected during long builds. The `nixos-rebuild --target-host` pattern builds configurations locally then transfers artifacts, but this is interrupted if the laptop sleeps or disconnects.
+
+**Solution**: Deploy a dedicated **NixOS Builder VM** that handles configuration building and deployment autonomously.
+
+### Builder VM Specifications
+
+| Component | Specification | Rationale |
+|-----------|---------------|-----------|
+| **VM ID** | 200 | Dedicated infrastructure ID range |
+| **Resources** | 6 cores, 12GB RAM | Optimized for parallel Nix builds |
+| **Storage** | 100GB | Large Nix store for caching built derivations |
+| **Location** | Gaming PC node (when available) | More powerful hardware for faster builds |
+| **Fallback** | Dell node (current) | Can run with reduced performance |
+
+### Builder Capabilities
+
+**Core Functions:**
+- **Configuration Building**: Evaluate and build flake configurations for all homelab hosts
+- **Artifact Transfer**: Deploy built systems via `nixos-rebuild --target-host`
+- **Build Caching**: Maintain shared Nix store cache for faster subsequent builds
+- **Scheduled Deployments**: Automated updates and maintenance deployments
+- **Remote Triggering**: Accept build requests via API or Git webhooks
+
+**Autonomous Operations:**
+- **Uninterrupted Builds**: Continue building even if control laptop powers down
+- **Background Processing**: Handle long-running builds (agent configs, full system updates)
+- **Retry Logic**: Automatically retry failed deployments with exponential backoff
+- **Status Reporting**: Notify completion status via Matrix/email/webhooks
+
+### Builder Configuration
+
+```nix
+# hosts/nixos-builder/default.nix
+{
+  imports = [ ../server/default.nix ];
+
+  # Optimize for building
+  nix.settings = {
+    max-jobs = "auto";          # Use all available cores
+    cores = 6;                  # All VM cores for single builds  
+    builders-use-substitutes = true;
+    
+    # Large build sandbox
+    sandbox-paths = [
+      "/tmp"
+      "/var/tmp" 
+    ];
+  };
+
+  # Large temporary storage for builds
+  fileSystems."/tmp" = {
+    device = "tmpfs";
+    fsType = "tmpfs";
+    options = [ "size=8G" ];     # Large tmpfs for build artifacts
+  };
+
+  # Builder services
+  services = {
+    # Git daemon for receiving configuration updates
+    gitDaemon.enable = true;
+    
+    # SSH server for remote deployment
+    openssh.enable = true;
+    
+    # Optional: Hydra for advanced build orchestration
+    # hydra.enable = true;
+  };
+
+  # Deployment tools
+  environment.systemPackages = with pkgs; [
+    nixos-rebuild
+    git
+    nix
+    # Custom deployment scripts
+  ];
+}
+```
+
+### Integration with Current Workflow
+
+**Phase 1 Implementation:**
+1. **Deploy Builder VM**: Use proven VMA + target-host pattern  
+2. **Configure Nix Store**: Set up binary cache and substituters
+3. **Test Deployments**: Validate builder can deploy to existing VMs
+4. **Migration**: Transition from laptop-based builds to builder-based
+
+**Enhanced Deployment Pattern:**
+```bash
+# Instead of local builds:
+nixos-rebuild switch --target-host agent@10.0.0.160 --flake .#agent-sandbox
+
+# Builder-orchestrated deployments:
+ssh builder@10.0.0.200 "deploy-config agent-sandbox 10.0.0.160"
+
+# Or automated via Git push:
+git push builder main  # Triggers automatic deployment pipeline
+```
+
+**Benefits Over Current Approach:**
+- ✅ **Always Available**: Builder VM never sleeps or disconnects
+- ✅ **Dedicated Resources**: Optimized hardware for building (6 cores, 12GB RAM)
+- ✅ **Persistent Cache**: Shared Nix store reduces rebuild times
+- ✅ **Autonomous Operation**: No dependency on laptop availability
+- ✅ **Scalable**: Can build for multiple targets simultaneously
+- ✅ **Reliable**: Retry logic and error handling for robust deployments
+
+### Future Enhancements
+
+**Advanced Capabilities:**
+- **CI/CD Integration**: GitHub Actions trigger deployments via builder
+- **Configuration Validation**: Test builds in isolated environments
+- **Rollback Automation**: Automatic rollback on failed health checks
+- **Multi-Architecture**: Cross-compilation for different target architectures
+- **Build Scheduling**: Off-peak builds to minimize resource contention
+
+This builder infrastructure enables true **autonomous homelab management** where configuration changes can be deployed reliably without manual intervention or laptop dependency.
 
 ---
 
@@ -210,11 +334,41 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 
 > **Note**: Each phase can be implemented with **VMs** (current approach) or **LXC containers** (resource-efficient alternative). LXC requires developing parallel scaffolding (`hosts/lxc-base/`, `lxcConfigurations` in flake.nix) but offers 50% better resource utilization.
 
-### Phase 1 — Observability & Storage (Dell node, deploy now)
+### Phase 1 — Foundation & Observability (Dell node, deploy now)
 
-These have no GPU dependency and are lightweight enough for the Dell.
+These services have no GPU dependency and establish the foundation for autonomous homelab operations.
 
-#### 1a. Monitoring Stack (`hosts/monitor/`, `systemModules/monitoring.nix`)
+#### 1a. NixOS Builder (`hosts/nixos-builder/`, VM ID 200)
+
+**Priority**: Deploy first to enable autonomous configuration management.
+
+**Services:**
+- **Configuration Building**: Dedicated VM for building NixOS configurations
+- **Deployment Orchestration**: Remote deployment via `nixos-rebuild --target-host`
+- **Build Caching**: Persistent Nix store for faster subsequent builds
+- **Autonomous Operation**: Uninterrupted builds independent of laptop availability
+
+**Config Requirements:**
+```
+Resources: 6 cores, 12GB RAM, 100GB storage
+Network: SSH access to all homelab targets
+Storage: Large tmpfs for build artifacts (/tmp = 8GB)
+```
+
+**Implementation:**
+1. Deploy using proven VMA + target-host pattern
+2. Configure Nix settings for optimal building (max-jobs = auto, cores = 6)
+3. Set up Git daemon for configuration repository access
+4. Test deployment pipeline with existing agent-sandbox VM
+5. Migrate from laptop-based builds to builder-orchestrated deployments
+
+**Benefits:**
+- Enables builds to continue during laptop sleep/shutdown
+- Dedicated resources for faster compilation
+- Foundation for future CI/CD and autonomous updates
+- Scales to support multiple target deployments
+
+#### 1b. Monitoring Stack (`hosts/monitor/`, `systemModules/monitoring.nix`)
 
 **Services:**
 - **Prometheus** — metric collection, scraping all VM node exporters
@@ -232,7 +386,7 @@ systemModules/monitoring.nix
 
 **Why first**: Every subsequent service benefits from monitoring. Prometheus scrape targets get added as VMs come online.
 
-#### 1b. NAS VM (`hosts/nas/`, `systemModules/nas.nix`)
+#### 1c. NAS VM (`hosts/nas/`, `systemModules/nas.nix`)
 
 **Services:**
 - **NFS server** — exports for media, recordings, backups (mounted by media/nvr VMs)
