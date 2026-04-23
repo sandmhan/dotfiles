@@ -30,8 +30,8 @@
     };
   };
 
-  # Configure VM disk size from systemSettings
-  virtualisation.diskSize = systemSettings.diskSize or (50 * 1024); # Default 50GB if not specified
+  # Configure VM disk size - start smaller to avoid cptofs hang
+  virtualisation.diskSize = 16 * 1024; # 16GB - can be resized after deployment
 
   # Override filesystem config from hardware-configuration.nix
   # — the proxmox-image module provides its own filesystem layout
@@ -81,8 +81,12 @@
   # Essential services for VM
   services.resolved = {
     enable = true;
-    dnssec = "false";
-    fallbackDns = [ "1.1.1.1" "8.8.8.8" ];
+    settings = {
+      Resolve = {
+        DNSSEC = false;
+        FallbackDNS = [ "1.1.1.1" "8.8.8.8" ];
+      };
+    };
   };
 
   # Image build optimization
