@@ -244,6 +244,20 @@
         };
       };
 
+      # NixOS Builder - autonomous configuration building and deployment
+      nixos-builder = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nixos-builder
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "nixos-builder";
+          };
+        };
+      };
+
       # LXC Container Configurations (resource-efficient alternatives to VMs)
       # Deploy with: nixos-rebuild switch --target-host user@container --flake .#lxc-matrix
 
