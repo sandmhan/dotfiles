@@ -97,6 +97,7 @@
         flags = [ "--all" ];
       };
       storageDriver = "overlay2";
+      # Ensure proper daemon startup order and configuration
       daemon.settings = {
         live-restore = false;
         userland-proxy = false;
@@ -113,6 +114,9 @@
             soft = 64000;
           };
         };
+        # Ensure bridge network is available
+        bridge = "docker0";
+        ip = "172.17.0.1";
       };
     };
 
