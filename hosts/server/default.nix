@@ -9,7 +9,7 @@
 let
   # Default disk size for VMs if not specified
   defaultDiskSize = 20 * 1024; # 20GB in MB
-in:
+in
 {
   imports = [
     ./ssh.nix
