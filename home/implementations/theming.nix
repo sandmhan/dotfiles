@@ -7,8 +7,8 @@ let
   cfg = config.myHome;
 in
 {
-  # Conditionally import theming modules only when theming is enabled
-  imports = lib.optionals cfg.features.enableTheming [
+  # Always import theming modules, control with options
+  imports = [
     ../../homeModules/stylix.nix
   ];
 

@@ -1,10 +1,15 @@
 {
+  lib,
+  config,
   pkgs,
   userSettings,
   ...
 }:
+let
+  themingEnabled = config.myHome.features.enableTheming or true;
+in
 {
-  stylix = {
+  stylix = lib.mkIf themingEnabled {
     enable = true;
 
     # Current theme file
@@ -26,5 +31,5 @@
     };
   };
 
-  fonts.fontconfig.enable = true;
+  fonts.fontconfig.enable = lib.mkIf (config.myHome.features.enableFonts or true) true;
 }
