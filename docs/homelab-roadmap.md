@@ -145,6 +145,7 @@ This frees up **50% more resources** for additional services or the Gaming PC tr
 |----|----|-------|-----|-----|------|-------|
 | **monitor** | 100 | 1 | 2GB | — | 20GB | 1 |
 | **nas** | 101 | 1 | 2GB | — | 20GB + passthrough disks | 1 |
+| **homeassistant** | 103 | 2 | 4GB | — | 40GB + USB dongles | 1 |
 | **matrix** | 104 | 1 | 2GB | — | 30GB | 2 |
 | **git** | 106 | 1 | 1GB | — | 20GB | 2 |
 
@@ -405,6 +406,81 @@ systemModules/monitoring.nix
 
 **Hardware note:** On the Dell, this uses the internal 500GB HDD. When the Gaming PC comes online, attach dedicated disks and migrate.
 
+#### 1d. Home Assistant (`hosts/homeassistant/`, `systemModules/homeassistant.nix`)
+
+**Priority**: Deploy in Phase 1 to establish IoT/automation foundation that integrates with all subsequent services.
+
+**Services:**
+- **Home Assistant Core** — central automation and device management hub
+- **PostgreSQL** — database backend for historical data
+- **Nginx** — reverse proxy with ACME for external access
+- **MQTT Broker** (Mosquitto) — IoT device communication
+- **Z-Wave/Zigbee support** — local device control (USB dongles)
+
+**Integration Points:**
+- **Grafana metrics**: Custom sensors and dashboards via Home Assistant Prometheus integration
+- **Frigate cameras**: Live feeds, motion detection alerts, and automation triggers
+- **Monitoring stack**: System health sensors exported to Prometheus
+- **Matrix notifications**: Alerts and status updates via Matrix bot integration
+
+**IoT Device Support:**
+- **PetLibro devices**: Pet feeders, waterers, and automatic litterbox via cloud integration or MQTT
+- **Robot vacuum**: Cleaning schedules, room-specific cleaning, maintenance alerts
+- **Smart lights**: Scene automation, circadian lighting, presence detection
+- **Network devices**: Router/switch monitoring, bandwidth usage, device tracking
+
+**Config Structure:**
+```nix
+systemModules/homeassistant.nix
+├── services.home-assistant (core automation engine)
+├── services.postgresql (historical data storage)  
+├── services.mosquitto (MQTT broker for IoT devices)
+├── services.nginx (reverse proxy + SSL termination)
+└── networking.firewall (ports 8123, 1883, 1884)
+```
+
+**VLAN Integration:**
+- **Management VLAN (1)**: Home Assistant server access
+- **IoT VLAN (10)**: Isolated device communication via MQTT bridge
+- **Services VLAN (20)**: Integration with Frigate, Grafana, Matrix
+- **Cross-VLAN rules**: Controlled access between IoT devices and services
+
+**Automation Examples:**
+- **Pet care**: Feeding schedules, water level monitoring, litterbox cleaning alerts
+- **Security integration**: Motion detection → light automation → Matrix notifications  
+- **Energy monitoring**: Device power usage → Grafana dashboards → efficiency automations
+- **Presence detection**: Phone/device tracking → scene activation → security arming
+
+**Migration Notes:**
+- **Existing instance**: Migrate configuration from current Proxmox VM
+- **Network setup**: Reconfigure for new VLAN structure and Protectli router
+- **Device re-pairing**: Update device configurations for new network topology
+- **Backup strategy**: Regular config backups to NAS VM, database snapshots
+
+**Resources:**
+```
+VM ID: 103 (Dell node)
+Cores: 2, RAM: 4GB, Disk: 40GB
+USB passthrough: Z-Wave/Zigbee dongles
+Network: Bridge to all VLANs with firewall rules
+```
+
+**Implementation Priority:**
+1. Deploy basic Home Assistant + PostgreSQL + MQTT
+2. Migrate existing configuration and update network settings
+3. Re-establish IoT device connections on new VLANs
+4. Configure Grafana integration for monitoring dashboards
+5. Set up Frigate camera feeds and automation triggers
+6. Implement Matrix notification system
+7. Create comprehensive device automations and scenes
+
+**Benefits:**
+- **Central IoT hub**: Single interface for all smart home devices
+- **Service integration**: Unified automation across homelab services  
+- **Enhanced monitoring**: IoT device metrics in Grafana dashboards
+- **Automation platform**: Complex scenarios across security, comfort, and efficiency
+- **Mobile access**: Secure remote control via Home Assistant mobile app
+
 ### Phase 2 — Communication & Dev Tools (Dell node)
 
 #### 2a. Matrix Homeserver (`hosts/matrix/`)
@@ -584,7 +660,7 @@ secrets/
 ```
 Phase 1 (Dell, now)          Phase 2 (Dell, now)
 ┌──────────────┐             ┌──────────────┐
-│  monitoring  │◄────────────│   matrix     │
+│  monitoring  │◄────────────│   matrix     │◄─── HA notifications
 │  (grafana +  │  metrics    │  (synapse +  │
 │  prometheus) │◄──┐         │   coturn)    │
 └──────┬───────┘   │         └──────────────┘
@@ -592,23 +668,24 @@ Phase 1 (Dell, now)          Phase 2 (Dell, now)
 ┌──────▼───────┐   │         │    git       │
 │     nas      │   │         │  (forgejo)   │
 │  (nfs/smb)   │   │         └──────────────┘
-└──────────────┘   │
-                   │         Phase 3 (Gaming PC)
-                   │         ┌──────────────┐
-                   ├─────────│     ai       │
-                   │         │ (llama +     │◄──── Frigate detector
-                   │         │  whisper +   │
-                   │         │  comfyui)    │
-                   │         └──────────────┘
-                   │         ┌──────────────┐
-                   ├─────────│   media      │
-                   │         │ (nixflix +   │
-                   │         │  jellyfin)   │
-                   │         └──────┬───────┘
-                   │                │ NFS mount
-                   │         ┌──────▼───────┐
-                   ├─────────│    nvr       │
-                   │         │  (frigate)   │
+└──────┬───────┘   │
+       │           │
+┌──────▼───────┐   │         Phase 3 (Gaming PC)
+│homeassistant │◄──┤         ┌──────────────┐
+│ (iot hub +   │   ├─────────│     ai       │
+│ automation)  │   │         │ (llama +     │◄──── Frigate detector
+└───────┬──────┘   │         │  whisper +   │
+        │          │         │  comfyui)    │
+        │          │         └──────────────┘
+        │          │         ┌──────────────┐
+        │          ├─────────│   media      │
+        │          │         │ (nixflix +   │
+        │          │         │  jellyfin)   │
+        │          │         └──────┬───────┘
+        │          │                │ NFS mount
+        │          │         ┌──────▼───────┐
+        │          ├─────────│    nvr       │◄─── HA camera integration
+        └──────────┼─────────│  (frigate)   │
                    │         └──────────────┘
                    │         ┌──────────────┐
                    ├─────────│   fitness    │
