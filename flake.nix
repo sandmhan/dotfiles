@@ -243,6 +243,73 @@
           };
         };
       };
+
+      # LXC Container Configurations (resource-efficient alternatives to VMs)
+      # Deploy with: nixos-rebuild switch --target-host user@container --flake .#lxc-matrix
+
+      lxc-matrix = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-matrix
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "matrix";
+            email = "matrix@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "lxc-matrix";
+          };
+        };
+      };
+
+      lxc-monitor = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-monitor
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "monitor";
+            email = "monitor@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "lxc-monitor";
+          };
+        };
+      };
+
+      lxc-git = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-git
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "git";
+            email = "git@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "lxc-git";
+          };
+        };
+      };
+
+      lxc-nas = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-nas
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "nas";
+            email = "nas@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "lxc-nas";
+          };
+        };
+      };
     };
 
     homeConfigurations = {
