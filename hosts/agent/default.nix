@@ -1,6 +1,6 @@
 # Agent VM - Autonomous Infrastructure Development Sandbox
 # Safe environment for Claude Code to operate with --dangerously-accept-permissions
-{ config, lib, pkgs, systemSettings, ... }:
+{ config, lib, pkgs, userSettings, systemSettings, ... }:
 
 {
   imports = [
@@ -22,7 +22,7 @@
   };
 
   # Agent user configuration - full permissions for autonomous operation
-  users.users.agent = {
+  users.users.${userSettings.username} = {
     isNormalUser = true;
     description = "Autonomous Agent User";
     extraGroups = [ "wheel" "docker" "root" ];
@@ -34,8 +34,8 @@
     hashedPassword = null; # No password required
   };
 
-  # Keep sandmhan user for manual access and debugging
-  users.users.${userSettings.username} = {
+  # Keep sandmhan user for manual access and debugging (fallback user)
+  users.users.sandmhan = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];
     openssh.authorizedKeys.keys = [
@@ -45,19 +45,19 @@
 
   # Workspace directory structure and Home Manager profile setup
   systemd.tmpfiles.rules = [
-    "d /home/agent/workspace 0755 agent agent -"
-    "d /home/agent/workspace/homelab 0755 agent agent -"
-    "d /home/agent/workspace/testing 0755 agent agent -"
-    "d /home/agent/workspace/deployments 0755 agent agent -"
-    "d /home/agent/templates 0755 agent agent -"
-    "d /home/agent/scripts 0755 agent agent -"
-    "d /home/agent/logs 0755 agent agent -"
+    "d /home/${userSettings.username}/workspace 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/workspace/homelab 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/workspace/testing 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/workspace/deployments 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/templates 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/scripts 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/logs 0755 ${userSettings.username} ${userSettings.username} -"
     # Home Manager profile directories
-    "d /home/agent/.local 0755 agent agent -"
-    "d /home/agent/.local/state 0755 agent agent -"
-    "d /home/agent/.local/state/nix 0755 agent agent -"
-    "d /home/agent/.local/state/nix/profiles 0755 agent agent -"
-    "d /nix/var/nix/profiles/per-user/agent 0755 agent agent -"
+    "d /home/${userSettings.username}/.local 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/.local/state 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/.local/state/nix 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /home/${userSettings.username}/.local/state/nix/profiles 0755 ${userSettings.username} ${userSettings.username} -"
+    "d /nix/var/nix/profiles/per-user/${userSettings.username} 0755 ${userSettings.username} ${userSettings.username} -"
   ];
 
   # System monitoring for agent activity
@@ -78,7 +78,7 @@
   # Ensure proper permissions for autonomous agent operations
   security.sudo.extraRules = [
     {
-      users = [ "agent" ];
+      users = [ userSettings.username ];
       commands = [
         {
           command = "ALL";
@@ -90,7 +90,7 @@
 
   # Environment etc files for SSH authorized keys
   environment.etc = {
-    "ssh/authorized_keys.d/agent".text = ''
+    "ssh/authorized_keys.d/${userSettings.username}".text = ''
       ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3neihyMjSxDeNGI3rrrfEK2xltJ5fF8bmpU4IKqJWC framework
     '';
     "ssh/authorized_keys.d/sandmhan".text = ''
