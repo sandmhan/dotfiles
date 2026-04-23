@@ -103,6 +103,7 @@
       security = {
         admin_user = "admin";
         admin_password = "admin"; # Change this in production with sops-nix
+        secret_key = "SW2YcwTIb9zpOOhoPsMm"; # Default key for homelab
       };
 
       # Enable anonymous access for homelab

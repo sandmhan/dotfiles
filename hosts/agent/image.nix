@@ -29,8 +29,8 @@
     };
   };
 
-  # Configure explicit disk size for agent development needs
-  virtualisation.diskSize = 50 * 1024; # 50GB in MB for agent development and nix-shell tooling
+  # Use disk size from systemSettings (passed via flake specialArgs)
+  virtualisation.diskSize = systemSettings.diskSize;
 
   # Override filesystem config from hardware-configuration.nix
   # — the proxmox-image module provides its own filesystem layout

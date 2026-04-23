@@ -1,6 +1,6 @@
 # LXC Container Monitoring Configuration
 # Lightweight monitoring setup for resource-constrained containers
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 {
   # Prometheus node exporter for container metrics
   services.prometheus.exporters.node = {

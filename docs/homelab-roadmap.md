@@ -49,6 +49,94 @@
 
 ---
 
+## Container vs VM Deployment Strategy
+
+Given limited hardware resources (especially on the Dell node), we should consider **LXC containers** for lightweight services alongside VMs for isolation-critical workloads.
+
+### LXC vs VM Analysis
+
+**NixOS LXC Support:**
+- ✅ **Full NixOS support** in privileged LXC containers
+- ✅ **Flake-based deployment** works (same `nixos-rebuild --target-host` workflow)
+- ✅ **systemd services** function normally in privileged containers
+- ⚠️ **Unprivileged containers** have kernel module/systemd restrictions
+
+**Resource Efficiency Comparison:**
+
+| Aspect | VMs | LXC Containers |
+|--------|-----|----------------|
+| **CPU Overhead** | ~10-15% hypervisor tax | ~2-5% container overhead |
+| **RAM Overhead** | ~512MB per VM minimum | ~50-100MB per container |
+| **Storage** | Full filesystem per VM | Shared kernel, smaller footprint |
+| **Startup Time** | 30-60 seconds | 2-10 seconds |
+| **GPU Sharing** | Complex passthrough setup | Easy shared GPU access |
+| **Security Isolation** | Strong (separate kernel) | Weaker (shared kernel) |
+
+### Deployment Recommendations
+
+**Use VMs for:**
+- **Autonomous Agent Sandbox** (security isolation critical)
+- **Gaming/Remote Desktop** (needs full kernel control)
+- **AI Services** (GPU passthrough, potential kernel conflicts)
+- **Anything untrusted or experimental**
+
+**Use LXC for:**
+- **Matrix Synapse** (lightweight, well-contained service)
+- **Monitoring Stack** (Prometheus/Grafana - resource efficient)
+- **Git Server** (Forgejo - simple service)
+- **Jellyfin** (when not using GPU transcoding)
+- **NAS Services** (NFS/Samba - kernel filesystem access)
+- **Fitness Tracking** (wger - simple web app)
+
+**Hybrid Approach Benefits:**
+- **Dell Node**: Run 4-5 LXC containers vs 2-3 VMs with same resources
+- **Gaming PC**: Use VMs for GPU workloads, LXCs for support services
+- **GPU Efficiency**: Multiple LXCs can share GPU for light inference tasks
+
+### LXC Scaffolding Requirements
+
+To implement this strategy, we need parallel infrastructure:
+
+```
+hosts/
+├── lxc-base/              # Base LXC configuration (equivalent to server/)
+│   ├── default.nix        # Common LXC settings, networking, SSH
+│   ├── networking.nix     # DHCP, systemd-networkd for containers
+│   └── monitoring.nix     # Prometheus node exporter
+├── lxc-matrix/            # Matrix in LXC
+├── lxc-git/               # Forgejo in LXC
+├── lxc-monitor/           # Monitoring stack in LXC
+└── lxc-nas/               # NAS services in LXC
+
+flake.nix additions:
+- lxcConfigurations = { ... }  # Parallel to nixosConfigurations
+- LXC build targets for proxmox-lxc module
+```
+
+**Implementation Notes:**
+- **Privileged containers** required for full NixOS (security tradeoff acceptable for homelab)
+- **Shared storage** via bind mounts more efficient than NFS between containers
+- **Network isolation** still possible with VLAN tagging in containers
+- **Backup/migration** simpler - container templates vs full VM images
+
+### Resource Allocation (Revised)
+
+**Dell Node (with LXC optimization):**
+
+| Service | Type | Cores | RAM | Storage | Notes |
+|---------|------|-------|-----|---------|-------|
+| monitor | LXC | 0.5 | 1GB | 10GB | Prometheus + Grafana |
+| matrix | LXC | 0.5 | 1GB | 20GB | Synapse + PostgreSQL |
+| git | LXC | 0.3 | 512MB | 15GB | Forgejo |
+| nas | LXC | 0.5 | 1GB | 20GB + mounts | NFS/Samba |
+| backup | VM | 1 | 2GB | 30GB | Isolation for backup tasks |
+
+**Total: 2.8 cores, 5.5GB RAM** (vs previous 5 cores, 11GB with VMs)
+
+This frees up **50% more resources** for additional services or the Gaming PC transition.
+
+---
+
 ## VM Layout
 
 ### Dell Node (current — resource-constrained)
@@ -119,6 +207,8 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 ---
 
 ## Implementation Phases
+
+> **Note**: Each phase can be implemented with **VMs** (current approach) or **LXC containers** (resource-efficient alternative). LXC requires developing parallel scaffolding (`hosts/lxc-base/`, `lxcConfigurations` in flake.nix) but offers 50% better resource utilization.
 
 ### Phase 1 — Observability & Storage (Dell node, deploy now)
 
@@ -298,14 +388,23 @@ nixflix = {
 
 ```
 hosts/
-├── monitor/default.nix       # Prometheus + Grafana + Loki
-├── nas/default.nix            # NFS + Samba + backups
-├── matrix/default.nix         # Wrapper around systemModules/matrix.nix
-├── git/default.nix            # Forgejo
-├── ai/default.nix             # GPU passthrough + multi-service AI
-├── media/default.nix          # nixflix media stack
-├── fitness/default.nix        # wger + supporting services
-├── gaming/default.nix         # Sunshine remote gaming
+├── monitor/default.nix       # Prometheus + Grafana + Loki (VM)
+├── nas/default.nix            # NFS + Samba + backups (VM)
+├── matrix/default.nix         # Wrapper around systemModules/matrix.nix (VM)
+├── git/default.nix            # Forgejo (VM)
+├── ai/default.nix             # GPU passthrough + multi-service AI (VM)
+├── media/default.nix          # nixflix media stack (VM)
+├── fitness/default.nix        # wger + supporting services (VM)
+├── gaming/default.nix         # Sunshine remote gaming (VM)
+│
+├── lxc-base/                  # LXC alternative scaffolding
+│   ├── default.nix            # Base LXC config (like server/default.nix)
+│   ├── networking.nix         # Container networking
+│   └── monitoring.nix         # LXC-specific monitoring
+├── lxc-monitor/default.nix    # Monitoring stack (LXC alternative)
+├── lxc-nas/default.nix        # NAS services (LXC alternative)
+├── lxc-matrix/default.nix     # Matrix homeserver (LXC alternative)
+├── lxc-git/default.nix        # Forgejo (LXC alternative)
 
 systemModules/
 ├── monitoring.nix             # Prometheus + Grafana + Loki
