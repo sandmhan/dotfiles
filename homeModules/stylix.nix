@@ -7,9 +7,10 @@
 }:
 let
   themingEnabled = config.myHome.features.enableTheming or true;
+  fontsEnabled = config.myHome.features.enableFonts or true;
 in
-{
-  stylix = lib.mkIf themingEnabled {
+lib.mkIf themingEnabled {
+  stylix = {
     enable = true;
 
     # Current theme file
@@ -31,5 +32,5 @@ in
     };
   };
 
-  fonts.fontconfig.enable = lib.mkIf (config.myHome.features.enableFonts or true) true;
+  fonts.fontconfig.enable = lib.mkIf fontsEnabled true;
 }

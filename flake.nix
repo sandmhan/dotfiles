@@ -196,9 +196,8 @@
               useUserPackages = true;
               users.agent = {
                 imports = [
-                  ./home/profiles/terminal.nix
+                  ./home/profiles/headless-terminal.nix
                   ./homeModules/claude-agent.nix
-                  ./homeModules/headless-overrides.nix
                   nixvim.homeModules.nixvim
                   # stylix removed - not needed for headless agent environment
                   nvf.homeManagerModules.default
