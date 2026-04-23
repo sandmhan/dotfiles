@@ -9,32 +9,11 @@ let
   # Path to claude config files relative to this module
   claudeDir = ./claude;
 
-  # Claude Code installation script as a derivation
-  claude-code-installer = pkgs.writeShellScriptBin "claude-code-install" ''
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    # Check if claude is already installed
-    if command -v claude &> /dev/null; then
-      echo "Claude Code is already installed"
-      exit 0
-    fi
-
-    # Download and install Claude Code using full path to curl
-    echo "Installing Claude Code..."
-    ${pkgs.curl}/bin/curl -fsSL https://claude.ai/install | ${pkgs.bash}/bin/sh
-
-    # Add to PATH for current session
-    export PATH="$HOME/.local/bin:$PATH"
-
-    echo "Claude Code installation complete"
-  '';
 in
 {
-  # Install Claude Code
+  # Development tools (Claude Code installed separately)
   home.packages = [
-    claude-code-installer
-    pkgs.curl  # Required for installation
+    pkgs.curl  # Keep for general development use
   ];
 
   # Set up Claude Code configuration directory and workspace
@@ -330,10 +309,8 @@ Remember: Your goal is to advance homelab infrastructure development safely and 
     PATH = "$HOME/.local/bin:$PATH";
   };
 
-  # Auto-install Claude Code on first login
-  home.activation.installClaude = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    $DRY_RUN_CMD ${claude-code-installer}/bin/claude-code-install
-  '';
+  # Claude Code should be installed via system packages or manual installation
+  # Removed automatic installation to prevent activation failures
 
   # Agent-specific shell aliases for Claude integration
   programs.bash.shellAliases = {
