@@ -6,6 +6,10 @@
   systemSettings,
   ...
 }:
+let
+  # Default disk size for VMs if not specified
+  defaultDiskSize = 20 * 1024; # 20GB in MB
+in:
 {
   imports = [
     ./ssh.nix
@@ -75,6 +79,13 @@
 
   # Enable QEMU Guest to access IP
   services.qemuGuest.enable = true;
+
+  # Configure VM disk size (for image builds)
+  virtualisation.diskSize =
+    if (systemSettings ? diskSize) then
+      systemSettings.diskSize
+    else
+      defaultDiskSize;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

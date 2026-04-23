@@ -1,5 +1,6 @@
-# Agent VM Image Configuration - Proxmox VMA Build
-{ config, lib, pkgs, modulesPath, ... }:
+# Minimal Agent VMA Image Configuration
+# Builds a basic agent VM image that can be deployed and then upgraded to full config
+{ config, lib, pkgs, modulesPath, systemSettings, ... }:
 
 {
   imports = [
@@ -29,8 +30,8 @@
     };
   };
 
-  # Configure explicit disk size for agent development needs
-  virtualisation.diskSize = 50 * 1024; # 50GB in MB for agent development and nix-shell tooling
+  # Configure VM disk size from systemSettings
+  virtualisation.diskSize = systemSettings.diskSize or (50 * 1024); # Default 50GB if not specified
 
   # Override filesystem config from hardware-configuration.nix
   # — the proxmox-image module provides its own filesystem layout
@@ -83,7 +84,6 @@
     dnssec = "false";
     fallbackDns = [ "1.1.1.1" "8.8.8.8" ];
   };
-
 
   # Image build optimization
   system.activationScripts.cleanup = lib.stringAfter [ "etc" ] ''

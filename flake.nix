@@ -230,7 +230,7 @@
       agentVMA = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/agent-minimal
+          ./hosts/agent-minimal/image.nix
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {
@@ -239,6 +239,7 @@
           };
           systemSettings = systemSettings // {
             hostname = "agent-sandbox";
+            diskSize = 50 * 1024;  # 50GB for agent development and nix-shell tooling
           };
         };
       };
