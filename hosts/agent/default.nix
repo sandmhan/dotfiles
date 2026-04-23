@@ -87,14 +87,4 @@
       ];
     }
   ];
-
-  # Environment etc files for SSH authorized keys
-  environment.etc = {
-    "ssh/authorized_keys.d/${userSettings.username}".text = ''
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3neihyMjSxDeNGI3rrrfEK2xltJ5fF8bmpU4IKqJWC framework
-    '';
-    "ssh/authorized_keys.d/sandmhan".text = ''
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3neihyMjSxDeNGI3rrrfEK2xltJ5fF8bmpU4IKqJWC framework
-    '';
-  };
 }
