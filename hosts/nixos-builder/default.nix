@@ -13,6 +13,12 @@
 
   networking.hostName = "nixos-builder";
 
+  # Basic filesystem configuration for Proxmox VM deployment
+  fileSystems."/" = {
+    device = "/dev/vda1";
+    fsType = "ext4";
+  };
+
   # Optimize for building
   nix.settings = {
     max-jobs = "auto";          # Use all available cores
