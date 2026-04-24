@@ -4,7 +4,8 @@
   imports = [
     ../lxc-base/default.nix
     ../../systemModules/monitoring.nix
-    ../../systemModules/sops.nix
+    # SOPS module provides option schema; secrets are force-emptied below until bootstrapped
+    # ../../systemModules/sops.nix  # homelab.sops wrapper disabled; sops-nix loaded via flake
   ];
 
   # System identification
@@ -22,8 +23,8 @@
       "node-exporters" = [
         "10.0.0.6:9100"     # matrix server
         "10.0.0.163:9100"   # agent-sandbox
-        "10.0.0.200:9100"   # nixos-builder
-        "localhost:9100"    # self (lxc-monitor)
+        "10.0.0.200:9100"   # nixos-builder (TBD: verify IP)
+        "localhost:9100"    # self (lxc-monitor @ 10.0.0.207)
       ];
       # Keep other target defaults from module
       "wireguard" = [];
@@ -95,6 +96,20 @@
     startAt = "hourly";
   };
 
-  # Ensure sops integration
-  sops.age.keyFile = "/var/lib/sops-nix/key.txt";
+  # SOPS secrets management - disabled until age keys are bootstrapped
+  # TODO: Enable once SOPS is set up across the homelab
+  # homelab.sops = {
+  #   enable = true;
+  #   deploymentType = "container";
+  #   resourceProfile = "minimal";
+  # };
+
+  # Temporary: Grafana admin password via plain file until SOPS is bootstrapped
+  # Change this password after first login
+  homelab.monitoring.grafana.adminPasswordFile = lib.mkForce (
+    pkgs.writeText "grafana-admin-pw" "homelabmonitor2026"
+  );
+
+  # Disable SOPS secret declarations from monitoring module (SOPS not yet bootstrapped)
+  sops.secrets = lib.mkForce {};
 }

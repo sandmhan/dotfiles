@@ -58,9 +58,21 @@ rec {
 
   # NAS/Storage packages
   nas = with pkgs; [
-    nfs-utils
-    samba
-    rsync
+    nfs-utils        # NFS server and client utilities
+    samba           # SMB/CIFS file sharing
+    rsync           # File synchronization
+    rclone          # Cloud storage sync
+    borgbackup      # Deduplicating backup program
+  ];
+
+  # NAS utilities (for VM deployments)
+  nasUtils = with pkgs; [
+    smartmontools   # Disk monitoring
+    hdparm          # Hard disk utilities
+    lsof            # List open files
+    tree            # Directory tree display
+    fzf             # Fuzzy finder for navigation
+    ncdu            # Disk usage analyzer (already in base, but relevant)
   ];
 
   # Git server packages
@@ -104,7 +116,7 @@ rec {
 
   # Final package collection with all sets and utility functions
   finalPackages = {
-    inherit base monitoring monitoringUtils wireguard wireguardUtils nas git ai media development;
+    inherit base monitoring monitoringUtils wireguard wireguardUtils nas nasUtils git ai media development;
     inherit getServicePackages getCombinedPackages;
   };
 }

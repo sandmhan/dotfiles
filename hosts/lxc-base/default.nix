@@ -113,7 +113,7 @@
     useNetworkd = true;
     useDHCP = lib.mkDefault true;
 
-    # Disable systemd-resolved in containers to avoid conflicts
+    # Let systemd-networkd handle DNS via DHCP
     useHostResolvConf = lib.mkForce false;
 
     # Simple firewall for containers
@@ -123,8 +123,8 @@
     };
   };
 
-  # Disable systemd-resolved in containers
-  services.resolved.enable = lib.mkForce false;
+  # Let networking.nix manage resolved settings
+  # services.resolved is configured in ./networking.nix
 
   # Enable systemd container detection
   environment.etc."machine-info".text = ''

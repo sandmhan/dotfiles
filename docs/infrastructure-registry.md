@@ -29,7 +29,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 
 | Node | Hardware | CPU | RAM | Storage | IP Address | Web UI | SSH Access | Status |
 |------|----------|-----|-----|---------|------------|--------|------------|--------|
-| **Dell Laptop** | Dell Latitude | i7-3520M (2C/4T) | 15GB | 500GB HDD | `10.0.0.126` | `https://10.0.0.126:8006` | `ssh sandmhan@10.0.0.126` | `deployed` |
+| **Dell Laptop** | Dell Latitude | i7-3520M (2C/4T) | 15GB | 500GB HDD | `10.0.0.4` | `https://10.0.0.4:8006` | `ssh root@10.0.0.4` | `deployed` |
 | **Gaming PC** | Custom | i7-10700K (8C/16T) | 32GB | 1TB + 500GB SSD | `TBD` | `TBD` | `TBD` | `not yet repurposed` |
 
 ---
@@ -51,7 +51,8 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 | **Desktop** | gaia | — | `[Laptop IP]` | 8 | 16GB | 500GB | — | `deployed` | Direct access |
 | **Agent Sandbox** | agent-sandbox | 105 | `10.0.0.163` | 4 | 8GB | 24GB | 22 | `deployed` | `ssh agent@10.0.0.163` |
 | **NixOS Builder** | nixos-builder | 200 | `[TBD]` | 6 | 12GB | 100GB | 22 | `deployed` | `ssh sandmhan@[BUILDER_IP]` |
-| **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448 | `deployed` | `https://matrix.sandmhan.dev` |
+| **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
+| **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
 
 **Deployment Commands**:
 ```bash
@@ -72,9 +73,11 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | Service | Hostname | VM ID | IP (Planned) | Cores | RAM | Disk | GPU | Ports | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-----|-------|------------|
 | **Monitoring** | monitor | 107 | `10.0.20.107` | 2 | 4GB | 50GB | — | 3000,9090,9100 | `qmrestore [VMA] 107; qm set 107 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.107 --flake .#monitor` |
+| **Git Server** | git | 109 | `10.0.20.109` | 2 | 2GB | 30GB | — | 80,443,3022,9187 | `qmrestore [VMA] 109; qm set 109 --cores 2 --memory 2048; nixos-rebuild switch --target-host sandmhan@10.0.20.109 --flake .#git` |
 | **WireGuard VPN** | vpn | 106 | `10.0.20.106` | 1 | 1GB | 20GB | — | 51820 | `qmrestore [VMA] 106; qm set 106 --cores 1 --memory 1024; nixos-rebuild switch --target-host sandmhan@10.0.20.106 --flake .#vpn` |
 | **AI Server** | llama | 108 | `10.0.20.108` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.108 --flake .#llama` |
 | **NVR** | nvr | 105 | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
+| **Home Assistant** | homeassistant | 103 | `10.0.20.103` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant` |
 
 ---
 
@@ -82,10 +85,11 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 
 | Service | Hostname | CT ID | IP (Planned) | Cores | RAM | Disk | Ports | Status | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-------|--------|------------|
-| **Monitoring** | lxc-monitor | 207 | `10.0.20.207` | 1 | 1GB | 10GB | 3000,9090,9100 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host monitor@10.0.20.207 --flake .#lxc-monitor` |
+| **Monitoring** | lxc-monitor | 207 | `10.0.0.164` (DHCP) | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.164 --flake .#lxc-monitor --sudo` |
 | **Matrix Chat** | lxc-matrix | 204 | `10.0.20.204` | 1 | 2GB | 30GB | 80,443,8448 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host matrix@10.0.20.204 --flake .#lxc-matrix` |
 | **Git Server** | lxc-git | 206 | `10.0.20.206` | 1 | 1GB | 20GB | 80,443,3022 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host git@10.0.20.206 --flake .#lxc-git` |
 | **NAS** | lxc-nas | 201 | `10.0.20.201` | 1 | 2GB | 100GB | 2049,445 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host nas@10.0.20.201 --flake .#lxc-nas` |
+| **Home Assistant** | lxc-homeassistant | 203 | `10.0.20.203` | 1 | 2GB | 20GB | 80,8123,1883,1884,9100 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host hass@10.0.20.203 --flake .#lxc-homeassistant` |
 
 ---
 
@@ -99,7 +103,11 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **Prometheus** | `http://10.0.20.107:9090` | `http://prometheus.homelab.local:9090` | No auth | [Monitoring Setup](./monitoring-setup.md) |
 | **Frigate NVR** | `http://10.0.20.105:5000` | `http://nvr.homelab.local:5000` | No auth (local only) | [Frigate Setup](./frigate-nvr-setup.md) |
 | **AI Server** | `http://10.0.20.108:8080` | `http://ai.homelab.local:8080` | No auth (API only) | [AI Setup](./llama-ai-server-setup.md) |
-| **Forgejo Git** | `http://10.0.20.206:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
+| **Forgejo Git (VM)** | `http://10.0.20.109:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
+| **Forgejo Git (LXC)** | `http://10.0.20.206:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
+| **Matrix Agent Bridge** | `http://10.0.0.6:9800/health` | N/A (internal only) | Bearer token (webhook) | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
+| **Home Assistant** | `http://10.0.20.103:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
+| **MQTT Broker** | `mqtt://10.0.20.103:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
 
 ---
 
@@ -128,6 +136,13 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **Node Exporter** | 9100 | — | TCP | System metrics (internal only) |
 | **Frigate** | 5000 | — | TCP | NVR interface (VPN only) |
 | **AI Server** | 8080 | — | TCP | AI API (VPN only) |
+| **Forgejo Web** | 3000 | — | TCP | Git web interface (VPN only) |
+| **Forgejo SSH** | 3022 | — | TCP | Git SSH operations (VPN only) |
+| **PG Exporter** | 9187 | — | TCP | PostgreSQL metrics (internal only) |
+| **Matrix Bot Webhook** | 9800 | — | TCP | Agent bridge webhook receiver (internal only) |
+| **Home Assistant** | 8123 | — | TCP | Smart home dashboard (VPN only) |
+| **MQTT** | 1883 | — | TCP | IoT device message broker (internal only) |
+| **MQTT WebSocket** | 1884 | — | TCP | MQTT browser clients (internal only) |
 
 ---
 
@@ -137,8 +152,10 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 
 | Service | Secret File | Keys Required | Contains |
 |---------|-------------|---------------|----------|
-| **Matrix** | `secrets/matrix/secrets.yaml` | admin, matrix_key | Registration secret, postgres password, bot tokens |
+| **Matrix** | `secrets/matrix/secrets.yaml` | admin, matrix_key | Registration secret, postgres password, bot-access-token, webhook-secret |
 | **Monitoring** | `secrets/monitoring/secrets.yaml` | admin, monitor_key | Grafana admin password, SMTP credentials |
+| **Forgejo** | `secrets/forgejo/secrets.yaml` | admin, git_key | Admin password, Forgejo secret key |
+| **Home Assistant** | `secrets/homeassistant/secrets.yaml` | admin, homeassistant_key | HA secrets, MQTT password, PostgreSQL password |
 | **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Server private key, client configurations |
 | **Shared** | `secrets/shared/secrets.yaml` | admin, all_host_keys | Cross-service credentials, certificates |
 | **Personal** | `secrets/user/personal.yaml` | admin, gaia_key | Git config, API keys, personal tokens |
@@ -235,7 +252,11 @@ done
 | **Matrix** | `http://[HOST]:8008/_matrix/client/versions` | `{"versions": [...]}` |
 | **Frigate** | `http://[HOST]:5000/api/config` | JSON config response |
 | **AI Server** | `http://[HOST]:8080/v1/models` | JSON models list |
+| **Forgejo** | `http://[HOST]:3000/api/v1/version` | JSON version response |
 | **Node Exporter** | `http://[HOST]:9100/metrics` | Prometheus metrics format |
+| **Matrix Bot** | `http://10.0.0.6:9800/health` | `{"status": "ok", "uptime_seconds": ...}` |
+| **Home Assistant** | `http://[HOST]:8123/api/` | `{"message": "API running."}` |
+| **MQTT Broker** | `mosquitto_sub -h [HOST] -t '$SYS/broker/version' -C 1 -W 5` | Mosquitto version string |
 
 ### Automated Health Check Script
 
@@ -306,6 +327,9 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-04-24 | Add Home Assistant systemModule with MQTT, PostgreSQL, nginx, USB passthrough | — | VM and LXC host configs, secrets, documentation |
+| 2026-04-24 | Add Matrix Agent Bridge for bot control and webhook notifications | — | New systemModule, bot script, co-located on matrix host (port 9800) |
+| 2026-04-24 | Add Forgejo Git server (VM and LXC) to infrastructure registry | — | New systemModule, VM/LXC host configs, secrets, and documentation |
 | 2026-04-24 | Complete infrastructure registry overhaul with deployment commands, access methods, and troubleshooting | — | Added comprehensive host information, build commands, and operational procedures |
 | 2026-04-23 | Initial registry created from flake.nix inventory | — | Basic structure |
 | 2026-04-23 | Updated agent-sandbox IP to 10.0.0.163, deployed latest config | — | IP assignment |

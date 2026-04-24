@@ -183,7 +183,6 @@ in
           "meminfo_numa" # NUMA memory info
           "mountstats"   # Filesystem mount statistics
           "network_route" # Network routing table
-          "systemd"      # Systemd unit metrics
           "tcpstat"      # TCP connection statistics
           "wifi"         # WiFi metrics (if applicable)
         ];
@@ -222,10 +221,10 @@ in
       services.prometheus.exporters.node = {
         enable = true;
         port = cfg.nodeExporter.port;
-        enabledCollectors = cfg.nodeExporter.enabledCollectors;
+        enabledCollectors = lib.unique cfg.nodeExporter.enabledCollectors;
 
         # Disable collectors that might not work in VMs/containers
-        disabledCollectors = [
+        disabledCollectors = lib.unique [
           "edac"         # Hardware error detection (not relevant in VMs)
           "hwmon"        # Hardware monitoring (limited in VMs)
           "infiniband"   # InfiniBand metrics (not applicable)

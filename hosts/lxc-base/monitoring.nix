@@ -8,7 +8,8 @@
     port = 9100;
 
     # Container-optimized collectors - avoid hardware-specific ones
-    enabledCollectors = [
+    # Use mkDefault so the monitoring module can override without duplication
+    enabledCollectors = lib.mkDefault [
       "systemd"
       "filesystem"
       "loadavg"
@@ -20,7 +21,7 @@
     ];
 
     # Disable collectors that don't work well in containers
-    disabledCollectors = [
+    disabledCollectors = lib.mkDefault [
       "arp"
       "hwmon"
       "ipvs"

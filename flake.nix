@@ -184,6 +184,7 @@
           ./hosts/server
           ./hosts/server/hardware-configuration.nix
           ./systemModules/matrix.nix
+          ./systemModules/matrix-agent-bridge.nix
           sops-nix.nixosModules.sops
         ];
         specialArgs = {
@@ -301,6 +302,69 @@
         };
       };
 
+      # Network Attached Storage VM - NFS, SMB, and backup services
+      nas = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/nas
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "nas";
+          };
+        };
+      };
+
+      # Git Server VM - Forgejo self-hosted Git
+      git = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/git
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "git";
+          };
+        };
+      };
+
+      # Home Assistant VM - Smart home automation with MQTT and USB passthrough
+      homeassistant = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/homeassistant
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "homeassistant";
+          };
+        };
+      };
+
+      # LXC Base Image - build tarball for Proxmox LXC container creation
+      # Build: nix build .#nixosConfigurations.initialLXC.config.system.build.tarball
+      initialLXC = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-base/image.nix
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "sandmhan";
+            email = "sandmhan@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "nixos-lxc";
+          };
+        };
+      };
+
       # LXC Container Configurations (resource-efficient alternatives to VMs)
       # Deploy with: nixos-rebuild switch --target-host user@container --flake .#lxc-matrix
 
@@ -341,6 +405,7 @@
         system = "x86_64-linux";
         modules = [
           ./hosts/lxc-git
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {
@@ -353,15 +418,33 @@
         };
       };
 
+      lxc-homeassistant = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lxc-homeassistant
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = linuxUserSettings // {
+            username = "hass";
+            email = "hass@homelab.local";
+          };
+          systemSettings = systemSettings // {
+            hostname = "lxc-homeassistant";
+          };
+        };
+      };
+
       lxc-nas = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./hosts/lxc-nas
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {
-            username = "nas";
-            email = "nas@homelab.local";
+            username = "nasadmin";
+            email = "nasadmin@homelab.local";
           };
           systemSettings = systemSettings // {
             hostname = "lxc-nas";
