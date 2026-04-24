@@ -13,6 +13,7 @@ keys:
   - &gaia_key age1...   # Desktop (Framework laptop)
   - &nvr_key age1...    # NVR (Frigate)
   - &matrix_key age1... # Matrix/Synapse server
+  - &vpn_key age1...    # WireGuard VPN server
 
 creation_rules:
   # Desktop (gaia) secrets
@@ -35,6 +36,13 @@ creation_rules:
     - age:
       - *admin_age
       - *matrix_key
+
+  # WireGuard VPN server secrets
+  - path_regex: secrets/wireguard/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *vpn_key
 
   # Shared secrets (accessible by multiple hosts)
   - path_regex: secrets/shared/[^/]+\.(yaml|json|env|ini)$

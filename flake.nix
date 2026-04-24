@@ -271,6 +271,21 @@
         };
       };
 
+      # WireGuard VPN Server - secure remote access to homelab
+      vpn = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/vpn
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "vpn";
+          };
+        };
+      };
+
       # LXC Container Configurations (resource-efficient alternatives to VMs)
       # Deploy with: nixos-rebuild switch --target-host user@container --flake .#lxc-matrix
 
