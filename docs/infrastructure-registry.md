@@ -20,7 +20,7 @@ Single source of truth for all deployed and planned infrastructure. **Update thi
 | nvr | `nixosConfigurations.nvr` | — | VM | — | — | — | — | — | — | Frigate NVR | sandmhan | `planned` | Phase 3, needs camera config |
 | llama | `nixosConfigurations.llama` | — | VM | — | — | — | — | — | RTX 3060 | llama.cpp inference | sandmhan | `planned` | Phase 3, needs GPU passthrough |
 | matrix | `nixosConfigurations.matrix` | — | VM | — | — | — | — | — | — | Synapse + Coturn | sandmhan | `planned` | Phase 2, needs DNS + ACME |
-| nixos-builder | `nixosConfigurations.nixos-builder` | 200 | VM | — | — | 6 | 12GB | 100GB | — | Nix build orchestration | sandmhan | `planned` | Phase 1a |
+| nixos-builder | `nixosConfigurations.nixos-builder` | 200 | VM | Dell | — | 6 | 12GB | 100GB | — | Nix build orchestration | sandmhan | `deployed` | Autonomous build server |
 | lxc-matrix | `nixosConfigurations.lxc-matrix` | — | LXC | Dell | — | 0.5 | 1GB | 20GB | — | Synapse + PostgreSQL | matrix | `planned` | LXC alternative to VM |
 | lxc-monitor | `nixosConfigurations.lxc-monitor` | — | LXC | Dell | — | 0.5 | 1GB | 10GB | — | Prometheus + Grafana | monitor | `planned` | Phase 1b |
 | lxc-git | `nixosConfigurations.lxc-git` | — | LXC | Dell | — | 0.3 | 512MB | 15GB | — | Forgejo | git | `planned` | Phase 2b |
@@ -41,3 +41,4 @@ Single source of truth for all deployed and planned infrastructure. **Update thi
 |------|--------|--------|
 | 2026-04-23 | Initial registry created from flake.nix inventory | — |
 | 2026-04-23 | Updated agent-sandbox IP to 10.0.0.163, deployed latest config | — |
+| 2026-04-23 | Marked nixos-builder as deployed, updated roadmap for incremental config development approach | — |

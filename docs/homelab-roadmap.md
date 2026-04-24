@@ -34,17 +34,19 @@
 | Service | Status | Location | Notes |
 |---------|--------|----------|-------|
 | Server base template | Done | `hosts/server/` | Reusable for all VMs |
-| Agent sandbox VM | Done | `hosts/agent/` | VMA image building |
+| Agent sandbox VM | **Deployed** | `hosts/agent/` | VM ID 105, 10.0.0.163 |
+| NixOS Builder VM | **Deployed** | `hosts/nixos-builder/` | VM ID 200, autonomous builds |
 | llama.cpp module | Complete | `systemModules/llama.nix` | Needs real GPU PCI IDs |
 | Matrix Synapse | Complete | `systemModules/matrix.nix` | Needs DNS + ACME |
 | Frigate | Partial | `systemModules/frigate.nix` | Hardcoded cameras, no AI detector |
 | Jellyfin | Stub | `systemModules/jellyfin.nix` | Just `enable = true` |
 | sops-nix | Partial | `feat/sops` branch | Initial integration, needs secrets populated |
-| Monitoring | Not started | — | — |
-| NAS/backup | Not started | — | — |
+| Remote access | **Planning** | — | WireGuard/Tailscale evaluation needed |
+| Monitoring | In development | — | systemModules/monitoring.nix (Prometheus + Grafana) |
+| NAS/backup | In development | — | systemModules/nas.nix (NFS/Samba) |
 | Media stack (*arr) | Not started | — | nixflix integration planned |
 | Fitness tracking | Not started | — | wger (OCI container) |
-| Git server | Not started | — | Forgejo |
+| Git server | In development | — | systemModules/forgejo.nix |
 | Remote gaming | HM modules exist | `homeModules/sunshine.nix` | Not a server VM yet |
 
 ---
@@ -335,13 +337,15 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 
 > **Note**: Each phase can be implemented with **VMs** (current approach) or **LXC containers** (resource-efficient alternative). LXC requires developing parallel scaffolding (`hosts/lxc-base/`, `lxcConfigurations` in flake.nix) but offers 50% better resource utilization.
 
-### Phase 1 — Foundation & Observability (Dell node, deploy now)
+### Phase 1 — Foundation & Observability (Dell node, build configs now, selective deployment)
 
 These services have no GPU dependency and establish the foundation for autonomous homelab operations.
 
-#### 1a. NixOS Builder (`hosts/nixos-builder/`, VM ID 200)
+**Current Approach**: Due to resource constraints on Dell node, building service configurations incrementally for future deployment rather than deploying all services immediately. NixOS Builder enables autonomous builds without laptop dependency.
 
-**Priority**: Deploy first to enable autonomous configuration management.
+#### 1a. NixOS Builder (`hosts/nixos-builder/`, VM ID 200) ✅ **DEPLOYED**
+
+**Priority**: ~~Deploy first to enable autonomous configuration management.~~ **COMPLETED**
 
 **Services:**
 - **Configuration Building**: Dedicated VM for building NixOS configurations
