@@ -63,10 +63,17 @@
   # Passwordless sudo for homelab convenience
   security.sudo.wheelNeedsPassword = false;
 
+  # LXC container filesystem configuration
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
   # LXC-specific optimizations
   boot = {
     # No bootloader needed in containers
     loader.grub.enable = lib.mkForce false;
+    isContainer = true;
 
     # Optimize for container environment
     specialFileSystems = {
@@ -106,12 +113,18 @@
     useNetworkd = true;
     useDHCP = lib.mkDefault true;
 
+    # Disable systemd-resolved in containers to avoid conflicts
+    useHostResolvConf = lib.mkForce false;
+
     # Simple firewall for containers
     firewall = {
       enable = true;
       allowedTCPPorts = [ 22 9100 ]; # SSH + monitoring
     };
   };
+
+  # Disable systemd-resolved in containers
+  services.resolved.enable = lib.mkForce false;
 
   # Enable systemd container detection
   environment.etc."machine-info".text = ''

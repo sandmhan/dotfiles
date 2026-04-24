@@ -212,14 +212,6 @@ in
 
     # Prometheus Configuration
     (mkIf cfg.prometheus.enable {
-      # Ensure sops secrets exist
-      sops.secrets = mkIf config.sops.enable {
-        "monitoring/grafana-admin-password" = {
-          mode = "0600";
-          owner = "grafana";
-          group = "grafana";
-        };
-      };
 
       services.prometheus = {
         enable = true;
@@ -306,12 +298,21 @@ in
       # Useful packages for Prometheus management
       environment.systemPackages = with pkgs; [
         prometheus
-        promtool  # Config validation and query tools
+        # promtool is included with prometheus package
       ];
     })
 
     # Grafana Configuration
     (mkIf cfg.grafana.enable {
+      # Ensure sops secrets exist when using encrypted admin password
+      sops.secrets = {
+        "monitoring/grafana-admin-password" = {
+          mode = "0600";
+          owner = "grafana";
+          group = "grafana";
+        };
+      };
+
       services.grafana = {
         enable = true;
 
@@ -429,7 +430,7 @@ in
       # Useful packages for Grafana management
       environment.systemPackages = with pkgs; [
         grafana
-        grafana-cli
+        # grafana-cli is included with grafana package
       ];
     })
 

@@ -104,8 +104,9 @@
   # Essential packages for container monitoring (extend base packages)
   environment.systemPackages = with pkgs; [
     prometheus
-    promtool
-    grafana-cli
+    # promtool is included with prometheus
+    grafana
+    # grafana-cli is included with grafana
     # Base packages already include: vim, htop, curl, wget, git, jq, ncdu, ripgrep
   ];
 

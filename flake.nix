@@ -324,6 +324,7 @@
         system = "x86_64-linux";
         modules = [
           ./hosts/lxc-monitor
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = linuxUserSettings // {

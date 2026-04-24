@@ -128,10 +128,11 @@
   environment.systemPackages = with pkgs; [
     # Prometheus tools
     prometheus
-    promtool
+    # promtool is included with prometheus
 
     # Grafana tools
-    grafana-cli
+    grafana
+    # grafana-cli is included with grafana
 
     # Monitoring utilities
     htop
