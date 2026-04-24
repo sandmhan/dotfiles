@@ -3,6 +3,7 @@
 { config, lib, pkgs, userSettings, systemSettings, ... }: {
   imports = [
     ../server/default.nix
+    ../server/hardware-configuration.nix
     ../../systemModules/wireguard.nix
     ../../systemModules/sops.nix
   ];
@@ -42,9 +43,8 @@
   };
 
   # Resource allocation for VPN server
-  # This can run on minimal resources
-  virtualisation.memorySize = lib.mkDefault 1024;  # 1GB RAM
-  virtualisation.cores = lib.mkDefault 1;          # 1 CPU core
+  # This can run on minimal resources - configured at Proxmox VM level:
+  # qm set <vmid> --cores 1 --memory 1024
 
   # Optional: Enable monitoring for VPN metrics
   services.prometheus.enable = true;

@@ -129,16 +129,9 @@ in
       listenPort = cfg.serverPort;
       privateKeyFile = cfg.privateKeyFile;
 
-      # Client peers will be loaded from sops-encrypted file
-      # Format: JSON array of {publicKey, allowedIPs, comment} objects
-      postSetup = ''
-        # Load client configurations from encrypted file
-        if [ -f ${cfg.clientsSecretFile} ]; then
-          echo "Loading WireGuard client configurations..."
-          # Parse JSON and add peers (implementation would go here)
-          # For now, manual peer management via NixOS config
-        fi
-      '';
+      # Note: Client peers will be managed via NixOS config generation
+      # Dynamic peer loading from encrypted file will be handled via
+      # systemd service instead of postSetup (which conflicts with networkd)
     };
 
     # Monitoring integration
