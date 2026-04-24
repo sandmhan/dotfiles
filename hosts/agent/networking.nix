@@ -10,14 +10,11 @@
     firewall = {
       enable = true;
 
-      # SSH access only
-      allowedTCPPorts = [ 22 ];
+      # SSH and monitoring
+      allowedTCPPorts = [ 22 9100 ];
 
       # Mosh UDP ports
       allowedUDPPortRanges = [ { from = 60000; to = 61000; } ];
-
-      # Prometheus metrics (internal monitoring)
-      interfaces.enp1s0.allowedTCPPorts = [ 9100 ];
 
       # Outbound restrictions - only allow necessary connections
       extraCommands = ''

@@ -85,7 +85,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 
 | Service | Hostname | CT ID | IP (Planned) | Cores | RAM | Disk | Ports | Status | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-------|--------|------------|
-| **Monitoring** | lxc-monitor | 207 | `10.0.0.164` (DHCP) | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.164 --flake .#lxc-monitor --sudo` |
+| **Monitoring** | lxc-monitor | 207 | `10.0.0.165` (DHCP) | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.165 --flake .#lxc-monitor --sudo` |
 | **Matrix Chat** | lxc-matrix | 204 | `10.0.20.204` | 1 | 2GB | 30GB | 80,443,8448 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host matrix@10.0.20.204 --flake .#lxc-matrix` |
 | **Git Server** | lxc-git | 206 | `10.0.20.206` | 1 | 1GB | 20GB | 80,443,3022 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host git@10.0.20.206 --flake .#lxc-git` |
 | **NAS** | lxc-nas | 201 | `10.0.20.201` | 1 | 2GB | 100GB | 2049,445 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host nas@10.0.20.201 --flake .#lxc-nas` |
