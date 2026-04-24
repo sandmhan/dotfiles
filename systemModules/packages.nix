@@ -1,0 +1,110 @@
+# Centralized Package Registry for systemModules
+# Provides consistent package definitions across all homelab services
+{ pkgs, lib, ... }:
+
+with lib;
+
+rec {
+  # Base packages for all homelab systems
+  base = with pkgs; [
+    # System administration
+    htop
+    iotop
+    sysstat
+
+    # Network tools
+    curl
+    dig
+    nmap
+    tcpdump
+
+    # Text processing
+    jq
+    yq-go
+
+    # File utilities
+    ncdu
+    ripgrep
+  ];
+
+  # Monitoring stack packages
+  monitoring = with pkgs; [
+    prometheus
+    grafana
+    # Note: promtool and grafana-cli are included with their respective packages
+  ];
+
+  # Monitoring utilities (for monitoring hosts)
+  monitoringUtils = with pkgs; [
+    # Performance monitoring
+    nethogs
+    iftop
+
+    # Network diagnostics
+    nmap
+    tcpdump
+  ];
+
+  # WireGuard VPN packages
+  wireguard = with pkgs; [
+    wireguard-tools  # wg, wg-quick commands
+    qrencode         # Generate QR codes for mobile clients
+  ];
+
+  # WireGuard management utilities (for VPN hosts)
+  wireguardUtils = with pkgs; [
+    jq  # For parsing client JSON configs
+  ];
+
+  # NAS/Storage packages
+  nas = with pkgs; [
+    nfs-utils
+    samba
+    rsync
+  ];
+
+  # Git server packages
+  git = with pkgs; [
+    git
+    git-lfs
+  ];
+
+  # AI/ML packages
+  ai = with pkgs; [
+    # Will be populated when AI modules are created
+  ];
+
+  # Media server packages
+  media = with pkgs; [
+    ffmpeg
+    imagemagick
+  ];
+
+  # Development tools (for development-focused hosts)
+  development = with pkgs; [
+    git
+    vim
+    tmux
+    screen
+  ];
+
+  # Function to get packages for a specific service
+  getServicePackages = service:
+    if builtins.hasAttr service (builtins.removeAttrs finalPackages ["base" "getServicePackages"])
+    then base ++ (builtins.getAttr service finalPackages)
+    else base;
+
+  # Function to get packages for multiple services
+  getCombinedPackages = services:
+    base ++ (lib.lists.flatten (map (service:
+      if builtins.hasAttr service (builtins.removeAttrs finalPackages ["base" "getServicePackages" "getCombinedPackages"])
+      then builtins.getAttr service finalPackages
+      else []
+    ) services));
+
+  # Final package collection with all sets and utility functions
+  finalPackages = {
+    inherit base monitoring monitoringUtils wireguard wireguardUtils nas git ai media development;
+    inherit getServicePackages getCombinedPackages;
+  };
+}

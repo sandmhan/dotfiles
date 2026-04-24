@@ -13,78 +13,39 @@
   # Enable monitoring stack optimized for container environment
   homelab.monitoring = {
     enable = true;
+    deploymentType = "container";
+    resourceProfile = "minimal";
 
-    prometheus = {
-      enable = true;
-      port = 9090;
-      retention = "180d";  # Reduced retention for container deployment
-      scrapeInterval = "15s";
-
-      # Same target configuration as VM version
-      staticTargets = {
-        "node-exporters" = [
-          "10.0.0.6:9100"     # matrix server
-          "10.0.0.163:9100"   # agent-sandbox
-          "10.0.0.200:9100"   # nixos-builder
-          "localhost:9100"    # self (lxc-monitor)
-        ];
-
-        "wireguard" = [
-          # VPN metrics when deployed
-        ];
-
-        "homelab-services" = [
-          "10.0.0.6:8008"     # Matrix Synapse metrics
-        ];
-      };
-
-      # Additional scrape configs
-      additionalScrapeConfigs = [
-        {
-          job_name = "matrix-synapse";
-          static_configs = [
-            {
-              targets = [ "10.0.0.6:8008" ];
-              labels = {
-                service = "matrix-synapse";
-                instance = "matrix";
-              };
-            }
-          ];
-          metrics_path = "/_synapse/metrics";
-          scrape_interval = "30s";
-        }
+    # Container-specific overrides only where needed
+    prometheus.staticTargets = {
+      # Override only the node exporters to include self
+      "node-exporters" = [
+        "10.0.0.6:9100"     # matrix server
+        "10.0.0.163:9100"   # agent-sandbox
+        "10.0.0.200:9100"   # nixos-builder
+        "localhost:9100"    # self (lxc-monitor)
+      ];
+      # Keep other target defaults from module
+      "wireguard" = [];
+      "homelab-services" = [];
+      "matrix-services" = [
+        "10.0.0.6:8008"   # Matrix Synapse metrics endpoint
       ];
     };
 
-    grafana = {
-      enable = true;
-      port = 3000;
-      domain = "grafana.homelab.local";
-      enableDefaultDashboards = true;
+    grafana.domain = "grafana.homelab.local";
 
-      # SMTP disabled for container deployment
-      smtp.enable = false;
-    };
+    # Container-optimized node exporter collectors
+    nodeExporter.enabledCollectors = [
+      "systemd"
+      "processes"
+      "meminfo_numa"
+      "mountstats"
+      "tcpstat"
+      "network_route"
+    ];
 
-    # Node exporter for container self-monitoring
-    nodeExporter = {
-      enable = true;
-      port = 9100;
-      # Container-optimized collectors
-      enabledCollectors = [
-        "systemd"
-        "processes"
-        "meminfo_numa"
-        "mountstats"
-        "tcpstat"
-        "network_route"
-      ];
-    };
-
-    # Disable Loki in container to save resources
-    loki.enable = false;
-    alerting.enable = false;
+    # Loki and alerting automatically disabled for container deployment
   };
 
   # Override firewall to add monitoring ports
@@ -101,14 +62,7 @@
     iptables -A INPUT -s 10.0.0.0/16 -p tcp -m multiport --dports 3000,9090 -j ACCEPT
   '';
 
-  # Essential packages for container monitoring (extend base packages)
-  environment.systemPackages = with pkgs; [
-    prometheus
-    # promtool is included with prometheus
-    grafana
-    # grafana-cli is included with grafana
-    # Base packages already include: vim, htop, curl, wget, git, jq, ncdu, ripgrep
-  ];
+  # Packages provided by monitoring systemModule
 
   # Container resource optimization
   boot.kernel.sysctl = {

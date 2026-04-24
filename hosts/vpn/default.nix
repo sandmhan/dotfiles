@@ -54,12 +54,7 @@
     enabledCollectors = [ "systemd" "network" ];
   };
 
-  # Useful packages for VPN management
-  environment.systemPackages = with pkgs; [
-    wireguard-tools
-    qrencode
-    jq  # For parsing client JSON configs
-  ];
+  # Packages provided by wireguard systemModule
 
   # Ensure sops age key exists
   sops.age.keyFile = "/var/lib/sops-nix/key.txt";

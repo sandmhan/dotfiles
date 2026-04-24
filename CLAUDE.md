@@ -108,3 +108,55 @@ The new profile system provides:
 - **Extensibility**: Easy to add new profiles or customize existing ones
 - **Type Safety**: Options are properly typed and validated
 - **Documentation**: Self-documenting through option descriptions
+
+## HARD CONSTRAINTS - Agent Requirements
+
+These are mandatory requirements that must be followed for all module development:
+
+### 1. Documentation Requirements
+- **BLOCKING**: All systemModules MUST have corresponding documentation in `docs/`
+- **BLOCKING**: Documentation must be created in parallel with implementation
+- **BLOCKING**: Every module must include:
+  - Purpose and architecture overview
+  - Configuration examples with explanations
+  - Deployment procedures
+  - Integration patterns with other services
+  - Troubleshooting guide with common issues
+- **BLOCKING**: Infrastructure registry (`docs/infrastructure-registry.md`) MUST be updated with every new service
+
+### 2. Package Management Requirements
+- **BLOCKING**: All packages MUST be defined in centralized `systemModules/packages.nix`
+- **BLOCKING**: NO package duplication across modules or host configurations
+- **BLOCKING**: Host configurations MUST NOT redefine packages available in systemModules
+- **BLOCKING**: Use deployment type and resource profile for automatic configuration
+
+### 3. Configuration Architecture Requirements
+- **BLOCKING**: systemModules MUST contain all essential service logic and defaults
+- **BLOCKING**: Host configurations MUST only override deployment-specific variations
+- **BLOCKING**: NO configuration duplication between systemModules and host configs
+- **BLOCKING**: Use `deploymentType` and `resourceProfile` options for intelligent defaults
+
+### 4. Parallelization Requirements
+- **BLOCKING**: Tasks that can run independently MUST be identified and executed in parallel
+- **BLOCKING**: Documentation creation MUST run in parallel with implementation where possible
+- **BLOCKING**: Testing and validation MUST be parallelized across services
+- **BLOCKING**: Use taskId dependencies to manage sequential requirements only when necessary
+
+### 5. Infrastructure Registry Requirements
+- **BLOCKING**: Every service deployment MUST update `docs/infrastructure-registry.md`
+- **BLOCKING**: Registry must include:
+  - Host information with IP addresses
+  - Build commands for deployment
+  - Access methods and credentials
+  - Network configuration details
+  - Health check endpoints
+  - Troubleshooting procedures
+
+### 6. Code Quality Requirements
+- **BLOCKING**: All Nix code MUST follow conventions in `claude/rules/nix-conventions.md`
+- **BLOCKING**: Use centralized package registry for ALL package definitions
+- **BLOCKING**: Implement proper error handling and rollback procedures
+- **BLOCKING**: Test configurations with `nix build --dry-run` before commits
+
+### Violation Consequences
+Failure to follow these constraints will result in immediate refactoring requirements and delays in homelab development progress. These constraints are designed to maintain high-quality, maintainable, and well-documented infrastructure.

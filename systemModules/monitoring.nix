@@ -5,11 +5,24 @@
 with lib;
 
 let
+  servicePackages = import ./packages.nix { inherit pkgs lib; };
   cfg = config.homelab.monitoring;
 in
 {
   options.homelab.monitoring = {
     enable = mkEnableOption "Homelab monitoring stack (Prometheus + Grafana + Exporters)";
+
+    deploymentType = mkOption {
+      type = types.enum [ "vm" "container" "hybrid" ];
+      default = "vm";
+      description = "Deployment type - affects resource allocation and feature set";
+    };
+
+    resourceProfile = mkOption {
+      type = types.enum [ "minimal" "standard" "high" ];
+      default = "standard";
+      description = "Resource profile for automatic configuration optimization";
+    };
 
     prometheus = {
       enable = mkOption {
@@ -26,7 +39,10 @@ in
 
       retention = mkOption {
         type = types.str;
-        default = "365d";
+        default =
+          if cfg.deploymentType == "container" then "180d"
+          else if cfg.resourceProfile == "minimal" then "90d"
+          else "365d";
         description = "Prometheus data retention period";
       };
 
@@ -40,16 +56,18 @@ in
       staticTargets = mkOption {
         type = types.attrsOf (types.listOf types.str);
         default = {
+          # Default homelab infrastructure targets
           "node-exporters" = [
             "10.0.0.6:9100"     # matrix server
             "10.0.0.163:9100"   # agent-sandbox
-            "10.0.0.200:9100"   # nixos-builder (when deployed)
+            "10.0.0.200:9100"   # nixos-builder
           ];
-          "wireguard" = [
-            # VPN server metrics (when deployed)
-          ];
-          "homelab-services" = [
-            # Will be populated as services are deployed
+
+          # Service-specific targets (populated by deployment type)
+          "wireguard" = [];
+          "homelab-services" = [];
+          "matrix-services" = [
+            "10.0.0.6:8008"   # Matrix Synapse metrics endpoint
           ];
         };
         description = "Static scrape targets by job name";
@@ -58,7 +76,23 @@ in
       # Additional scrape configs for specific services
       additionalScrapeConfigs = mkOption {
         type = types.listOf types.attrs;
-        default = [];
+        default = [
+          # Default Matrix Synapse metrics configuration
+          {
+            job_name = "matrix-synapse";
+            static_configs = [
+              {
+                targets = [ "10.0.0.6:8008" ];
+                labels = {
+                  service = "matrix-synapse";
+                  instance = "matrix";
+                };
+              }
+            ];
+            metrics_path = "/_synapse/metrics";
+            scrape_interval = "30s";
+          }
+        ];
         description = "Additional Prometheus scrape configurations";
       };
     };
@@ -170,7 +204,7 @@ in
     loki = {
       enable = mkOption {
         type = types.bool;
-        default = false;
+        default = cfg.deploymentType == "vm" && cfg.resourceProfile != "minimal";
         description = "Enable Loki log aggregation";
       };
 
@@ -295,11 +329,10 @@ in
       # Open firewall for Prometheus
       networking.firewall.allowedTCPPorts = [ cfg.prometheus.port ];
 
-      # Useful packages for Prometheus management
-      environment.systemPackages = with pkgs; [
-        prometheus
-        # promtool is included with prometheus package
-      ];
+      # Monitoring packages from centralized registry
+      environment.systemPackages = servicePackages.monitoring ++
+        (optionals (cfg.deploymentType == "vm") servicePackages.monitoringUtils) ++
+        servicePackages.base;
     })
 
     # Grafana Configuration
@@ -427,11 +460,7 @@ in
       # Open firewall for Grafana
       networking.firewall.allowedTCPPorts = [ cfg.grafana.port ];
 
-      # Useful packages for Grafana management
-      environment.systemPackages = with pkgs; [
-        grafana
-        # grafana-cli is included with grafana package
-      ];
+      # Grafana packages already included in monitoring packages
     })
 
     # Loki Configuration (optional)

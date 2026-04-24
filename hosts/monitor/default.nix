@@ -11,90 +11,38 @@
   # System identification
   networking.hostName = systemSettings.hostname;
 
-  # Enable comprehensive monitoring stack
+  # Enable comprehensive monitoring stack with VM-optimized settings
   homelab.monitoring = {
     enable = true;
+    deploymentType = "vm";
+    resourceProfile = "standard";
 
-    prometheus = {
-      enable = true;
-      port = 9090;
-      retention = "365d";  # Keep metrics for 1 year
-      scrapeInterval = "15s";
+    # Override defaults only where VM deployment differs
+    prometheus.staticTargets = {
+      # Extend defaults with self-monitoring
+      "node-exporters" = [
+        "10.0.0.6:9100"     # matrix server
+        "10.0.0.163:9100"   # agent-sandbox
+        "10.0.0.200:9100"   # nixos-builder
+        "localhost:9100"    # self (monitor)
+        # Future targets will be added as services deploy
+      ];
 
-      # Configure targets for all known homelab services
-      staticTargets = {
-        "node-exporters" = [
-          "10.0.0.6:9100"     # matrix server
-          "10.0.0.163:9100"   # agent-sandbox
-          "10.0.0.200:9100"   # nixos-builder
-          "localhost:9100"    # self (monitor)
-          # Add more as services are deployed:
-          # "10.0.20.101:9100" # nas server
-          # "10.0.20.102:9100" # vpn server
-          # "10.0.20.103:9100" # git server
-        ];
-
-        "wireguard" = [
-          # "10.0.20.102:9586"  # VPN server wireguard metrics (when deployed)
-        ];
-
-        "homelab-services" = [
-          "10.0.0.6:8008"     # Matrix Synapse metrics endpoint (if enabled)
-          # Add service-specific metrics endpoints as they're deployed
-        ];
-      };
-
-      # Additional scrape configs for future services
-      additionalScrapeConfigs = [
-        # Example: Matrix Synapse metrics (when configured)
-        {
-          job_name = "matrix-synapse";
-          static_configs = [
-            {
-              targets = [ "10.0.0.6:8008" ];
-              labels = {
-                service = "matrix-synapse";
-                instance = "matrix";
-              };
-            }
-          ];
-          metrics_path = "/_synapse/metrics";
-          scrape_interval = "30s";
-        }
+      # Keep other target defaults from module
+      "wireguard" = [];
+      "homelab-services" = [];
+      "matrix-services" = [
+        "10.0.0.6:8008"   # Matrix Synapse metrics endpoint
       ];
     };
 
-    grafana = {
-      enable = true;
-      port = 3000;
-      domain = "grafana.homelab.local";
-      enableDefaultDashboards = true;
+    grafana.domain = "grafana.homelab.local";
 
-      # SMTP configuration (optional - disabled by default)
-      smtp = {
-        enable = false;
-        # host = "smtp.gmail.com";
-        # user = "homelab@yourdomain.com";
-        # Configure via sops secrets when needed
-      };
-    };
+    # VM-specific: Enable Loki for log aggregation (default based on deployment type)
+    # loki.enable = true;  # Automatically enabled for VM deployments
 
-    # Enable node exporter for self-monitoring
-    nodeExporter = {
-      enable = true;
-      port = 9100;
-    };
-
-    # Optional: Enable Loki for log aggregation
-    loki = {
-      enable = false;  # Enable when log aggregation is needed
-      port = 3100;
-    };
-
-    # Future: Enable alerting when notification channels are configured
-    alerting = {
-      enable = false;
-    };
+    # VM-specific: Future alerting configuration
+    # alerting.enable = true;  # Enable when notification channels configured
   };
 
   # Additional firewall rules for monitoring access
@@ -124,35 +72,7 @@
   # VM should be configured at Proxmox level:
   # qm set <vmid> --cores 2 --memory 4096
 
-  # Additional monitoring tools and utilities
-  environment.systemPackages = with pkgs; [
-    # Prometheus tools
-    prometheus
-    # promtool is included with prometheus
-
-    # Grafana tools
-    grafana
-    # grafana-cli is included with grafana
-
-    # Monitoring utilities
-    htop
-    iotop
-    nethogs
-    iftop
-
-    # Network diagnostics
-    curl
-    dig
-    nmap
-
-    # Log analysis
-    jq
-    yq-go
-
-    # Performance monitoring
-    sysstat
-    tcpdump
-  ];
+  # Monitoring packages provided by systemModule
 
   # System tuning for monitoring workload
   boot.kernel.sysctl = {

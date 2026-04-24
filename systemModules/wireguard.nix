@@ -5,6 +5,7 @@
 with lib;
 
 let
+  servicePackages = import ./packages.nix { inherit pkgs lib; };
   cfg = config.homelab.wireguard;
 in
 {
@@ -159,9 +160,8 @@ in
     };
 
     # Include useful WireGuard management tools
-    environment.systemPackages = with pkgs; [
-      wireguard-tools  # wg, wg-quick commands
-      qrencode         # Generate QR codes for mobile clients
-    ];
+    environment.systemPackages = servicePackages.wireguard ++
+      servicePackages.wireguardUtils ++
+      servicePackages.base;
   };
 }
