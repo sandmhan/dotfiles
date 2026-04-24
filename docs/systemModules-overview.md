@@ -435,3 +435,92 @@ To request new modules or enhancements:
 5. **Resource Requirements**: CPU, memory, storage, GPU needs
 
 This modular architecture enables flexible, scalable homelab deployments while maintaining consistency and best practices across all services.
+
+## New Architecture Patterns (Post-Refactoring)
+
+**IMPORTANT**: As of the April 2026 refactoring, all systemModules follow new standardized patterns to eliminate anti-patterns and improve maintainability. See [SystemModules Architecture Guide](./systemModules-architecture.md) for complete implementation details.
+
+### Key Architectural Changes
+
+#### 1. Centralized Package Management
+- All packages defined in `systemModules/packages.nix`
+- Automatic package selection based on service type and deployment environment
+- Zero duplication across modules and host configurations
+
+#### 2. Intelligent Module Configuration
+- `deploymentType` (vm/container/hybrid) for environment-specific optimization
+- `resourceProfile` (minimal/standard/high) for automatic resource management
+- Smart defaults eliminate configuration duplication
+
+#### 3. Clean Separation of Concerns
+- SystemModules contain all essential service logic with intelligent defaults
+- Host configurations only override deployment-specific variations
+- Container deployments automatically receive resource optimizations
+
+#### 4. Enhanced Documentation Requirements
+- **BLOCKING**: All modules must have comprehensive documentation
+- **BLOCKING**: Infrastructure registry must be updated with every service
+- **BLOCKING**: All configurations must be tested before commits
+
+### Implementation Quick Reference
+
+#### Standard Module Structure
+```nix
+# systemModules/servicename.nix
+{ config, lib, pkgs, ... }:
+let
+  servicePackages = import ./packages.nix { inherit pkgs lib; };
+  cfg = config.homelab.servicename;
+in {
+  options.homelab.servicename = {
+    enable = mkEnableOption "Service description";
+    deploymentType = mkOption { /* vm/container/hybrid */ };
+    resourceProfile = mkOption { /* minimal/standard/high */ };
+    # Service-specific options with intelligent defaults...
+  };
+  
+  config = mkMerge [
+    (mkIf cfg.enable { /* Base configuration */ })
+    (mkIf (cfg.enable && cfg.deploymentType == "vm") { /* VM optimizations */ })
+    (mkIf (cfg.enable && cfg.deploymentType == "container") { /* Container optimizations */ })
+  ];
+}
+```
+
+#### Host Configuration Pattern
+```nix
+# hosts/servicename/default.nix
+homelab.servicename = {
+  enable = true;
+  deploymentType = "vm";  # Triggers automatic optimizations
+  resourceProfile = "standard";
+  
+  # Override only deployment-specific variations
+  domain = "servicename.homelab.local";
+  # Everything else uses intelligent module defaults
+};
+```
+
+#### Container Configuration Pattern
+```nix
+# hosts/lxc-servicename/default.nix  
+homelab.servicename = {
+  enable = true;
+  deploymentType = "container";  # Auto-enables resource optimizations
+  resourceProfile = "minimal";   # Reduces retention, disables non-essential features
+  
+  # Minimal container-specific overrides only
+};
+```
+
+### Migration Guide
+
+Existing modules should be updated to follow the new patterns:
+
+1. **Add deployment and resource profile options**
+2. **Move all packages to `systemModules/packages.nix`**
+3. **Implement intelligent defaults based on deployment type**
+4. **Update host configurations to remove duplication**
+5. **Add comprehensive documentation**
+
+See the [Architecture Guide](./systemModules-architecture.md) for detailed migration procedures and complete implementation examples.

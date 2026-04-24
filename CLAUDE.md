@@ -135,6 +135,7 @@ These are mandatory requirements that must be followed for all module developmen
 - **BLOCKING**: Host configurations MUST only override deployment-specific variations
 - **BLOCKING**: NO configuration duplication between systemModules and host configs
 - **BLOCKING**: Use `deploymentType` and `resourceProfile` options for intelligent defaults
+- **BLOCKING**: Follow patterns documented in `docs/systemModules-architecture.md`
 
 ### 4. Parallelization Requirements
 - **BLOCKING**: Tasks that can run independently MUST be identified and executed in parallel

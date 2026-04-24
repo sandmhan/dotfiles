@@ -4,6 +4,8 @@ Single source of truth for all deployed and planned infrastructure. **Update thi
 
 ## Quick Reference
 
+> **IMPORTANT**: All systemModules follow new standardized architecture patterns as of April 2026. See [SystemModules Architecture Guide](./systemModules-architecture.md) for implementation details and [SystemModules Overview](./systemModules-overview.md) for service documentation.
+
 ### Deployment Commands
 ```bash
 # Build VMA base image
