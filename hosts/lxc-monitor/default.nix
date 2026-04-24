@@ -1,204 +1,145 @@
 # Monitoring Stack LXC Container Configuration
-# Prometheus + Grafana + lightweight monitoring in a container
-{
-  config,
-  lib,
-  pkgs,
-  userSettings,
-  systemSettings,
-  ...
-}:
-{
+# Resource-efficient alternative to VM deployment
+{ config, lib, pkgs, userSettings, systemSettings, ... }: {
   imports = [
-    ../lxc-base
+    ../lxc-base/default.nix
+    ../../systemModules/monitoring.nix
+    ../../systemModules/sops.nix
   ];
 
-  # Container-specific hostname
-  networking.hostName = "lxc-monitor";
+  # System identification
+  networking.hostName = systemSettings.hostname;
 
-  # Monitoring-specific firewall configuration
-  networking.firewall = {
+  # Enable monitoring stack optimized for container environment
+  homelab.monitoring = {
     enable = true;
-    allowedTCPPorts = [
-      22    # SSH management
-      3000  # Grafana web UI
-      9090  # Prometheus web UI
-      9100  # Node exporter (self)
-    ];
-  };
 
-  # Prometheus monitoring server
-  services.prometheus = {
-    enable = true;
-    port = 9090;
-
-    # Scrape configuration for all homelab services
-    scrapeConfigs = [
-      {
-        job_name = "node-exporters";
-        static_configs = [
-          {
-            # Add all VM/container node exporters here
-            targets = [
-              "lxc-monitor:9100"    # Self
-              "lxc-matrix:9100"     # Matrix container
-              "lxc-git:9100"        # Git container
-              "lxc-nas:9100"        # NAS container
-              "agent-sandbox:9100"  # Agent VM
-              "10.0.0.126:9100"     # Proxmox host
-            ];
-          }
-        ];
-      }
-
-      {
-        job_name = "postgres-exporters";
-        static_configs = [
-          {
-            targets = [
-              "lxc-matrix:9187"  # Matrix PostgreSQL
-              "lxc-git:9187"     # Forgejo PostgreSQL
-            ];
-          }
-        ];
-      }
-
-      {
-        job_name = "matrix-synapse";
-        static_configs = [
-          {
-            targets = [
-              "lxc-matrix:8008"  # Matrix Synapse metrics
-            ];
-          }
-        ];
-      }
-    ];
-
-    # Retention and storage optimization for containers
-    extraFlags = [
-      "--storage.tsdb.retention.time=30d"
-      "--storage.tsdb.retention.size=2GB"
-      "--web.enable-lifecycle"
-    ];
-  };
-
-  # Grafana dashboard server
-  services.grafana = {
-    enable = true;
-    settings = {
-      server = {
-        http_addr = "0.0.0.0";
-        http_port = 3000;
-        domain = "monitor.homelab.local";
-      };
-
-      # Container-optimized settings
-      database = {
-        type = "sqlite3";
-        path = "/var/lib/grafana/grafana.db";
-      };
-
-      # Authentication
-      security = {
-        admin_user = "admin";
-        admin_password = "admin"; # Change this in production with sops-nix
-        secret_key = "SW2YcwTIb9zpOOhoPsMm"; # Default key for homelab
-      };
-    };
-
-    # Provision Prometheus datasource
-    provision = {
+    prometheus = {
       enable = true;
-      datasources.settings = {
-        apiVersion = 1;
-        datasources = [
-          {
-            name = "Prometheus";
-            type = "prometheus";
-            access = "proxy";
-            url = "http://localhost:9090";
-            isDefault = true;
-          }
+      port = 9090;
+      retention = "180d";  # Reduced retention for container deployment
+      scrapeInterval = "15s";
+
+      # Same target configuration as VM version
+      staticTargets = {
+        "node-exporters" = [
+          "10.0.0.6:9100"     # matrix server
+          "10.0.0.163:9100"   # agent-sandbox
+          "10.0.0.200:9100"   # nixos-builder
+          "localhost:9100"    # self (lxc-monitor)
+        ];
+
+        "wireguard" = [
+          # VPN metrics when deployed
+        ];
+
+        "homelab-services" = [
+          "10.0.0.6:8008"     # Matrix Synapse metrics
         ];
       };
 
-      # Pre-built dashboards
-      dashboards.settings = {
-        apiVersion = 1;
-        providers = [
-          {
-            name = "homelab";
-            type = "file";
-            folder = "Homelab";
-            path = "/var/lib/grafana/dashboards";
-          }
-        ];
-      };
+      # Additional scrape configs
+      additionalScrapeConfigs = [
+        {
+          job_name = "matrix-synapse";
+          static_configs = [
+            {
+              targets = [ "10.0.0.6:8008" ];
+              labels = {
+                service = "matrix-synapse";
+                instance = "matrix";
+              };
+            }
+          ];
+          metrics_path = "/_synapse/metrics";
+          scrape_interval = "30s";
+        }
+      ];
     };
+
+    grafana = {
+      enable = true;
+      port = 3000;
+      domain = "grafana.homelab.local";
+      enableDefaultDashboards = true;
+
+      # SMTP disabled for container deployment
+      smtp.enable = false;
+    };
+
+    # Node exporter for container self-monitoring
+    nodeExporter = {
+      enable = true;
+      port = 9100;
+      # Container-optimized collectors
+      enabledCollectors = [
+        "systemd"
+        "processes"
+        "meminfo_numa"
+        "mountstats"
+        "tcpstat"
+        "network_route"
+      ];
+    };
+
+    # Disable Loki in container to save resources
+    loki.enable = false;
+    alerting.enable = false;
   };
 
-  # Create dashboard directory and add basic dashboards
-  systemd.tmpfiles.rules = [
-    "d /var/lib/grafana/dashboards 0755 grafana grafana -"
+  # Override firewall to add monitoring ports
+  networking.firewall.allowedTCPPorts = [
+    22    # SSH (from lxc-base)
+    3000  # Grafana
+    9090  # Prometheus
+    9100  # Node exporter (already in lxc-base)
   ];
 
-  # Basic Node Exporter dashboard
-  environment.etc."grafana/dashboards/node-exporter.json".source = pkgs.writeText "node-exporter-dashboard.json" ''
-    {
-      "dashboard": {
-        "id": null,
-        "title": "Node Exporter Full",
-        "tags": ["node-exporter"],
-        "timezone": "browser",
-        "panels": [
-          {
-            "title": "CPU Usage",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)"
-              }
-            ]
-          },
-          {
-            "title": "Memory Usage",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
-              }
-            ]
-          },
-          {
-            "title": "Disk Usage",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/\"})"
-              }
-            ]
-          }
-        ],
-        "time": {
-          "from": "now-1h",
-          "to": "now"
-        },
-        "refresh": "30s"
-      }
-    }
+  # Container-specific firewall rules for monitoring access
+  networking.firewall.extraCommands = ''
+    # Allow access from all homelab networks
+    iptables -A INPUT -s 10.0.0.0/16 -p tcp -m multiport --dports 3000,9090 -j ACCEPT
   '';
 
+  # Essential packages for container monitoring (extend base packages)
+  environment.systemPackages = with pkgs; [
+    prometheus
+    promtool
+    grafana-cli
+    # Base packages already include: vim, htop, curl, wget, git, jq, ncdu, ripgrep
+  ];
+
   # Container resource optimization
-  systemd.services = {
-    prometheus.serviceConfig = {
-      MemoryMax = "512M";
-      CPUQuota = "50%";
+  boot.kernel.sysctl = {
+    # Reduced limits for container (extend base sysctl)
+    "fs.inotify.max_user_watches" = 131072;
+    "fs.inotify.max_user_instances" = 128;
+  };
+
+  # Simplified health check for container
+  systemd.services.monitoring-health-check = {
+    description = "Container Monitoring Health Check";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "prometheus.service" "grafana.service" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = pkgs.writeShellScript "container-health-check" ''
+        sleep 10
+
+        echo "Checking monitoring services in container..."
+
+        # Quick health checks
+        curl -f http://localhost:9090/-/ready && echo "✓ Prometheus ready"
+        curl -f http://localhost:3000/api/health && echo "✓ Grafana ready"
+        curl -f http://localhost:9100/metrics >/dev/null && echo "✓ Node exporter ready"
+      '';
     };
 
-    grafana.serviceConfig = {
-      MemoryMax = "256M";
-      CPUQuota = "25%";
-    };
+    startAt = "hourly";
   };
+
+  # Ensure sops integration
+  sops.age.keyFile = "/var/lib/sops-nix/key.txt";
 }

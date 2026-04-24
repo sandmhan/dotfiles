@@ -10,10 +10,11 @@ keys:
   # Host keys (derived from SSH host keys)
   # Get with: ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
   # Or remotely: ssh user@host 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age
-  - &gaia_key age1...   # Desktop (Framework laptop)
-  - &nvr_key age1...    # NVR (Frigate)
-  - &matrix_key age1... # Matrix/Synapse server
-  - &vpn_key age1...    # WireGuard VPN server
+  - &gaia_key age1...      # Desktop (Framework laptop)
+  - &nvr_key age1...       # NVR (Frigate)
+  - &matrix_key age1...    # Matrix/Synapse server
+  - &vpn_key age1...       # WireGuard VPN server
+  - &monitor_key age1...   # Monitoring stack (VM or LXC)
 
 creation_rules:
   # Desktop (gaia) secrets
@@ -43,6 +44,13 @@ creation_rules:
     - age:
       - *admin_age
       - *vpn_key
+
+  # Monitoring stack secrets (Grafana, alerting)
+  - path_regex: secrets/monitoring/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *monitor_key
 
   # Shared secrets (accessible by multiple hosts)
   - path_regex: secrets/shared/[^/]+\.(yaml|json|env|ini)$

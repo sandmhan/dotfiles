@@ -286,6 +286,21 @@
         };
       };
 
+      # Monitoring Stack VM - Prometheus + Grafana observability
+      monitor = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/monitor
+          sops-nix.nixosModules.sops
+        ];
+        specialArgs = {
+          userSettings = baseUserSettings;
+          systemSettings = systemSettings // {
+            hostname = "monitor";
+          };
+        };
+      };
+
       # LXC Container Configurations (resource-efficient alternatives to VMs)
       # Deploy with: nixos-rebuild switch --target-host user@container --flake .#lxc-matrix
 
