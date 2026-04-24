@@ -38,6 +38,9 @@
     ctop  # Container monitoring
     lazydocker  # Docker TUI
 
+    # Remote access
+    mosh
+
     # Network debugging
     netcat-gnu
     nmap

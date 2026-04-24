@@ -13,6 +13,9 @@
       # SSH access only
       allowedTCPPorts = [ 22 ];
 
+      # Mosh UDP ports
+      allowedUDPPortRanges = [ { from = 60000; to = 61000; } ];
+
       # Prometheus metrics (internal monitoring)
       interfaces.enp1s0.allowedTCPPorts = [ 9100 ];
 
