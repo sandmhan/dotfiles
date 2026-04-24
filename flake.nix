@@ -21,9 +21,14 @@
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, nvf, ... }:
+  outputs = { self, nixpkgs, nixos-hardware, home-manager, stylix, nixvim, nvf, sops-nix, ... }:
   let
     # Shared user settings
     baseUserSettings = {
@@ -78,6 +83,7 @@
           ./configuration.nix
           nixos-hardware.nixosModules.framework-13-7040-amd
           stylix.nixosModules.stylix
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           inherit systemSettings;
@@ -90,6 +96,7 @@
         system = "x86_64-linux";
         modules = [
           ./hosts/proxmox-base
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -103,6 +110,7 @@
         system = "x86_64-linux";
         modules = [
           ./hosts/server
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -120,6 +128,7 @@
         modules = [
           ./hosts/server
           ./hosts/server/hardware-configuration.nix
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -137,6 +146,7 @@
         modules = [
           ./hosts/proxmox-base
           ./hosts/nvr
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -155,6 +165,7 @@
           ./hosts/server
           ./hosts/server/hardware-configuration.nix
           ./hosts/llama
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -173,6 +184,7 @@
           ./hosts/server
           ./hosts/server/hardware-configuration.nix
           ./systemModules/matrix.nix
+          sops-nix.nixosModules.sops
         ];
         specialArgs = {
           userSettings = baseUserSettings;
@@ -194,6 +206,7 @@
           {
             home-manager = {
               useUserPackages = true;
+              backupFileExtension = "hm-backup";
               users.agent = {
                 imports = [
                   ./home/profiles/headless-terminal.nix
