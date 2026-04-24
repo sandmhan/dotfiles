@@ -322,7 +322,7 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 5. Secrets referenced in NixOS configs via `sops.secrets.<name>.path`
 
 ### Secrets Inventory (per service)
-- **Matrix**: registration shared secret, Coturn static auth secret, PostgreSQL password
+- **Matrix**: registration shared secret, Coturn static auth secret, PostgreSQL password, agent bot access token
 - **Nixflix/media**: Sonarr/Radarr/Prowlarr API keys, SABnzbd API key, qBittorrent password, Jellyfin admin password
 - **Forgejo**: admin password, PostgreSQL password, secret key
 - **wger**: Django secret key, API keys, PostgreSQL password
@@ -483,7 +483,7 @@ Network: Bridge to all VLANs with firewall rules
 
 ### Phase 2 — Communication & Dev Tools (Dell node)
 
-#### 2a. Matrix Homeserver (`hosts/matrix/`)
+#### 2a. Matrix Homeserver & Agent Control Plane (`hosts/matrix/`)
 
 - `systemModules/matrix.nix` is already complete
 - Wrap in a host config extending `hosts/server/`
@@ -491,6 +491,43 @@ Network: Bridge to all VLANs with firewall rules
 - ACME/Let's Encrypt (port 80/443 must be reachable — port forward from Protectli)
 - Secrets via sops-nix: Synapse registration secret, Coturn auth, PostgreSQL password
 - Optional: Element Web as a static nginx site
+
+**Agent Control via Matrix:**
+
+Matrix serves as the primary remote interface for interacting with autonomous AI agents and receiving homelab status updates. All messaging logs stay self-hosted.
+
+**Architecture:**
+- **Matrix bot service** (`systemModules/matrix-agent-bridge.nix`) — a bot user on the Synapse homeserver that bridges commands to agents
+- **Dedicated rooms** for agent interaction:
+  - `#agent-status:sandmhan.dev` — broadcast channel for agent progress updates, build results, deployment notifications
+  - `#agent-control:sandmhan.dev` — interactive room for issuing commands to running agents (start, stop, check status, adjust parameters)
+  - `#homelab-alerts:sandmhan.dev` — system-level alerts from monitoring (Prometheus alertmanager → Matrix webhook)
+- **End-to-end encryption** optional per room — status broadcasts can be unencrypted for webhook simplicity, control rooms encrypted
+
+**Bot Capabilities:**
+- **Agent lifecycle management**: Start/stop/restart autonomous agents via chat commands
+- **Status polling**: Request current status of running tasks (`!status agent-sandbox`, `!status deploy gaia`)
+- **Build orchestration**: Trigger NixOS builds on the builder VM (`!deploy nvr`, `!build .#agent-sandbox`)
+- **Log streaming**: Tail recent logs from any agent or service (`!logs frigate --lines 50`)
+- **Approval gates**: Agents pause and request human approval before destructive actions — user responds in Matrix
+
+**Integration Points:**
+- **NixOS Builder (Phase 1a)**: Builder reports build success/failure to `#agent-status`, accepts build commands from `#agent-control`
+- **Monitoring (Phase 1b)**: Prometheus alertmanager sends alerts to `#homelab-alerts` via Matrix webhook receiver
+- **Home Assistant (Phase 1d)**: HA notifications route through Matrix bot (security alerts, IoT events)
+- **AI Server (Phase 3a)**: Remote inference requests and agent orchestration via Matrix commands
+- **Tailscale/WireGuard**: VPN provides secure remote access to Matrix homeserver from mobile/laptop
+
+**Implementation approach:**
+- Use [mautrix](https://github.com/mautrix) or [matrix-nio](https://github.com/poljar/matrix-nio) Python SDK for bot implementation
+- Bot runs as a systemd service alongside Synapse on the matrix host
+- Command parsing with prefix (`!deploy`, `!status`, `!logs`) or natural language via local LLM (Phase 3)
+- Webhook receiver endpoint for Prometheus alertmanager, Forgejo CI, and other services
+
+**Remote Access Strategy:**
+- **Primary**: Matrix client apps (Element on phone/laptop) for day-to-day agent interaction — works from anywhere with internet
+- **Secondary**: Tailscale or WireGuard VPN for direct SSH/web UI access when deeper control is needed
+- **Benefit**: Matrix federation means you can interact from any Matrix client without VPN, while VPN remains available for admin tasks
 
 #### 2b. Self-hosted Git — Forgejo (`hosts/git/`, `systemModules/forgejo.nix`)
 
@@ -640,6 +677,7 @@ systemModules/
 ├── monitoring.nix             # Prometheus + Grafana + Loki
 ├── nas.nix                    # NFS/Samba exports, backup jobs
 ├── forgejo.nix                # Git server
+├── matrix-agent-bridge.nix    # Matrix bot for AI agent control & notifications
 ├── ai-tools.nix               # whisper, piper, comfyui orchestration
 ├── wger.nix                   # Fitness tracking (OCI container)
 ├── sunshine-server.nix        # Headless GPU gaming server
@@ -662,19 +700,19 @@ Phase 1 (Dell, now)          Phase 2 (Dell, now)
 ┌──────────────┐             ┌──────────────┐
 │  monitoring  │◄────────────│   matrix     │◄─── HA notifications
 │  (grafana +  │  metrics    │  (synapse +  │
-│  prometheus) │◄──┐         │   coturn)    │
+│  prometheus) │◄──┐         │  agent bot)  │◄─── remote agent control
+└──────┬───────┘   │         └──────┬───────┘
+       │           │                │ commands/status
+┌──────▼───────┐   │         ┌──────▼───────┐
+│     nas      │   │         │    git       │
+│  (nfs/smb)   │   │         │  (forgejo)   │──── CI webhooks to Matrix
 └──────┬───────┘   │         └──────────────┘
-       │           │         ┌──────────────┐
-┌──────▼───────┐   │         │    git       │
-│     nas      │   │         │  (forgejo)   │
-│  (nfs/smb)   │   │         └──────────────┘
-└──────┬───────┘   │
        │           │
 ┌──────▼───────┐   │         Phase 3 (Gaming PC)
 │homeassistant │◄──┤         ┌──────────────┐
 │ (iot hub +   │   ├─────────│     ai       │
 │ automation)  │   │         │ (llama +     │◄──── Frigate detector
-└───────┬──────┘   │         │  whisper +   │
+└───────┬──────┘   │         │  whisper +   │◄──── Matrix agent cmds
         │          │         │  comfyui)    │
         │          │         └──────────────┘
         │          │         ┌──────────────┐
@@ -697,6 +735,20 @@ Phase 1 (Dell, now)          Phase 2 (Dell, now)
                    └─────────│   gaming     │
                              │ (sunshine)   │
                              └──────────────┘
+
+Matrix Agent Control Flow:
+┌──────────┐    Element     ┌──────────┐    bot API    ┌──────────────┐
+│  Phone/  │◄──────────────►│  Matrix  │◄────────────►│  Agent Bot   │
+│  Laptop  │   (anywhere)   │  Synapse │              │  Service     │
+└──────────┘                └──────────┘              └──────┬───────┘
+                                                             │
+                            ┌────────────────────────────────┤
+                            │              │                 │
+                     ┌──────▼──┐    ┌──────▼──┐      ┌──────▼──────┐
+                     │ Builder │    │  Agent  │      │ Alertmanager│
+                     │  (build │    │ Sandbox │      │ (monitoring │
+                     │  deploys)│    │ (tasks) │      │  webhooks)  │
+                     └─────────┘    └─────────┘      └─────────────┘
 ```
 
 ---
