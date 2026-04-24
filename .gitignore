@@ -1,0 +1,34 @@
+# SOPS encrypted files (.yaml) ARE safe to commit -- that's the point of SOPS.
+# Only exclude formats that might contain unencrypted secrets.
+secrets/**/*.env
+secrets/**/*.ini
+
+# Nix build artifacts
+result
+result-*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Age keys (personal secrets)
+age-key.txt
+*.age
+
+# Temporary files
+*.tmp
+*.bak
+
+# Local environment overrides
+local.nix
+secrets.nix
+
+# VM images
+*.qcow2
+*.vma.zst
