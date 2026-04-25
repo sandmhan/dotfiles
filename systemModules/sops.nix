@@ -12,6 +12,14 @@
         ../secrets/nvr/secrets.yaml
       else if (config.networking.hostName == "matrix") then
         ../secrets/matrix/secrets.yaml
+      else if (config.networking.hostName == "git") then
+        ../secrets/forgejo/secrets.yaml
+      else if (config.networking.hostName == "lxc-git") then
+        ../secrets/forgejo/secrets.yaml
+      else if (config.networking.hostName == "homeassistant") then
+        ../secrets/homeassistant/secrets.yaml
+      else if (config.networking.hostName == "lxc-homeassistant") then
+        ../secrets/homeassistant/secrets.yaml
       else
         ../secrets/shared/secrets.yaml;
 
