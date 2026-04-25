@@ -91,6 +91,18 @@ nixos-rebuild switch --target-host sandmhan@<host> --flake .#<config> --sudo
 4. Adjust resources: `qm set <vmid> --cores <n>` or `--memory <mb>`
 5. Push config: `nixos-rebuild switch --target-host sandmhan@<ip> --flake .#<config> --sudo`
 
+## Proxmox Safety Rules
+
+These rules exist because an autonomous agent crashed the Dell Proxmox node on 2026-04-24 by spamming `qm` commands without backoff, triggering an Intel NIC hardware hang that required a physical power cycle.
+
+- **Never run VM lifecycle commands (`qm stop`, `qm start`, `qm reboot`) in a loop.** Wait at least 60 seconds between attempts. Maximum 3 retries, then stop and report the failure.
+- **Never spam `qm guest exec` or QMP guest-ping commands.** If the QEMU guest agent is not responding, the fix is inside the VM's NixOS config (enable `services.qemuGuest`), not repeated polling from the host.
+- **Do not modify GRUB or boot configuration to troubleshoot guest agent issues.** The QEMU guest agent is a userspace service, not a boot-level concern.
+- **Do not modify keyboard, HID, or peripheral configurations on Proxmox hosts.** These are physical hardware concerns, not VM configuration concerns.
+- **Rate limit all Proxmox API/CLI operations.** No more than 1 VM lifecycle operation per 60 seconds. No more than 1 QMP query per 30 seconds.
+- **If a VM won't start or respond after 3 attempts, stop and ask the user.** Do not continue retrying. The Dell node has limited resources (i7-3520M, 15GB RAM) and is fragile under sustained load.
+- **Never run `nixos-rebuild switch --target-host` against the Proxmox host itself.** Only target NixOS VMs.
+
 ## Code Conventions
 
 - Format Nix files with `nixfmt`

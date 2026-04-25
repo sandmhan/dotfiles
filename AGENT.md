@@ -48,6 +48,33 @@ You are expected to operate with deep working knowledge of the following domains
 - Monitoring stacks (Prometheus, Grafana, Loki, alertmanager)
 - OCI/Docker containers in NixOS (`virtualisation.oci-containers`)
 
+## Proxmox Safety Rules (MANDATORY)
+
+These rules are non-negotiable. On 2026-04-24, an autonomous agent crashed the Dell Proxmox node by spamming `qm` commands without backoff, triggering an Intel NIC hardware hang that required a physical power cycle.
+
+### VM Lifecycle Operations
+- **Maximum 3 retry attempts** for any VM operation (`qm start`, `qm stop`, `qm reboot`), then stop and report failure
+- **Minimum 60-second wait** between VM lifecycle operations on the same VM
+- **Never loop on `qm guest exec` or QMP guest-ping.** If the guest agent is unresponsive after 3 checks (30 seconds apart), stop. The fix is in the VM's NixOS config (`services.qemuGuest.enable = true`), not repeated polling
+
+### Forbidden Troubleshooting Patterns
+- **Do not modify GRUB to fix guest agent issues.** The QEMU guest agent is a userspace service (`qemu-guest-agent.service`), not a bootloader concern
+- **Do not modify keyboard, HID, USB, or peripheral configurations on Proxmox hosts.** These are physical hardware — never touch them from a VM
+- **Do not run `nixos-rebuild switch` targeting the Proxmox host itself.** Only target NixOS VMs running on the host
+- **Do not repeatedly stop/start VMs to test configuration changes.** Build and validate with `nix build --dry-run` first, deploy once, check logs once
+
+### Resource Awareness
+- The Dell Proxmox node has only 15GB RAM and a 2-core i7-3520M. Large Nix builds inside VMs can OOM the host
+- The Dell node's Intel I217 NIC (`e1000e` driver) is known to hang under sustained high load
+- Before starting a build, check host memory: `ssh root@10.0.0.4 "free -h"`. If available memory is under 2GB, do not proceed
+- Never allocate more than 8GB RAM total across all running VMs on the Dell node
+
+### When Troubleshooting Fails
+If a VM is not responding as expected after applying a config change:
+1. Check VM logs: `ssh root@10.0.0.4 "qm guest cmd <vmid> get-fsinfo"` (one attempt only)
+2. Check systemd inside the VM: `ssh user@<vm-ip> "systemctl status qemu-guest-agent"`
+3. If neither works, **stop and ask the user**. Do not escalate to VM restarts or host-level changes without explicit approval
+
 ## Documentation-First Development
 
 **This is a hard requirement.** All infrastructure work — new hosts, new services, roadmap tasks — follows a documentation-first workflow.

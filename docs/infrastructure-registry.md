@@ -27,10 +27,10 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 
 ## Proxmox Nodes
 
-| Node | Hardware | CPU | RAM | Storage | IP Address | Web UI | SSH Access | Status |
-|------|----------|-----|-----|---------|------------|--------|------------|--------|
-| **Dell Laptop** | Dell Latitude | i7-3520M (2C/4T) | 15GB | 500GB HDD | `10.0.0.4` | `https://10.0.0.4:8006` | `ssh root@10.0.0.4` | `deployed` |
-| **Gaming PC** | Custom | i7-10700K (8C/16T) | 32GB | 1TB + 500GB SSD | `TBD` | `TBD` | `TBD` | `not yet repurposed` |
+| Node | Hardware | CPU | RAM | Storage | IP Address | Web UI | SSH Access | Status | Notes |
+|------|----------|-----|-----|---------|------------|--------|------------|--------|-------|
+| **Dell Laptop** | Dell Latitude | i7-3520M (2C/4T) | 15GB | 500GB HDD | `10.0.0.4` | `https://10.0.0.4:8006` | `ssh root@10.0.0.4` | `deployed` | Intel I217 NIC (`e1000e`) — hangs under sustained load. Max 8GB RAM across all VMs |
+| **Gaming PC** | Custom | i7-10700K (8C/16T) | 32GB | 1TB + 500GB SSD | `TBD` | `TBD` | `TBD` | `not yet repurposed` | — |
 
 ---
 
@@ -327,10 +327,12 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-04-24 | **INCIDENT**: Agent VM 105 spammed qm commands against VM 200, triggered e1000e NIC hang on Dell node, required power cycle | — | Added Proxmox safety rules to CLAUDE.md and AGENT.md |
 | 2026-04-24 | Add Home Assistant systemModule with MQTT, PostgreSQL, nginx, USB passthrough | — | VM and LXC host configs, secrets, documentation |
 | 2026-04-24 | Add Matrix Agent Bridge for bot control and webhook notifications | — | New systemModule, bot script, co-located on matrix host (port 9800) |
 | 2026-04-24 | Add Forgejo Git server (VM and LXC) to infrastructure registry | — | New systemModule, VM/LXC host configs, secrets, and documentation |
 | 2026-04-24 | Complete infrastructure registry overhaul with deployment commands, access methods, and troubleshooting | — | Added comprehensive host information, build commands, and operational procedures |
+| 2026-04-24 | Added Dell node IP (10.0.0.4) and NIC hardware limitations to registry | — | — |
 | 2026-04-23 | Initial registry created from flake.nix inventory | — | Basic structure |
 | 2026-04-23 | Updated agent-sandbox IP to 10.0.0.163, deployed latest config | — | IP assignment |
 | 2026-04-23 | Marked nixos-builder as deployed, updated roadmap for incremental config development approach | — | Status update |
