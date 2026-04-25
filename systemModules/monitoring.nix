@@ -7,6 +7,14 @@ with lib;
 let
   servicePackages = import ./packages.nix { inherit pkgs lib; };
   cfg = config.homelab.monitoring;
+
+  # Provisioned dashboard JSON files
+  dashboardsDir = pkgs.runCommand "grafana-homelab-dashboards" { } ''
+    mkdir -p $out
+    cp ${./grafana-dashboards/fleet-overview.json} $out/fleet-overview.json
+    cp ${./grafana-dashboards/node-overview.json} $out/node-overview.json
+    cp ${./grafana-dashboards/prometheus-stats.json} $out/prometheus-stats.json
+  '';
 in
 {
   options.homelab.monitoring = {
@@ -442,7 +450,7 @@ in
                 type = "file";
                 folder = "Homelab";
                 folderUid = "homelab";
-                options.path = "/var/lib/grafana/dashboards/homelab";
+                options.path = dashboardsDir;
                 updateIntervalSeconds = 60;
                 allowUiUpdates = true;
               }
@@ -450,11 +458,6 @@ in
           };
         };
       };
-
-      # Create default dashboard directory
-      systemd.tmpfiles.rules = mkIf cfg.grafana.enableDefaultDashboards [
-        "d /var/lib/grafana/dashboards/homelab 755 grafana grafana"
-      ];
 
       # Open firewall for Grafana
       networking.firewall.allowedTCPPorts = [ cfg.grafana.port ];
