@@ -49,18 +49,18 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 | Service | Hostname | VM/CT ID | IP Address | Cores | RAM | Disk | Ports | Status | Access |
 |---------|----------|----------|------------|-------|-----|------|-------|---------|--------|
 | **Desktop** | gaia | — | `[Laptop IP]` | 8 | 16GB | 500GB | — | `deployed` | Direct access |
-| **Agent Sandbox** | agent-sandbox | 105 | `10.0.0.163` | 4 | 8GB | 24GB | 22 | `deployed` | `ssh agent@10.0.0.163` |
-| **NixOS Builder** | nixos-builder | 200 | `[TBD]` | 6 | 12GB | 100GB | 22 | `deployed` | `ssh sandmhan@[BUILDER_IP]` |
+| **Agent Sandbox** | agent-sandbox | 105 | `10.0.0.5` | 4 | 8GB | 24GB | 22 | `deployed` | `ssh agent@10.0.0.5` |
+| **NixOS Builder** | nixos-builder | 200 | `10.0.0.7` | 6 | 12GB | 100GB | 22, 9100 | `deployed` | `ssh sandmhan@10.0.0.7` |
 | **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
 
 **Deployment Commands**:
 ```bash
 # Agent Sandbox (deployed)
-nixos-rebuild switch --target-host agent@10.0.0.163 --flake .#agent-sandbox --sudo
+nixos-rebuild switch --target-host agent@10.0.0.5 --flake .#agent-sandbox --sudo
 
 # NixOS Builder (deployed) 
-nixos-rebuild switch --target-host sandmhan@[BUILDER_IP] --flake .#nixos-builder --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.7 --flake .#nixos-builder --sudo
 
 # Matrix Server (deployed)
 nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
@@ -85,7 +85,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 
 | Service | Hostname | CT ID | IP (Planned) | Cores | RAM | Disk | Ports | Status | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-------|--------|------------|
-| **Monitoring** | lxc-monitor | 207 | `10.0.0.165` (DHCP) | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.165 --flake .#lxc-monitor --sudo` |
+| **Monitoring** | lxc-monitor | 207 | `10.0.0.10` | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.10 --flake .#lxc-monitor --sudo` |
 | **Matrix Chat** | lxc-matrix | 204 | `10.0.20.204` | 1 | 2GB | 30GB | 80,443,8448 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host matrix@10.0.20.204 --flake .#lxc-matrix` |
 | **Git Server** | lxc-git | 206 | `10.0.20.206` | 1 | 1GB | 20GB | 80,443,3022 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host git@10.0.20.206 --flake .#lxc-git` |
 | **NAS** | lxc-nas | 201 | `10.0.20.201` | 1 | 2GB | 100GB | 2049,445 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host nas@10.0.20.201 --flake .#lxc-nas` |
@@ -278,7 +278,7 @@ check_service() {
 }
 
 # Check deployed services
-check_service "Agent Sandbox SSH" "tcp://10.0.0.163:22"
+check_service "Agent Sandbox SSH" "tcp://10.0.0.5:22"
 check_service "Matrix Server" "http://10.0.0.6:8008/_matrix/client/versions"
 
 # Add checks for other services as they're deployed
@@ -334,7 +334,7 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 | 2026-04-24 | Complete infrastructure registry overhaul with deployment commands, access methods, and troubleshooting | — | Added comprehensive host information, build commands, and operational procedures |
 | 2026-04-24 | Added Dell node IP (10.0.0.4) and NIC hardware limitations to registry | — | — |
 | 2026-04-23 | Initial registry created from flake.nix inventory | — | Basic structure |
-| 2026-04-23 | Updated agent-sandbox IP to 10.0.0.163, deployed latest config | — | IP assignment |
+| 2026-04-23 | Updated agent-sandbox IP to 10.0.0.5, deployed latest config | — | IP assignment |
 | 2026-04-23 | Marked nixos-builder as deployed, updated roadmap for incremental config development approach | — | Status update |
 
 ---

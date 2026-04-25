@@ -13,9 +13,9 @@
 
   networking.hostName = "nixos-builder";
 
-  # Basic filesystem configuration for Proxmox VM deployment
+  # Filesystem configuration - matches VMA image label layout
   fileSystems."/" = {
-    device = "/dev/vda1";
+    device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
   };
 
@@ -46,6 +46,12 @@
 
   # Builder-specific services
   services = {
+    # Prometheus node exporter for monitoring
+    prometheus.exporters.node = {
+      enable = true;
+      port = 9100;
+    };
+
     # Git daemon for receiving configuration updates
     gitDaemon = {
       enable = true;
@@ -80,7 +86,7 @@
 
   # Firewall for git daemon
   networking.firewall = {
-    allowedTCPPorts = [ 9418 ];  # Git daemon
+    allowedTCPPorts = [ 9100 9418 ];  # Node exporter + Git daemon
   };
 
   # Ensure main user can build and deploy

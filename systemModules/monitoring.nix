@@ -67,8 +67,8 @@ in
           # Default homelab infrastructure targets
           "node-exporters" = [
             "10.0.0.6:9100"     # matrix server
-            "10.0.0.163:9100"   # agent-sandbox
-            "10.0.0.200:9100"   # nixos-builder
+            "10.0.0.5:9100"   # agent-sandbox
+            "10.0.0.7:9100"   # nixos-builder
           ];
 
           # Service-specific targets (populated by deployment type)

@@ -22,9 +22,9 @@
       # Override only the node exporters to include self
       "node-exporters" = [
         "10.0.0.6:9100"     # matrix server
-        "10.0.0.163:9100"   # agent-sandbox
-        "10.0.0.200:9100"   # nixos-builder (TBD: verify IP)
-        "localhost:9100"    # self (lxc-monitor @ 10.0.0.207)
+        "10.0.0.5:9100"     # agent-sandbox
+        "10.0.0.7:9100"     # nixos-builder
+        "localhost:9100"    # self (lxc-monitor @ 10.0.0.10)
       ];
       # Keep other target defaults from module
       "wireguard" = [];

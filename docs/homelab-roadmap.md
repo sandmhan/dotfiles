@@ -34,7 +34,7 @@
 | Service | Status | Location | Notes |
 |---------|--------|----------|-------|
 | Server base template | Done | `hosts/server/` | Reusable for all VMs |
-| Agent sandbox VM | **Deployed** | `hosts/agent/` | VM ID 105, 10.0.0.163 |
+| Agent sandbox VM | **Deployed** | `hosts/agent/` | VM ID 105, 10.0.0.5 |
 | NixOS Builder VM | **Deployed** | `hosts/nixos-builder/` | VM ID 200, autonomous builds |
 | llama.cpp module | Complete | `systemModules/llama.nix` | Needs real GPU PCI IDs |
 | Matrix Synapse | Complete | `systemModules/matrix.nix` | Needs DNS + ACME |
@@ -263,7 +263,7 @@ This frees up **50% more resources** for additional services or the Gaming PC tr
 nixos-rebuild switch --target-host agent@10.0.0.160 --flake .#agent-sandbox
 
 # Builder-orchestrated deployments:
-ssh builder@10.0.0.200 "deploy-config agent-sandbox 10.0.0.160"
+ssh builder@10.0.0.7 "deploy-config agent-sandbox 10.0.0.160"
 
 # Or automated via Git push:
 git push builder main  # Triggers automatic deployment pipeline
