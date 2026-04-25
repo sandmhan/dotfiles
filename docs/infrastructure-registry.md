@@ -78,6 +78,12 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **AI Server** | llama | 108 | `10.0.20.108` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.108 --flake .#llama` |
 | **NVR** | nvr | 105 | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
 | **Home Assistant** | homeassistant | 103 | `10.0.20.103` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant` |
+| **Fitness (wger)** | fitness | 107 | `10.0.20.107` | 2 | 2GB | 30GB | — | 80,8000,9100 | `qmrestore [VMA] 107; qm set 107 --cores 2 --memory 2048; nixos-rebuild switch --target-host sandmhan@10.0.20.107 --flake .#fitness` |
+| **Media (*arr)** | media | TBD | `10.0.20.110` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.110 --flake .#media` |
+| **NVR (Frigate)** | nvr | TBD | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
+| **Gaming (Sunshine)** | gaming | TBD | `10.0.20.111` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming` |
+
+> **NOTE**: All services above marked with provisional IPs (`10.0.20.*`) are **configuration-only — NOT deployed**. NixOS modules and host configs evaluate cleanly via `nix build --dry-run` but require SOPS secrets setup, DHCP reservations, and VM/LXC creation before deployment. See individual setup docs for prerequisites.
 
 ---
 
@@ -107,6 +113,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **Forgejo Git (LXC)** | `http://10.0.20.206:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
 | **Matrix Agent Bridge** | `http://10.0.0.6:9800/health` | N/A (internal only) | Bearer token (webhook) | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
 | **Home Assistant** | `http://10.0.20.103:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
+| **wger Fitness** | `http://10.0.20.107:80` | `http://fitness.homelab.local` | Create via CLI | [Fitness Setup](./fitness-setup.md) |
 | **MQTT Broker** | `mqtt://10.0.20.103:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
 
 ---
@@ -327,6 +334,9 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-04-25 | Add media (nixflix), fitness (wger), gaming (Sunshine) systemModules and host configs | — | Configuration only — NOT deployed. Requires SOPS setup, DHCP reservations, VM creation |
+| 2026-04-25 | Refactor Frigate NVR into option-based systemModule with dynamic camera config | — | Configuration only — NOT deployed. Replaces hardcoded cameras with NixOS options |
+| 2026-04-25 | Fix Forgejo, Home Assistant, Matrix Agent Bridge modules (broken package refs, sops interface) | — | Configuration only — NOT deployed. All evaluate cleanly via dry-run |
 | 2026-04-24 | **INCIDENT**: Agent VM 105 spammed qm commands against VM 200, triggered e1000e NIC hang on Dell node, required power cycle | — | Added Proxmox safety rules to CLAUDE.md and AGENT.md |
 | 2026-04-24 | Add Home Assistant systemModule with MQTT, PostgreSQL, nginx, USB passthrough | — | VM and LXC host configs, secrets, documentation |
 | 2026-04-24 | Add Matrix Agent Bridge for bot control and webhook notifications | — | New systemModule, bot script, co-located on matrix host (port 9800) |

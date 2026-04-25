@@ -107,6 +107,10 @@ in
             "10.0.20.103:9100" # homeassistant VM — provisional IP
             "10.0.20.206:9100" # lxc-git — provisional IP
             "10.0.20.203:9100" # lxc-homeassistant — provisional IP
+            "10.0.20.107:9100" # fitness (wger VM) — provisional IP
+            "10.0.20.111:9100" # gaming (Sunshine VM) — provisional IP
+            "10.0.20.110:9100" # media VM — provisional IP, needs DHCP assignment
+            # "10.0.20.TBD:9100" # nvr (frigate) — add when static IP is assigned
           ];
 
           # Service-specific targets (populated by deployment type)
@@ -138,6 +142,9 @@ in
           "10.0.20.103" = "homeassistant";
           "10.0.20.206" = "lxc-git";
           "10.0.20.203" = "lxc-homeassistant";
+          "10.0.20.107" = "fitness"; # provisional IP
+          "10.0.20.111" = "gaming"; # provisional IP
+          "10.0.20.110" = "media"; # provisional IP
           "localhost" = "lxc-monitor";
         };
         description = ''

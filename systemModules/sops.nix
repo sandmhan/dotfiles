@@ -18,8 +18,14 @@
         ../secrets/forgejo/secrets.yaml
       else if (config.networking.hostName == "homeassistant") then
         ../secrets/homeassistant/secrets.yaml
+      else if (config.networking.hostName == "fitness") then
+        ../secrets/fitness/secrets.yaml
       else if (config.networking.hostName == "lxc-homeassistant") then
         ../secrets/homeassistant/secrets.yaml
+      else if (config.networking.hostName == "media") then
+        ../secrets/media/secrets.yaml
+      else if (config.networking.hostName == "gaming") then
+        ../secrets/gaming/secrets.yaml
       else
         ../secrets/shared/secrets.yaml;
 
