@@ -39,12 +39,18 @@ creation_rules:
       - *admin_age
       - *matrix_key
 
-  # WireGuard VPN server secrets
+  # WireGuard VPN server secrets (retained but not deployed — pivoted to Tailscale)
   - path_regex: secrets/wireguard/[^/]+\.(yaml|json|env|ini)$
     key_groups:
     - age:
       - *admin_age
       - *vpn_key
+
+  # Tailscale VPN secrets (auth keys for automatic node enrollment)
+  - path_regex: secrets/tailscale/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
 
   # Monitoring stack secrets (Grafana, alerting)
   - path_regex: secrets/monitoring/[^/]+\.(yaml|json|env|ini)$

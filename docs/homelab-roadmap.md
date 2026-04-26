@@ -41,7 +41,7 @@
 | Frigate | Partial | `systemModules/frigate.nix` | Hardcoded cameras, no AI detector |
 | Jellyfin | Stub | `systemModules/jellyfin.nix` | Just `enable = true` |
 | sops-nix | Partial | `feat/sops` branch | Initial integration, needs secrets populated |
-| Remote access | **Planning** | — | WireGuard/Tailscale evaluation needed |
+| Remote access | In development | `systemModules/tailscale.nix` | Pivoted to Tailscale (WireGuard module retained, not deployed) |
 | Monitoring | In development | — | systemModules/monitoring.nix (Prometheus + Grafana) |
 | NAS/backup | In development | — | systemModules/nas.nix (NFS/Samba) |
 | Media stack (*arr) | Not started | — | nixflix integration planned |
@@ -329,7 +329,8 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 - **Forgejo**: admin password, PostgreSQL password, secret key
 - **wger**: Django secret key, API keys, PostgreSQL password
 - **Grafana**: admin password, SMTP credentials (optional)
-- **WireGuard**: private keys (if VPN for download clients)
+- **Tailscale**: reusable auth key for automatic node enrollment
+- **WireGuard** *(retained, not deployed)*: private keys (if VPN for download clients)
 
 ---
 
@@ -530,8 +531,10 @@ Matrix serves as the primary remote interface for interacting with autonomous AI
 
 **Remote Access Strategy:**
 - **Primary**: Matrix client apps (Element on phone/laptop) for day-to-day agent interaction — works from anywhere with internet
-- **Secondary**: Tailscale or WireGuard VPN for direct SSH/web UI access when deeper control is needed
-- **Benefit**: Matrix federation means you can interact from any Matrix client without VPN, while VPN remains available for admin tasks
+- **Secondary**: Tailscale mesh VPN for direct SSH/web UI access when deeper control is needed
+- **Tailscale setup**: Each homelab VM imports `systemModules/tailscale.nix` and auto-enrolls via sops-encrypted auth key. One subnet router node advertises homelab subnets to the tailnet. No port forwarding, NAT traversal, or key distribution needed.
+- **Benefit**: Matrix federation means you can interact from any Matrix client without VPN, while Tailscale remains available for admin tasks
+- **Note**: WireGuard module (`systemModules/wireguard.nix`) and host (`hosts/vpn/`) are retained in the repo but not deployed
 
 #### 2b. Self-hosted Git — Forgejo (`hosts/git/`, `systemModules/forgejo.nix`)
 
@@ -684,6 +687,8 @@ systemModules/
 ├── matrix-agent-bridge.nix    # Matrix bot for AI agent control & notifications
 ├── ai-tools.nix               # whisper, piper, comfyui orchestration
 ├── wger.nix                   # Fitness tracking (OCI container)
+├── tailscale.nix              # Tailscale mesh VPN (remote access)
+├── wireguard.nix              # WireGuard VPN (retained, not deployed)
 ├── sunshine-server.nix        # Headless GPU gaming server
 
 secrets/
@@ -692,6 +697,7 @@ secrets/
 ├── forgejo.yaml               # Git server secrets
 ├── wger.yaml                  # Fitness app secrets
 ├── grafana.yaml               # Monitoring secrets
+├── tailscale/secrets.yaml     # Tailscale auth key
 └── .sops.yaml                 # Key mappings
 ```
 
