@@ -1,6 +1,8 @@
 # Network Attached Storage (NAS) VM Host Configuration
 # Full-featured NAS deployment with NFS, SMB, and backup services
-{ config, lib, pkgs, userSettings, systemSettings, ... }: {
+{ config, lib, pkgs, userSettings, systemSettings, ... }:
+with lib;
+{
   imports = [
     ../server/default.nix
     ../server/hardware-configuration.nix
@@ -124,14 +126,8 @@
     '';
   };
 
-  # Storage optimization for NAS workload
+  # Network performance for file sharing (VM sysctl set by systemModules/nas.nix)
   boot.kernel.sysctl = {
-    # File system performance
-    "vm.dirty_background_ratio" = 5;
-    "vm.dirty_ratio" = 10;
-    "vm.vfs_cache_pressure" = 50;
-
-    # Network performance for file sharing
     "net.core.rmem_max" = 134217728;
     "net.core.wmem_max" = 134217728;
     "net.ipv4.tcp_rmem" = "4096 87380 134217728";

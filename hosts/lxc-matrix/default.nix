@@ -28,6 +28,7 @@
       3478  # Coturn STUN/TURN
       5349  # Coturn STUNS/TURNS
       9100  # Prometheus metrics
+      9187  # PostgreSQL exporter
     ];
 
     # Allow Coturn UDP port range
@@ -92,9 +93,6 @@
       dataSourceName = "postgresql:///matrix-synapse?host=/run/postgresql&user=matrix-synapse";
     };
   };
-
-  # Add Matrix monitoring ports
-  networking.firewall.allowedTCPPorts = [ 9187 ]; # PostgreSQL exporter
 
   # Container health checks
   systemd.services.matrix-health-check = {

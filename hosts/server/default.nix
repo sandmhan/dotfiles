@@ -78,6 +78,12 @@ in
   # Passwordless sudo for wheel — fine for a homelab, tighten if exposed
   security.sudo.wheelNeedsPassword = false;
 
+  # Default root filesystem — overridden by hardware-configuration.nix on real VMs
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
   # Enable GRUB Bootloader
   boot.loader.grub = {
     enable = true;

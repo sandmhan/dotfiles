@@ -59,6 +59,12 @@
   # Passwordless sudo for homelab convenience
   security.sudo.wheelNeedsPassword = false;
 
+  # Default root filesystem — overridden by hardware-configuration.nix on real VMs
+  fileSystems."/" = lib.mkDefault {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
   # Boot configuration - GRUB on /dev/vda for Proxmox VMs
   boot.loader.grub = {
     enable = true;

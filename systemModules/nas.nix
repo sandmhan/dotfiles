@@ -154,6 +154,13 @@ in {
           description = "Path for Borg repositories";
         };
 
+        authorizedKeys = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          description = "SSH public keys authorized to access the Borg repository";
+          example = [ "ssh-ed25519 AAAA..." ];
+        };
+
         schedule = mkOption {
           type = types.str;
           default = "daily";
@@ -249,7 +256,7 @@ in {
               ) share.allowedHosts)}"
             ) cfg.storage.shares;
           in
-          shareExports ++ cfg.nfs.exports;
+          concatStringsSep "\n" (shareExports ++ cfg.nfs.exports);
       };
 
       # NFS client support
@@ -269,28 +276,21 @@ in {
     (mkIf (cfg.enable && cfg.smb.enable) {
       services.samba = {
         enable = true;
-        securityType = cfg.smb.security;
 
-        extraConfig = ''
-          workgroup = ${cfg.smb.workgroup}
-          netbios name = ${cfg.smb.netbiosName}
-          server string = ${config.networking.hostName} NAS
-
-          # Security settings
-          security = ${cfg.smb.security}
-          encrypt passwords = yes
-
-          # Performance optimization
-          socket options = TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072
-          read raw = yes
-          write raw = yes
-          max xmit = 65535
-
-          # Logging
-          log level = 1
-          log file = /var/log/samba/%m.log
-          max log size = 50
-        '';
+        settings.global = {
+          workgroup = cfg.smb.workgroup;
+          "netbios name" = cfg.smb.netbiosName;
+          "server string" = "${config.networking.hostName} NAS";
+          security = cfg.smb.security;
+          "encrypt passwords" = true;
+          "socket options" = "TCP_NODELAY IPTOS_LOWDELAY SO_RCVBUF=131072 SO_SNDBUF=131072";
+          "read raw" = true;
+          "write raw" = true;
+          "max xmit" = 65535;
+          "log level" = 1;
+          "log file" = "/var/log/samba/%m.log";
+          "max log size" = 50;
+        };
 
         # Auto-generate shares from configuration
         shares = mapAttrs (name: share: {
@@ -335,16 +335,14 @@ in {
     })
 
     # BorgBackup configuration
-    (mkIf (cfg.enable && cfg.backup.borgbackup.enable) {
+    (mkIf (cfg.enable && cfg.backup.borgbackup.enable && cfg.backup.borgbackup.authorizedKeys != []) {
       services.borgbackup.repos = {
         homelab = {
           path = "${cfg.backup.borgbackup.repositoryPath}/homelab";
           allowSubRepos = true;
           user = "backup";
           group = "backup";
-          authorizedKeys = [
-            # Add SSH keys for backup clients
-          ];
+          authorizedKeys = cfg.backup.borgbackup.authorizedKeys;
         };
       };
 

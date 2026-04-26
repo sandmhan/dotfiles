@@ -340,7 +340,10 @@
         # LXC Container Configurations
         lxc-matrix = mkNixosSystem {
           hostname = "lxc-matrix";
-          modules = [ ./hosts/lxc-matrix ];
+          modules = [
+            ./hosts/lxc-matrix
+            sops-nix.nixosModules.sops
+          ];
           userSettings = linuxUserSettings // {
             username = "matrix";
             email = "matrix@homelab.local";

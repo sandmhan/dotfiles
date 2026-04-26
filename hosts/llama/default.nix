@@ -32,8 +32,8 @@
     blacklistedKernelModules = [ "nouveau" ];
   };
 
-  # Enable llama.cpp service
-  services.llama-cpp = {
+  # Enable llama.cpp service (custom module under homelab.llama namespace)
+  homelab.llama = {
     enable = true;
     host = "0.0.0.0"; # Listen on all interfaces for API access
     port = 8080;
@@ -50,7 +50,7 @@
     cudatoolkit # For NVIDIA GPU support
     # opencl-info  # For OpenCL GPU info
     # clinfo       # OpenCL platform info
-    nvtop # GPU monitoring
+    nvtopPackages.full # GPU monitoring
     lshw # Hardware information
   ];
 
@@ -64,9 +64,7 @@
   };
 
   # Increase file limits for AI workloads
-  systemd.extraConfig = ''
-    DefaultLimitNOFILE=65536
-  '';
+  systemd.settings.Manager.DefaultLimitNOFILE = 65536;
 
   # Optimize for AI workloads
   boot.kernel.sysctl = {

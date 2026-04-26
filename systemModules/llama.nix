@@ -6,10 +6,10 @@
 }:
 
 let
-  cfg = config.services.llama-cpp;
+  cfg = config.homelab.llama;
 in
 {
-  options.services.llama-cpp = {
+  options.homelab.llama = {
     enable = lib.mkEnableOption "llama.cpp inference server";
 
     package = lib.mkPackageOption pkgs "llama-cpp" { };
