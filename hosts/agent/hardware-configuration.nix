@@ -52,20 +52,14 @@
     tmp.cleanOnBoot = true;
   };
 
-  # File systems configuration - Generic for VMA images
+  # File systems configuration - Match VMA structure (single partition)
   fileSystems."/" = {
-    device = "/dev/disk/by-label/nixos";
+    device = "/dev/vda1";  # Match actual VMA partition
     fsType = "ext4";
     options = [
       "defaults"
       "noatime"
     ];
-  };
-
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/boot";
-    fsType = "vfat";
-    options = [ "defaults" ];
   };
 
   # Tmpfs for better performance
@@ -127,6 +121,7 @@
         flags = [ "--all" ];
       };
       storageDriver = "overlay2";
+      # Ensure proper daemon startup order and configuration
       daemon.settings = {
         live-restore = false;
         userland-proxy = false;
@@ -143,6 +138,9 @@
             soft = 64000;
           };
         };
+        # Ensure bridge network is available
+        bridge = "docker0";
+        ip = "172.17.0.1";
       };
     };
 

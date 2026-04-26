@@ -1,0 +1,68 @@
+# SOPS configuration for secrets management
+# Each key group defines which recipients can decrypt files matching the path regex
+
+keys:
+  # Admin key (your personal key for managing all secrets)
+  # Generate with: age-keygen -o ~/.config/sops/age/keys.txt
+  # Get public key: age-keygen -y ~/.config/sops/age/keys.txt
+  - &admin_age age1... # Replace with your age public key
+
+  # Host keys (derived from SSH host keys)
+  # Get with: ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+  # Or remotely: ssh user@host 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age
+  - &gaia_key age1...      # Desktop (Framework laptop)
+  - &nvr_key age1...       # NVR (Frigate)
+  - &matrix_key age1...    # Matrix/Synapse server
+  - &vpn_key age1...       # WireGuard VPN server
+  - &monitor_key age1...   # Monitoring stack (VM or LXC)
+
+creation_rules:
+  # Desktop (gaia) secrets
+  - path_regex: secrets/gaia/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *gaia_key
+
+  # NVR (Network Video Recorder) secrets
+  - path_regex: secrets/nvr/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *nvr_key
+
+  # Matrix server secrets
+  - path_regex: secrets/matrix/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *matrix_key
+
+  # WireGuard VPN server secrets
+  - path_regex: secrets/wireguard/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *vpn_key
+
+  # Monitoring stack secrets (Grafana, alerting)
+  - path_regex: secrets/monitoring/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *monitor_key
+
+  # Shared secrets (accessible by multiple hosts)
+  - path_regex: secrets/shared/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *gaia_key
+      - *nvr_key
+      - *matrix_key
+
+  # User-specific secrets (personal settings, git config)
+  - path_regex: secrets/user/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age

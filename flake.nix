@@ -16,6 +16,10 @@
       url = "github:NotAShelf/nvf";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -26,6 +30,7 @@
       home-manager,
       stylix,
       nvf,
+      sops-nix,
       ...
     }:
     let
@@ -107,6 +112,7 @@
             ./hosts/gaia
             nixos-hardware.nixosModules.framework-13-7040-amd
             stylix.nixosModules.stylix
+            sops-nix.nixosModules.sops
           ];
           specialArgs = {
             inherit systemSettings;
@@ -117,7 +123,10 @@
         # Proxmox VM base image (no hardware-configuration)
         initialProxmoxVMA = mkNixosSystem {
           hostname = "initialProxmoxVMA";
-          modules = [ ./hosts/server ];
+          modules = [
+            ./hosts/server
+            sops-nix.nixosModules.sops
+          ];
         };
 
         # Generic Proxmox VM
@@ -126,6 +135,7 @@
           modules = [
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
+            sops-nix.nixosModules.sops
           ];
         };
 
@@ -136,6 +146,7 @@
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./hosts/nvr
+            sops-nix.nixosModules.sops
           ];
         };
 
@@ -146,6 +157,7 @@
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./hosts/llama
+            sops-nix.nixosModules.sops
           ];
         };
 
@@ -156,6 +168,42 @@
             ./hosts/server
             ./hosts/server/hardware-configuration.nix
             ./systemModules/matrix.nix
+            sops-nix.nixosModules.sops
+          ];
+        };
+
+        # WireGuard VPN Server
+        vpn = mkNixosSystem {
+          hostname = "vpn";
+          modules = [
+            ./hosts/vpn
+            sops-nix.nixosModules.sops
+          ];
+        };
+
+        # Monitoring Stack — Prometheus + Grafana
+        monitor = mkNixosSystem {
+          hostname = "monitor";
+          modules = [
+            ./hosts/monitor
+            sops-nix.nixosModules.sops
+          ];
+        };
+
+        # Network Attached Storage
+        nas = mkNixosSystem {
+          hostname = "nas";
+          modules = [
+            ./hosts/nas
+            sops-nix.nixosModules.sops
+          ];
+        };
+
+        # NixOS Builder — autonomous configuration building and deployment
+        nixos-builder = mkNixosSystem {
+          hostname = "nixos-builder";
+          modules = [
+            ./hosts/nixos-builder
           ];
         };
 
@@ -165,14 +213,15 @@
           modules = [
             ./hosts/agent
             home-manager.nixosModules.home-manager
+            sops-nix.nixosModules.sops
             {
               home-manager = {
                 useUserPackages = true;
+                backupFileExtension = "hm-backup";
                 users.agent = {
                   imports = [
-                    ./home/profiles/terminal.nix
+                    ./home/profiles/headless-terminal.nix
                     ./home/modules/claude-agent.nix
-                    stylix.homeModules.stylix
                     nvf.homeManagerModules.default
                   ];
                 };
@@ -196,7 +245,7 @@
           };
         };
 
-        # Agent VM VMA image for Proxmox deployment
+        # Agent VM VMA image for Proxmox deployment (minimal — boots reliably)
         agentVMA = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [
@@ -209,7 +258,79 @@
             };
             systemSettings = systemSettings // {
               hostname = "agent-sandbox";
+              diskSize = 50 * 1024; # 50GB for agent development and nix-shell tooling
             };
+          };
+        };
+
+        # LXC Base Image
+        # Build: nix build .#nixosConfigurations.initialLXC.config.system.build.tarball
+        initialLXC = mkNixosSystem {
+          hostname = "nixos-lxc";
+          modules = [
+            ./hosts/lxc-base/image.nix
+          ];
+          userSettings = linuxUserSettings // {
+            username = "sandmhan";
+            email = "sandmhan@homelab.local";
+          };
+        };
+
+        # LXC Container Configurations
+        lxc-matrix = mkNixosSystem {
+          hostname = "lxc-matrix";
+          modules = [ ./hosts/lxc-matrix ];
+          userSettings = linuxUserSettings // {
+            username = "matrix";
+            email = "matrix@homelab.local";
+          };
+        };
+
+        lxc-monitor = mkNixosSystem {
+          hostname = "lxc-monitor";
+          modules = [
+            ./hosts/lxc-monitor
+            sops-nix.nixosModules.sops
+          ];
+          userSettings = linuxUserSettings // {
+            username = "monitor";
+            email = "monitor@homelab.local";
+          };
+        };
+
+        lxc-git = mkNixosSystem {
+          hostname = "lxc-git";
+          modules = [
+            ./hosts/lxc-git
+            sops-nix.nixosModules.sops
+          ];
+          userSettings = linuxUserSettings // {
+            username = "git";
+            email = "git@homelab.local";
+          };
+        };
+
+        lxc-homeassistant = mkNixosSystem {
+          hostname = "lxc-homeassistant";
+          modules = [
+            ./hosts/lxc-homeassistant
+            sops-nix.nixosModules.sops
+          ];
+          userSettings = linuxUserSettings // {
+            username = "hass";
+            email = "hass@homelab.local";
+          };
+        };
+
+        lxc-nas = mkNixosSystem {
+          hostname = "lxc-nas";
+          modules = [
+            ./hosts/lxc-nas
+            sops-nix.nixosModules.sops
+          ];
+          userSettings = linuxUserSettings // {
+            username = "nasadmin";
+            email = "nasadmin@homelab.local";
           };
         };
       };

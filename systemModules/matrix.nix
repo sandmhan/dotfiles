@@ -5,13 +5,11 @@
   ...
 }:
 let
+  # Domain is needed at evaluation time for nginx vhost attribute names,
+  # so it cannot come from SOPS (which only resolves at activation time).
   domain = "sandmhan.dev";
   matrixDomain = "matrix.${domain}";
   turnDomain = "turn.${domain}";
-
-  # Shared secret for turn auth
-
-  turnSecret = "759134cd691080e35d8ef879c387e09e8ad720cccd9e72706a1ff54fcc114423";
 
   clientConfig = {
     "m.homeserver".base_url = "https://${matrixDomain}";
@@ -27,10 +25,37 @@ let
   '';
 in
 {
+  imports = [ ./sops.nix ];
+
+  # Override default sops file to use matrix-specific secrets
+  sops.defaultSopsFile = lib.mkForce ../secrets/matrix/secrets.yaml;
+
+  sops.secrets = {
+    turn_secret = {
+      owner = "turnserver";
+      group = "turnserver";
+      mode = "0440";
+    };
+
+    acme_email = {
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
+
+    registration_shared_secret = {
+      owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0440";
+    };
+  };
 
   ## ACME Settings
   security.acme = {
     acceptTerms = true;
+    # ACME email is not secret-critical; using a concrete value here since
+    # security.acme.defaults.email is evaluated at build time.
+    # The actual email can be overridden per-host if needed.
     defaults.email = "austinsanders0105@gmail.com";
   };
 
@@ -39,25 +64,17 @@ in
     realm = domain;
 
     use-auth-secret = true;
-    static-auth-secret = turnSecret;
+    static-auth-secret-file = config.sops.secrets.turn_secret.path;
 
     no-tls = true;
     no-dtls = true;
-    # TLS Certificate
-    # cert = "/var/lib/acme/${turnDomain}/fullchain.pem";
-    # pkey = "/var/lib/acme/${turnDomain}/key.pem";
-
-    # Networking
 
     listening-ips = [ "0.0.0.0" ];
 
-    # Ports
     listening-port = 3478;
-    # tls-listening-port = 5349;
     min-port = 49152;
     max-port = 65535;
 
-    # Security
     no-cli = true;
     no-tcp-relay = true;
     extraConfig = ''
@@ -81,7 +98,6 @@ in
     '';
   };
 
-  # Matrix setup
   services.matrix-synapse = {
     enable = true;
     settings = {
@@ -91,11 +107,10 @@ in
       turn_uris = [
         "turn:${turnDomain}:3478?transport=udp"
         "turn:${turnDomain}:3478?transport=tcp"
-        # "turns:${turnDomain}:5349?transport=udp"
-        # "turns:${turnDomain}:5349?transport=tcp"
       ];
 
-      turn_shared_secret = turnSecret;
+      # TURN secret loaded from file at runtime
+      turn_shared_secret_path = config.sops.secrets.turn_secret.path;
       turn_user_lifetime = "1h";
       turn_allow_guests = true;
 
@@ -132,7 +147,7 @@ in
       url_preview_enabled = true;
       enable_registration = false;
       enable_metrics = false;
-      registration_shared_secret_path = "/var/lib/matrix-synapse/registration_secret";
+      registration_shared_secret_path = config.sops.secrets.registration_shared_secret.path;
 
       trusted_key_servers = [
         {
@@ -142,7 +157,6 @@ in
     };
   };
 
-  # PostgreSQL setup
   services.postgresql = {
     enable = true;
     ensureDatabases = [ "matrix-synapse" ];
@@ -199,6 +213,15 @@ in
         to = 65535;
       }
     ];
+  };
 
+  systemd.services.matrix-synapse = {
+    wants = [ "sops-nix.service" ];
+    after = [ "sops-nix.service" ];
+  };
+
+  systemd.services.coturn = {
+    wants = [ "sops-nix.service" ];
+    after = [ "sops-nix.service" ];
   };
 }

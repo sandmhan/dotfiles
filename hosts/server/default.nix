@@ -6,6 +6,10 @@
   systemSettings,
   ...
 }:
+let
+  # Default disk size for VMs if not specified
+  defaultDiskSize = 20 * 1024; # 20GB in MB
+in
 {
   imports = [
     ./ssh.nix
@@ -67,6 +71,7 @@
     # Set this to your public key so you can SSH in immediately after install
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID3neihyMjSxDeNGI3rrrfEK2xltJ5fF8bmpU4IKqJWC framework"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIu3inxdaYkvuXPa3acucpVYNmWrQ7e1H5LCMyKqextU android-termux"
     ];
   };
 
@@ -81,6 +86,13 @@
 
   # Enable QEMU Guest to access IP
   services.qemuGuest.enable = true;
+
+  # Configure VM disk size (for image builds)
+  virtualisation.diskSize =
+    if (systemSettings ? diskSize) then
+      systemSettings.diskSize
+    else
+      defaultDiskSize;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
