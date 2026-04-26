@@ -40,8 +40,11 @@
     # Allow wger web access from management and services VLANs
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
     iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 80 -j ACCEPT
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8000 -j ACCEPT
+    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8000 -j ACCEPT
 
-    # Allow Prometheus scraping from monitoring server
+    # Allow Prometheus scraping from management and services VLANs
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
     iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
   '';
 

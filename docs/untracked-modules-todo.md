@@ -1,6 +1,28 @@
 # Module Implementation Status
 
-All systemModules now evaluate cleanly via `nix build --dry-run`. **None have been deployed yet.** Deployment requires completing SOPS secrets setup, creating DHCP reservations, and provisioning VMs/LXCs on Proxmox.
+All systemModules evaluate cleanly via `nix build --dry-run`. **One service (Fitness/wger) has been deployed** as a test instance. All others remain configuration-only.
+
+## Deployed
+
+### Fitness / wger (`systemModules/wger.nix`)
+- [x] OCI containers for wger Django, PostgreSQL, Redis, Celery worker
+- [x] Nginx reverse proxy, Prometheus node exporter
+- [x] SOPS secrets encrypted and decrypted on VM (`/run/secrets/wger/`)
+- [x] **Deployed to VM 106** on Dell Proxmox node at `10.0.0.167`
+- [x] Web UI accessible at `http://10.0.0.167/` (login: `admin` / `adminadmin`)
+- [x] All 4 containers running, API responding, Celery connected to Redis
+- **Deployment fixes applied during testing:**
+  - Resized VM disk from 4.5G to 15G (VMA base image too small for container images)
+  - Fixed SOPS secret YAML structure (flat keys to nested `wger:` object)
+  - Added `DJANGO_CACHE_CLIENT_CLASS` env var to fix Redis cache error
+  - Changed container port mapping from `8000:80` to `8000:8000`
+  - Fixed celery command path (`/home/wger/.local/bin/celery -A wger worker`)
+  - Opened firewall ports 8000/9100 for management VLAN access
+- **Known limitations (test instance):**
+  - Running on management VLAN (10.0.0.0/24), no DHCP reservation
+  - Django running in dev mode (runserver, not gunicorn)
+  - SOPS secrets decrypted to files but not yet injected as container env vars (containers use hardcoded test values)
+  - No VLAN 20 or DNS (`.homelab.local`) setup yet
 
 ## Completed — Configuration Only (NOT Deployed)
 
@@ -38,12 +60,6 @@ All systemModules now evaluate cleanly via `nix build --dry-run`. **None have be
 - [x] Host config at `hosts/media/default.nix`
 - [x] Dry-run build passes for `.#media`
 
-### Fitness / wger (`systemModules/wger.nix`)
-- [x] New module: OCI containers for wger Django, PostgreSQL, Redis, Celery worker
-- [x] Nginx reverse proxy, Prometheus metrics endpoint
-- [x] Host config at `hosts/fitness/default.nix`
-- [x] Dry-run build passes for `.#fitness`
-
 ### Gaming / Sunshine (`systemModules/sunshine-server.nix`)
 - [x] New module: Headless Sunshine streaming server with NVIDIA GPU passthrough
 - [x] Virtual display (Xorg dummy), PipeWire audio, systemd service
@@ -71,5 +87,5 @@ These must be completed before any service can be deployed:
 | **Matrix Agent Bridge** | Bot user must be registered on Synapse, access token generated |
 | **Frigate NVR** | Camera RTSP URLs must be updated with real credentials |
 | **Media** | NAS must be deployed first (NFS mounts); GPU PCI IDs need discovery on Gaming PC |
-| **Fitness** | None beyond common blockers |
+| **Fitness** | **DEPLOYED** — test instance at 10.0.0.167. Production deployment needs DHCP reservation, VLAN 20, and real secrets injected into container env vars |
 | **Gaming** | Gaming PC must be repurposed as Proxmox node; GPU PCI IDs need discovery |

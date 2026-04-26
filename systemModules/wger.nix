@@ -159,7 +159,7 @@ in
       # wger Django application container
       virtualisation.oci-containers.containers.wger = {
         image = cfg.images.wger;
-        ports = [ "${toString cfg.httpPort}:80" ];
+        ports = [ "${toString cfg.httpPort}:8000" ];
         environment = {
           # Django settings
           DJANGO_DB_ENGINE = "django.db.backends.postgresql";
@@ -170,6 +170,7 @@ in
           DJANGO_DB_PORT = "5432";
           DJANGO_CACHE_BACKEND = "django_redis.cache.RedisCache";
           DJANGO_CACHE_LOCATION = "redis://wger-redis:6379/1";
+          DJANGO_CACHE_CLIENT_CLASS = "django_redis.client.DefaultClient";
           SITE_URL = "http://${cfg.domain}";
           DJANGO_MEDIA_ROOT = "/home/wger/media";
           DJANGO_STATIC_ROOT = "/home/wger/static";
@@ -197,7 +198,11 @@ in
       virtualisation.oci-containers.containers.wger-celery = {
         image = cfg.images.wger;
         cmd = [
-          "/start-celery"
+          "/home/wger/.local/bin/celery"
+          "-A"
+          "wger"
+          "worker"
+          "--loglevel=info"
         ];
         environment = {
           DJANGO_DB_ENGINE = "django.db.backends.postgresql";
@@ -208,6 +213,7 @@ in
           DJANGO_DB_PORT = "5432";
           DJANGO_CACHE_BACKEND = "django_redis.cache.RedisCache";
           DJANGO_CACHE_LOCATION = "redis://wger-redis:6379/1";
+          DJANGO_CACHE_CLIENT_CLASS = "django_redis.client.DefaultClient";
           CELERY_BROKER = "redis://wger-redis:6379/2";
           CELERY_BACKEND = "redis://wger-redis:6379/2";
           TIME_ZONE = "America/New_York";
