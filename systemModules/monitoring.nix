@@ -1,6 +1,11 @@
 # Monitoring Stack Module
 # Provides comprehensive observability for homelab infrastructure
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
@@ -8,12 +13,29 @@ let
   servicePackages = import ./packages.nix { inherit pkgs lib; };
   cfg = config.homelab.monitoring;
 
+  # Build per-target static_configs with friendly instance labels
+  # Extracts the host portion from "host:port" and looks it up in targetLabels
+  labeledTargets =
+    targets:
+    map (
+      addr:
+      let
+        host = builtins.head (lib.splitString ":" addr);
+        label = cfg.prometheus.targetLabels.${host} or host;
+      in
+      {
+        targets = [ addr ];
+        labels.instance = label;
+      }
+    ) targets;
+
   # Provisioned dashboard JSON files
   dashboardsDir = pkgs.runCommand "grafana-homelab-dashboards" { } ''
     mkdir -p $out
     cp ${./grafana-dashboards/fleet-overview.json} $out/fleet-overview.json
     cp ${./grafana-dashboards/node-overview.json} $out/node-overview.json
     cp ${./grafana-dashboards/prometheus-stats.json} $out/prometheus-stats.json
+    cp ${./grafana-dashboards/infrastructure-health.json} $out/infrastructure-health.json
   '';
 in
 {
@@ -21,13 +43,21 @@ in
     enable = mkEnableOption "Homelab monitoring stack (Prometheus + Grafana + Exporters)";
 
     deploymentType = mkOption {
-      type = types.enum [ "vm" "container" "hybrid" ];
+      type = types.enum [
+        "vm"
+        "container"
+        "hybrid"
+      ];
       default = "vm";
       description = "Deployment type - affects resource allocation and feature set";
     };
 
     resourceProfile = mkOption {
-      type = types.enum [ "minimal" "standard" "high" ];
+      type = types.enum [
+        "minimal"
+        "standard"
+        "high"
+      ];
       default = "standard";
       description = "Resource profile for automatic configuration optimization";
     };
@@ -48,9 +78,12 @@ in
       retention = mkOption {
         type = types.str;
         default =
-          if cfg.deploymentType == "container" then "180d"
-          else if cfg.resourceProfile == "minimal" then "90d"
-          else "365d";
+          if cfg.deploymentType == "container" then
+            "180d"
+          else if cfg.resourceProfile == "minimal" then
+            "90d"
+          else
+            "365d";
         description = "Prometheus data retention period";
       };
 
@@ -66,19 +99,58 @@ in
         default = {
           # Default homelab infrastructure targets
           "node-exporters" = [
-            "10.0.0.6:9100"     # matrix server
-            "10.0.0.5:9100"   # agent-sandbox
-            "10.0.0.7:9100"   # nixos-builder
+            "10.0.0.6:9100" # matrix server
+            "10.0.0.5:9100" # agent-sandbox
+            "10.0.0.7:9100" # nixos-builder
+            # PLACEHOLDER IPs — update after DHCP reservations are created
+            "10.0.20.109:9100" # git (forgejo VM) — provisional IP
+            "10.0.20.103:9100" # homeassistant VM — provisional IP
+            "10.0.20.206:9100" # lxc-git — provisional IP
+            "10.0.20.203:9100" # lxc-homeassistant — provisional IP
+            "10.0.20.107:9100" # fitness (wger VM) — provisional IP
+            "10.0.20.111:9100" # gaming (Sunshine VM) — provisional IP
+            "10.0.20.110:9100" # media VM — provisional IP, needs DHCP assignment
+            # "10.0.20.TBD:9100" # nvr (frigate) — add when static IP is assigned
           ];
 
           # Service-specific targets (populated by deployment type)
-          "wireguard" = [];
-          "homelab-services" = [];
+          "wireguard" = [ ];
+          # PLACEHOLDER IPs — update after DHCP reservations are created
+          "homelab-services" = [
+            "10.0.20.109:9187" # git postgres exporter — provisional IP
+            "10.0.20.103:8123" # homeassistant prometheus endpoint — provisional IP
+          ];
           "matrix-services" = [
-            "10.0.0.6:8008"   # Matrix Synapse metrics endpoint
+            "10.0.0.6:8008" # Matrix Synapse metrics endpoint
           ];
         };
         description = "Static scrape targets by job name";
+      };
+
+      # Friendly hostname labels for scrape targets
+      # TODO: Remove when a DNS service is deployed — use hostname targets directly
+      # and this mapping becomes unnecessary.
+      targetLabels = mkOption {
+        type = types.attrsOf types.str;
+        default = {
+          "10.0.0.5" = "agent-sandbox";
+          "10.0.0.6" = "matrix";
+          "10.0.0.7" = "nixos-builder";
+          "10.0.0.10" = "lxc-monitor";
+          # PLACEHOLDER IPs — update after DHCP reservations are created
+          "10.0.20.109" = "git";
+          "10.0.20.103" = "homeassistant";
+          "10.0.20.206" = "lxc-git";
+          "10.0.20.203" = "lxc-homeassistant";
+          "10.0.20.107" = "fitness"; # provisional IP
+          "10.0.20.111" = "gaming"; # provisional IP
+          "10.0.20.110" = "media"; # provisional IP
+          "localhost" = "lxc-monitor";
+        };
+        description = ''
+          Map of IP/host to friendly instance name. Applied as the "instance"
+          label on scrape targets. Temporary workaround until DNS is available.
+        '';
       };
 
       # Additional scrape configs for specific services
@@ -183,16 +255,16 @@ in
       enabledCollectors = mkOption {
         type = types.listOf types.str;
         default = [
-          "systemd"      # Systemd service metrics
-          "processes"    # Process information
-          "interrupts"   # Hardware interrupts
-          "ksmd"         # Kernel memory deduplication
-          "logind"       # Login session metrics
+          "systemd" # Systemd service metrics
+          "processes" # Process information
+          "interrupts" # Hardware interrupts
+          "ksmd" # Kernel memory deduplication
+          "logind" # Login session metrics
           "meminfo_numa" # NUMA memory info
-          "mountstats"   # Filesystem mount statistics
+          "mountstats" # Filesystem mount statistics
           "network_route" # Network routing table
-          "tcpstat"      # TCP connection statistics
-          "wifi"         # WiFi metrics (if applicable)
+          "tcpstat" # TCP connection statistics
+          "wifi" # WiFi metrics (if applicable)
         ];
         description = "Enabled node exporter collectors";
       };
@@ -233,17 +305,17 @@ in
 
         # Disable collectors that might not work in VMs/containers
         disabledCollectors = lib.unique [
-          "edac"         # Hardware error detection (not relevant in VMs)
-          "hwmon"        # Hardware monitoring (limited in VMs)
-          "infiniband"   # InfiniBand metrics (not applicable)
-          "ipvs"         # IPVS load balancer (not used)
-          "mdadm"        # Software RAID (not used)
-          "nfsd"         # NFS server metrics (only on NAS)
+          "edac" # Hardware error detection (not relevant in VMs)
+          "hwmon" # Hardware monitoring (limited in VMs)
+          "infiniband" # InfiniBand metrics (not applicable)
+          "ipvs" # IPVS load balancer (not used)
+          "mdadm" # Software RAID (not used)
+          "nfsd" # NFS server metrics (only on NAS)
           "powersupplyclass" # Power supply info (not in VMs)
-          "rapl"         # Power capping (not in VMs)
+          "rapl" # Power capping (not in VMs)
           "thermal_zone" # Thermal information (limited in VMs)
-          "xfs"          # XFS filesystem (using ext4/btrfs)
-          "zfs"          # ZFS filesystem (not used currently)
+          "xfs" # XFS filesystem (using ext4/btrfs)
+          "zfs" # ZFS filesystem (not used currently)
         ];
       };
 
@@ -257,14 +329,14 @@ in
       services.prometheus = {
         enable = true;
         port = cfg.prometheus.port;
-        listenAddress = "0.0.0.0";  # Allow access from other VLANs
+        listenAddress = "0.0.0.0"; # Allow access from other VLANs
 
         # Data retention and storage
         retentionTime = cfg.prometheus.retention;
         extraFlags = [
-          "--storage.tsdb.retention.size=15GB"  # Limit storage size
-          "--web.enable-lifecycle"              # Enable config reload API
-          "--web.enable-admin-api"              # Enable admin API
+          "--storage.tsdb.retention.size=15GB" # Limit storage size
+          "--web.enable-lifecycle" # Enable config reload API
+          "--web.enable-admin-api" # Enable admin API
         ];
 
         globalConfig = {
@@ -293,22 +365,11 @@ in
           }
 
           # Node exporters on all homelab hosts
+          # NOTE: Instance labels are set via targetLabels option (IP → hostname map).
+          # TODO: When DNS is deployed, use hostname targets directly and remove targetLabels.
           {
             job_name = "node-exporter";
-            static_configs = [
-              {
-                targets = cfg.prometheus.staticTargets.node-exporters;
-              }
-            ];
-            relabel_configs = [
-              # Extract instance name from target address
-              {
-                source_labels = [ "__address__" ];
-                regex = "([^:]+):.*";
-                target_label = "instance";
-                replacement = "\${1}";
-              }
-            ];
+            static_configs = labeledTargets cfg.prometheus.staticTargets.node-exporters;
           }
 
           # WireGuard metrics (when VPN server is deployed)
@@ -330,16 +391,18 @@ in
               }
             ];
           }
-        ] ++ cfg.prometheus.additionalScrapeConfigs;
+        ]
+        ++ cfg.prometheus.additionalScrapeConfigs;
       };
 
       # Open firewall for Prometheus
       networking.firewall.allowedTCPPorts = [ cfg.prometheus.port ];
 
       # Monitoring packages from centralized registry
-      environment.systemPackages = servicePackages.monitoring ++
-        (optionals (cfg.deploymentType == "vm") servicePackages.monitoringUtils) ++
-        servicePackages.base;
+      environment.systemPackages =
+        servicePackages.monitoring
+        ++ (optionals (cfg.deploymentType == "vm") servicePackages.monitoringUtils)
+        ++ servicePackages.base;
     })
 
     # Grafana Configuration
@@ -359,7 +422,7 @@ in
         settings = {
           server = {
             http_port = cfg.grafana.port;
-            http_addr = "0.0.0.0";  # Allow external access
+            http_addr = "0.0.0.0"; # Allow external access
             domain = cfg.grafana.domain;
             root_url = "http://${cfg.grafana.domain}:${toString cfg.grafana.port}/";
             enable_gzip = true;
@@ -368,7 +431,7 @@ in
           security = {
             admin_user = "admin";
             admin_password = "$__file{${cfg.grafana.adminPasswordFile}}";
-            secret_key = "$__file{${cfg.grafana.adminPasswordFile}}";  # Use same for simplicity
+            secret_key = "$__file{${cfg.grafana.adminPasswordFile}}"; # Use same for simplicity
             disable_gravatar = true;
             allow_embedding = false;
             cookie_samesite = "strict";
@@ -420,7 +483,8 @@ in
                   httpMethod = "POST";
                 };
               }
-            ] ++ optionals cfg.loki.enable [
+            ]
+            ++ optionals cfg.loki.enable [
               {
                 name = "Loki";
                 type = "loki";
@@ -503,7 +567,7 @@ in
           };
 
           limits_config = {
-            retention_period = "672h";  # 28 days
+            retention_period = "672h"; # 28 days
             ingestion_rate_mb = 4;
             ingestion_burst_size_mb = 6;
           };

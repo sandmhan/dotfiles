@@ -53,6 +53,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 | **NixOS Builder** | nixos-builder | 200 | `10.0.0.7` | 6 | 12GB | 100GB | 22, 9100 | `deployed` | `ssh sandmhan@10.0.0.7` |
 | **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
+| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | 80,8000,9100 | `deployed` | `http://10.0.0.167/` — Login: `admin` / `adminadmin` |
 
 **Deployment Commands**:
 ```bash
@@ -64,6 +65,9 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.7 --flake .#nixos-builder --s
 
 # Matrix Server (deployed)
 nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
+
+# Fitness / wger (deployed — test instance on management VLAN, no DHCP reservation)
+nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 ```
 
 ---
@@ -78,6 +82,12 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **AI Server** | llama | 108 | `10.0.20.108` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.108 --flake .#llama` |
 | **NVR** | nvr | 105 | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
 | **Home Assistant** | homeassistant | 103 | `10.0.20.103` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant` |
+| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | — | 80,8000,9100 | `deployed` — see Foundation Services |
+| **Media (*arr)** | media | TBD | `10.0.20.110` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.110 --flake .#media` |
+| **NVR (Frigate)** | nvr | TBD | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
+| **Gaming (Sunshine)** | gaming | TBD | `10.0.20.111` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming` |
+
+> **NOTE**: All services above marked with provisional IPs (`10.0.20.*`) are **configuration-only — NOT deployed**. NixOS modules and host configs evaluate cleanly via `nix build --dry-run` but require SOPS secrets setup, DHCP reservations, and VM/LXC creation before deployment. See individual setup docs for prerequisites.
 
 ---
 
@@ -107,6 +117,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **Forgejo Git (LXC)** | `http://10.0.20.206:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
 | **Matrix Agent Bridge** | `http://10.0.0.6:9800/health` | N/A (internal only) | Bearer token (webhook) | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
 | **Home Assistant** | `http://10.0.20.103:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
+| **wger Fitness** | `http://10.0.0.167/` | `http://fitness.homelab.local` | `admin` / `adminadmin` | [Fitness Setup](./fitness-setup.md) |
 | **MQTT Broker** | `mqtt://10.0.20.103:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
 
 ---
@@ -157,6 +168,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 | **Forgejo** | `secrets/forgejo/secrets.yaml` | admin, git_key | Admin password, Forgejo secret key |
 | **Home Assistant** | `secrets/homeassistant/secrets.yaml` | admin, homeassistant_key | HA secrets, MQTT password, PostgreSQL password |
 | **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Server private key, client configurations |
+| **Fitness (wger)** | `secrets/fitness/secrets.yaml` | admin, fitness_key | Django secret key, PostgreSQL password |
 | **Shared** | `secrets/shared/secrets.yaml` | admin, all_host_keys | Cross-service credentials, certificates |
 | **Personal** | `secrets/user/personal.yaml` | admin, gaia_key | Git config, API keys, personal tokens |
 
@@ -256,6 +268,7 @@ done
 | **Node Exporter** | `http://[HOST]:9100/metrics` | Prometheus metrics format |
 | **Matrix Bot** | `http://10.0.0.6:9800/health` | `{"status": "ok", "uptime_seconds": ...}` |
 | **Home Assistant** | `http://[HOST]:8123/api/` | `{"message": "API running."}` |
+| **wger Fitness** | `http://10.0.0.167/api/v2/` | JSON API root with endpoint listing |
 | **MQTT Broker** | `mosquitto_sub -h [HOST] -t '$SYS/broker/version' -C 1 -W 5` | Mosquitto version string |
 
 ### Automated Health Check Script
@@ -280,6 +293,9 @@ check_service() {
 # Check deployed services
 check_service "Agent Sandbox SSH" "tcp://10.0.0.5:22"
 check_service "Matrix Server" "http://10.0.0.6:8008/_matrix/client/versions"
+
+check_service "Fitness (wger)" "http://10.0.0.167/api/v2/" 200
+check_service "Fitness Node Exporter" "http://10.0.0.167:9100/metrics" 200
 
 # Add checks for other services as they're deployed
 # check_service "Grafana" "http://10.0.20.107:3000/api/health"
@@ -327,6 +343,10 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-04-25 | Deploy fitness/wger service to VM 106 (10.0.0.167) on Dell node | — | First service deployment with SOPS secrets. Test instance on management VLAN (no DHCP reservation). Containers: wger, PostgreSQL, Redis, Celery. Nginx reverse proxy on port 80. |
+| 2026-04-25 | Add media (nixflix), fitness (wger), gaming (Sunshine) systemModules and host configs | — | Configuration only — NOT deployed (except fitness). Requires SOPS setup, DHCP reservations, VM creation |
+| 2026-04-25 | Refactor Frigate NVR into option-based systemModule with dynamic camera config | — | Configuration only — NOT deployed. Replaces hardcoded cameras with NixOS options |
+| 2026-04-25 | Fix Forgejo, Home Assistant, Matrix Agent Bridge modules (broken package refs, sops interface) | — | Configuration only — NOT deployed. All evaluate cleanly via dry-run |
 | 2026-04-24 | **INCIDENT**: Agent VM 105 spammed qm commands against VM 200, triggered e1000e NIC hang on Dell node, required power cycle | — | Added Proxmox safety rules to CLAUDE.md and AGENT.md |
 | 2026-04-24 | Add Home Assistant systemModule with MQTT, PostgreSQL, nginx, USB passthrough | — | VM and LXC host configs, secrets, documentation |
 | 2026-04-24 | Add Matrix Agent Bridge for bot control and webhook notifications | — | New systemModule, bot script, co-located on matrix host (port 9800) |

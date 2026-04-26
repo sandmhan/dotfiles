@@ -2,69 +2,155 @@
 
 ## Overview
 
-Frigate is a Network Video Recorder (NVR) that provides real-time object detection for IP cameras. This configuration enables 24/7 recording, motion detection, and object recognition for homelab security monitoring.
-
-## Features
-
-- **Real-time Object Detection**: AI-powered detection of people, vehicles, animals
-- **24/7 Recording**: Continuous video recording with configurable retention
-- **MQTT Integration**: Home Assistant integration for alerts and automation
-- **Web Interface**: Live camera feeds and recorded video playback
-- **Mobile Access**: Remote viewing via web interface or mobile apps
+Frigate is a Network Video Recorder (NVR) that provides real-time object detection for IP cameras. This module uses an option-based configuration system where cameras, detectors, recording, and MQTT settings are defined declaratively via NixOS options and translated into `services.frigate.settings`.
 
 ## Architecture
 
 ```
-┌─────────────────┐    RTSP     ┌──────────────────┐    HTTP/WS    ┌─────────────────┐
-│   IP Cameras    │◄───────────►│   Frigate NVR    │◄─────────────►│   Web Interface │
-│                 │             │                  │               │                 │
-│ • Fishtank Cam  │             │ • Object Detection│               │ • Live View     │
-│ • Office Cam    │             │ • Recording       │               │ • Playback      │
-│ • Additional... │             │ • MQTT Alerts    │               │ • Configuration │
-└─────────────────┘             └──────────────────┘               └─────────────────┘
-                                          │
-                                          │ MQTT
-                                          ▼
-                                ┌──────────────────┐
-                                │ Home Assistant   │
-                                │                  │
-                                │ • Motion Alerts  │
-                                │ • Camera Cards   │
-                                │ • Automations    │
-                                └──────────────────┘
+                    IoT VLAN (10.0.10.0/24)          Services VLAN (10.0.20.0/24)
+                    +-----------------------+         +---------------------------+
+                    |   IP Cameras          |  RTSP   |   Frigate NVR VM          |
+                    |   - fishtank          |-------->|   - Object Detection      |
+                    |   - office            |         |   - 24/7 Recording        |
+                    |   - (additional...)   |         |   - Web UI (:5000)        |
+                    +-----------------------+         |   - go2rtc (:8554)        |
+                                                      |   - RTSP relay (:1935)    |
+                                                      +---------------------------+
+                                                                |
+                                          MQTT                  |  HTTP/WS
+                                  +----------------+    +------------------+
+                                  | Home Assistant |    | Web Interface    |
+                                  | - Alerts       |    | - Live View      |
+                                  | - Automations  |    | - Playback       |
+                                  +----------------+    +------------------+
 ```
 
-## Configuration
+## Module Options
 
-### Camera Configuration
+The Frigate module is defined in `systemModules/frigate.nix` and provides the following options under `homelab.frigate`:
 
-The Frigate module supports multiple cameras with individual settings:
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enable` | bool | false | Enable Frigate NVR |
+| `deploymentType` | enum | "vm" | "vm" or "container" |
+| `resourceProfile` | enum | "standard" | "minimal", "standard", or "high" |
+| `cameras` | attrsOf camera | {} | Camera definitions (see below) |
+| `mqtt.enabled` | bool | true | Enable MQTT integration |
+| `mqtt.host` | str | "localhost" | MQTT broker host |
+| `mqtt.port` | port | 1883 | MQTT broker port |
+| `detector.type` | enum | "cpu" | "cpu" or "http" (for AI server) |
+| `detector.httpUrl` | str | "" | URL for HTTP detector API |
+| `recording.enabled` | bool | true | Enable recording |
+| `recording.retainDays` | int | 7 | Days to retain recordings |
+| `recording.retainMode` | enum | "all" | "all", "motion", or "active_objects" |
+| `storage.path` | str | "/var/lib/frigate" | Storage path |
+| `nfs.enable` | bool | false | Mount NFS share for storage |
+| `sops.enableCameraSecrets` | bool | true | Create SOPS secrets for camera URLs |
+
+### Camera Options
+
+Each camera in `homelab.frigate.cameras` supports:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `rtspUrl` | str | (required) | RTSP stream URL |
+| `roles` | list of enum | ["record"] | "detect" and/or "record" |
+| `detect.enabled` | bool | false | Enable object detection |
+| `detect.width` | int | 1280 | Detection width |
+| `detect.height` | int | 720 | Detection height |
+| `detect.fps` | int | 5 | Detection FPS |
+| `zones` | attrsOf zone | {} | Detection zones |
+| `motionMask` | list of str | [] | Motion mask coordinates |
+
+## Configuration Examples
+
+### Basic Host Config (hosts/nvr/default.nix)
 
 ```nix
-# In systemModules/frigate.nix
-services.frigate.settings = {
+homelab.frigate = {
+  enable = true;
+  deploymentType = "vm";
+  resourceProfile = "standard";
+
   cameras = {
-    "fishtank" = {
-      ffmpeg.inputs = [{
-        path = "rtsp://192.168.50.174:554/ch0_0.h264";
-        roles = [ "record" ];
-      }];
-      # Add detection, motion zones, etc.
+    fishtank = {
+      rtspUrl = "rtsp://192.168.50.174:554/ch0_0.h264";
+      roles = [ "record" ];
+      detect.enabled = false;
     };
-    
-    "office" = {
-      ffmpeg.inputs = [{
-        path = "rtsp://192.168.50.210:554/ch0_0.h264";  
-        roles = [ "detect" "record" ];
-      }];
+
+    office = {
+      rtspUrl = "rtsp://192.168.50.210:554/ch0_0.h264";
+      roles = [ "detect" "record" ];
+      detect = {
+        enabled = true;
+        width = 1280;
+        height = 720;
+        fps = 5;
+      };
     };
+  };
+
+  mqtt = {
+    enabled = true;
+    host = "homeassistant.homelab.local";
+    port = 1883;
+  };
+
+  detector.type = "cpu";
+
+  recording = {
+    enabled = true;
+    retainDays = 7;
   };
 };
 ```
 
-### Authentication Setup
+### Adding a Camera with Detection Zones
 
-For cameras requiring authentication, configure secrets:
+```nix
+homelab.frigate.cameras.frontdoor = {
+  rtspUrl = "rtsp://192.168.50.181:554/ch0_0.h264";
+  roles = [ "detect" "record" ];
+  detect = {
+    enabled = true;
+    width = 1280;
+    height = 720;
+    fps = 5;
+  };
+  zones = {
+    driveway = {
+      coordinates = "100,720,500,720,500,400,100,400";
+      objects = [ "car" "person" ];
+    };
+  };
+  motionMask = [ "0,0,1280,100" ]; # Ignore sky/trees
+};
+```
+
+### Using HTTP Detector (AI Server)
+
+```nix
+homelab.frigate.detector = {
+  type = "http";
+  httpUrl = "http://ai-server.homelab.local:5000/v1/vision/detection";
+};
+```
+
+### NFS Storage (when NAS is deployed)
+
+```nix
+homelab.frigate.nfs = {
+  enable = true;
+  server = "nas.homelab.local";
+  path = "/export/frigate";
+  mountPoint = "/mnt/nas-frigate";
+};
+```
+
+## Authentication Setup
+
+Camera RTSP URLs containing credentials are managed via SOPS secrets. The module automatically creates a secret at `cameras/<name>/rtsp_url` for each camera when `sops.enableCameraSecrets = true`.
 
 ```bash
 # Add camera credentials to secrets/nvr/secrets.yaml
@@ -80,244 +166,77 @@ EOF
 sops -e -i secrets/nvr/secrets.yaml
 ```
 
-### Recording Configuration
-
-Configure recording retention and quality:
-
-```nix
-services.frigate.settings = {
-  record = {
-    enabled = true;
-    retain = {
-      days = 7;           # Keep recordings for 7 days
-      mode = "all";       # Record continuously
-    };
-    events = {
-      retain = {
-        default = 10;     # Keep event recordings for 10 days
-        mode = "active_objects";
-      };
-    };
-  };
-  
-  # Storage optimization
-  birdseye = {
-    enabled = true;
-    mode = "objects";     # Show cameras with detected objects
-  };
-};
-```
+Note: Since `services.frigate` generates config at build time, switching to authenticated cameras at runtime requires using `virtualisation.oci-containers` with a sops-templated config file mounted as `/config/config.yml`.
 
 ## Deployment
 
 ### Prerequisites
 
-1. **Network Setup**: Ensure cameras are accessible from NVR host
-2. **Storage**: Adequate disk space for recordings (calculate: cameras × quality × retention)
-3. **Compute**: Sufficient CPU for object detection (or GPU passthrough for AI acceleration)
+1. Proxmox VM created from base VMA image
+2. Camera network accessible from NVR VM (IoT VLAN routing configured)
+3. Adequate disk space for recordings
 
 ### Storage Calculation
 
-```bash
-# Estimate storage needs
-# Formula: (Bitrate × 3600 × 24 × Retention Days) / 8 / 1024^3 = GB per camera
-
-# Example: 2 cameras, 2Mbps each, 7 days retention
-# (2000000 × 3600 × 24 × 7 × 2) / 8 / 1024^3 ≈ 140GB total
+```
+Formula: (Bitrate x 3600 x 24 x RetentionDays) / 8 / 1024^3 = GB per camera
+Example: 2 cameras, 2Mbps each, 7 days = ~140GB total
 ```
 
-### Deployment Steps
-
-1. **Configure Camera Network**:
-   ```bash
-   # Ensure cameras are on IoT VLAN (10.0.10.0/24)
-   # Configure firewall to allow NVR access to cameras
-   iptables -A FORWARD -s 10.0.20.0/24 -d 10.0.10.0/24 -p tcp --dport 554 -j ACCEPT
-   ```
-
-2. **Deploy NVR Host**:
-   ```bash
-   # Using VM deployment pattern
-   qmrestore /var/lib/vz/dump/vzdump-qemu-nixos-*.vma.zst 105 --storage local-zfs
-   qm set 105 --cores 4 --memory 8192 --name nvr
-   qm set 105 --net0 virtio,bridge=vmbr0,firewall=1
-   
-   # Add storage for recordings
-   qm set 105 --scsi1 local-zfs:100,size=200G  # 200GB for recordings
-   
-   # Start and deploy configuration
-   qm start 105
-   nixos-rebuild switch --target-host sandmhan@[NVR_IP] --flake .#nvr --sudo
-   ```
-
-3. **Verify Installation**:
-   ```bash
-   # Check Frigate service status
-   ssh nvr-host "sudo systemctl status frigate"
-   
-   # Verify web interface
-   curl http://[NVR_IP]:5000/api/config
-   
-   # Test camera connectivity
-   curl http://[NVR_IP]:5000/api/stats
-   ```
-
-## Camera Integration
-
-### RTSP Stream Discovery
-
-Find camera RTSP URLs:
+### Deploy Steps
 
 ```bash
-# Common RTSP URL patterns:
-# Hikvision: rtsp://ip:554/Streaming/Channels/101
-# Dahua: rtsp://ip:554/cam/realmonitor?channel=1&subtype=0
-# Reolink: rtsp://ip:554/h264Preview_01_main
-# Generic: rtsp://ip:554/ch0_0.h264
+# 1. Create VM from base image
+qmrestore /var/lib/vz/dump/vzdump-qemu-nixos-*.vma.zst 105 --storage local-zfs
+qm set 105 --cores 4 --memory 8192 --name nvr
 
-# Test RTSP connectivity
-ffplay rtsp://camera-ip:554/stream-path
+# 2. Add recording storage
+qm set 105 --scsi1 local-zfs:100,size=200G
 
-# Or use VLC for testing
-vlc rtsp://camera-ip:554/stream-path
+# 3. Start and deploy
+qm start 105
+nixos-rebuild switch --target-host sandmhan@[NVR_IP] --flake .#nvr --sudo
 ```
 
-### Camera Configuration Examples
+### Build Command
 
-#### Basic Camera (No Detection)
-```nix
-cameras."garage" = {
-  ffmpeg.inputs = [{
-    path = "rtsp://192.168.50.180:554/ch0_0.h264";
-    roles = [ "record" ];
-  }];
-  
-  record.enabled = true;
-  snapshots.enabled = false;  # Recording only
-};
+```bash
+# Dry-run to check for errors
+nix build --dry-run .#nixosConfigurations.nvr.config.system.build.toplevel
+
+# Note: requires hardware-configuration.nix for full build (present on deployed VM)
 ```
 
-#### Motion Detection Camera
-```nix
-cameras."frontdoor" = {
-  ffmpeg.inputs = [
-    {
-      path = "rtsp://192.168.50.181:554/ch0_0.h264";
-      roles = [ "detect" "record" ];
-    }
-    {
-      path = "rtsp://192.168.50.181:554/ch0_1.h264";  # Lower quality for detection
-      roles = [ "detect" ];
-    }
-  ];
-  
-  detect = {
-    enabled = true;
-    width = 1280;
-    height = 720;
-    fps = 5;  # Lower FPS for detection to save CPU
-  };
-  
-  # Motion zones (ignore areas with frequent motion)
-  motion = {
-    mask = [ "0,0,1280,100" ];  # Ignore top area (sky/trees)
-  };
-  
-  # Object zones (only detect in specific areas) 
-  zones = {
-    driveway = {
-      coordinates = "100,720,500,720,500,400,100,400";
-      objects = [ "car" "person" ];
-    };
-  };
-};
+### Verify
+
+```bash
+# Check service status
+ssh nvr "sudo systemctl status frigate"
+
+# Check web UI
+curl http://[NVR_IP]:5000/api/version
+
+# Check camera stats
+curl http://[NVR_IP]:5000/api/stats
 ```
 
-### GPU Acceleration (Advanced)
+## Firewall Ports
 
-For AI acceleration with dedicated GPU:
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| 5000 | TCP | Frigate web UI |
+| 1935 | TCP | RTSP relay |
+| 8554 | TCP | go2rtc WebRTC/RTSP |
+| 9100 | TCP | Prometheus node exporter |
 
-```nix
-# In hosts/nvr/default.nix
-virtualisation.oci-containers.backend = "docker";
+## Integration
 
-# Pass GPU to container
-virtualisation.oci-containers.containers.frigate = {
-  image = "ghcr.io/blakeblackshear/frigate:stable";
-  volumes = [
-    "/var/lib/frigate:/config"
-    "/var/lib/frigate/media:/media/frigate"
-    "/etc/localtime:/etc/localtime:ro"
-  ];
-  
-  # GPU passthrough for Coral or NVIDIA
-  extraOptions = [
-    "--device=/dev/apex_0:/dev/apex_0"  # Google Coral TPU
-    # OR
-    "--runtime=nvidia"                   # NVIDIA GPU
-    "--gpus=all"
-  ];
-  
-  ports = [ "5000:5000" ];
-};
+### Home Assistant (MQTT)
 
-# Configure GPU detection in Frigate
-services.frigate.settings.detectors = {
-  coral = {
-    type = "edgetpu";
-    device = "usb";
-  };
-  # OR
-  tensorrt = {
-    type = "tensorrt";
-    device = "0";  # GPU device ID
-  };
-};
-```
-
-## Home Assistant Integration
-
-### MQTT Configuration
-
-```nix
-# Enable MQTT in Frigate
-services.frigate.settings.mqtt = {
-  enabled = true;
-  host = "homeassistant.homelab.local";
-  port = 1883;
-  topic_prefix = "frigate";
-  client_id = "frigate";
-  # user = "frigate";  # Configure if MQTT requires auth
-  # password = "password";
-};
-```
-
-### Home Assistant Configuration
+Configure MQTT in Frigate to publish events to Home Assistant:
 
 ```yaml
-# configuration.yaml in Home Assistant
-mqtt:
-  sensor:
-    - name: "Frigate Detection FPS"
-      state_topic: "frigate/stats"
-      value_template: "{{ value_json.detection_fps }}"
-      unit_of_measurement: "FPS"
-    
-    - name: "Frigate Process FPS"  
-      state_topic: "frigate/stats"
-      value_template: "{{ value_json.process_fps }}"
-      unit_of_measurement: "FPS"
-
-camera:
-  - platform: mqtt
-    name: "Office Camera"
-    topic: "frigate/office/camera"
-    
-  - platform: mqtt
-    name: "Fishtank Camera"
-    topic: "frigate/fishtank/camera"
-
-# Automation examples
+# Home Assistant configuration.yaml
 automation:
   - alias: "Motion Alert"
     trigger:
@@ -330,147 +249,47 @@ automation:
       service: notify.mobile_app
       data:
         message: "Motion detected: {{ trigger.payload_json.label }}"
-        data:
-          image: "http://frigate.homelab.local:5000{{ trigger.payload_json.snapshot }}"
 ```
 
-## Monitoring & Maintenance
+### Monitoring
 
-### Performance Monitoring
-
-```bash
-# Check Frigate stats
-curl http://nvr-host:5000/api/stats | jq
-
-# Monitor resource usage
-ssh nvr-host "htop"
-
-# Check storage usage
-ssh nvr-host "df -h /var/lib/frigate"
-
-# View Frigate logs
-ssh nvr-host "sudo docker logs frigate -f"
-```
-
-### Storage Management
-
-```bash
-# Configure automatic cleanup
-# Frigate automatically manages retention based on configuration
-
-# Manual cleanup if needed
-ssh nvr-host "find /var/lib/frigate/recordings -name '*.mp4' -mtime +7 -delete"
-
-# Check camera connectivity
-curl http://nvr-host:5000/api/config/cameras | jq '.[] | {name: .name, fps: .fps}'
-```
-
-### Backup Configuration
-
-```bash
-# Backup Frigate configuration
-rsync -av nvr-host:/var/lib/frigate/config/ /backup/frigate-config/
-
-# Backup important recordings (selective)
-rsync -av nvr-host:/var/lib/frigate/recordings/important/ /backup/frigate-important/
-
-# Database backup (SQLite)
-ssh nvr-host "sqlite3 /var/lib/frigate/frigate.db .backup frigate-backup.db"
-```
+The NVR includes a Prometheus node exporter on port 9100. A health check timer runs every 5 minutes to verify the Frigate API is responsive.
 
 ## Troubleshooting
 
-### Common Issues
+### Camera Connection Issues
 
-#### Camera Connection Issues
 ```bash
-# Test RTSP stream directly
+# Test RTSP stream
 ffmpeg -i rtsp://camera-ip:554/path -t 10 -f null -
 
 # Check network connectivity
 ping camera-ip
-telnet camera-ip 554
-
-# Verify firewall rules
-iptables -L -n | grep 554
 ```
 
-#### High CPU Usage
-```bash
-# Check detection FPS vs process FPS
-curl http://nvr-host:5000/api/stats
+### High CPU Usage
 
-# Optimize detection settings:
-# - Reduce detection FPS
-# - Use lower resolution stream for detection
-# - Adjust motion sensitivity
-# - Add detection zones to exclude areas
-```
+- Reduce detection FPS in camera options
+- Use lower resolution for detection stream
+- Add motion masks to exclude high-activity areas
+- Switch to HTTP detector with dedicated AI server
 
-#### Storage Issues
+### Storage Issues
+
 ```bash
 # Check disk usage
 df -h /var/lib/frigate
 
-# Review retention settings
-curl http://nvr-host:5000/api/config | jq '.record.retain'
-
-# Check for failed recordings
-find /var/lib/frigate -name "*.tmp" -o -name "*.part"
+# Review retention
+curl http://[NVR_IP]:5000/api/config | jq '.record.retain'
 ```
 
-### Log Analysis
+### Service Not Starting
 
 ```bash
-# Frigate application logs
-ssh nvr-host "sudo docker logs frigate --tail 100"
+# Check logs
+journalctl -u frigate -f
 
-# System resource logs
-ssh nvr-host "sudo journalctl -u frigate -f"
-
-# Check for FFmpeg errors
-ssh nvr-host "sudo docker logs frigate 2>&1 | grep ffmpeg"
+# Verify config
+cat /var/lib/frigate/config/config.yml
 ```
-
-## Security Considerations
-
-### Network Isolation
-
-```bash
-# Cameras on isolated IoT VLAN
-# NVR on services VLAN with controlled access
-
-# Firewall rules example:
-iptables -A FORWARD -s 10.0.20.0/24 -d 10.0.10.0/24 -p tcp --dport 554 -j ACCEPT
-iptables -A FORWARD -s 10.0.10.0/24 -d 10.0.20.0/24 -m state --state RELATED,ESTABLISHED -j ACCEPT
-```
-
-### Access Control
-
-```nix
-# Configure authentication if exposing publicly
-services.frigate.settings.auth = {
-  enabled = true;
-  secret_key = "your-secret-key";
-};
-
-# Use reverse proxy for external access
-services.nginx.virtualHosts."nvr.your-domain.com" = {
-  enableACME = true;
-  forceSSL = true;
-  locations."/" = {
-    proxyPass = "http://127.0.0.1:5000";
-    proxyWebsockets = true;
-  };
-};
-```
-
-### Privacy Considerations
-
-- **Local Processing**: All AI detection happens locally
-- **No Cloud**: Video data never leaves your network
-- **Encryption**: Use HTTPS/WSS for remote access
-- **Access Logs**: Monitor who accesses camera feeds
-- **Retention Limits**: Automatically delete old recordings
-
-This Frigate NVR setup provides a comprehensive security monitoring solution while maintaining privacy and local control over all video data.
