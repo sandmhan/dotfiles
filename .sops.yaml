@@ -5,12 +5,12 @@ keys:
   # Admin key (your personal key for managing all secrets)
   # Generate with: age-keygen -o ~/.config/sops/age/keys.txt
   # Get public key: age-keygen -y ~/.config/sops/age/keys.txt
-  - &admin_age age19q599t7j4khz4q4af7erk9eafw4ktnyktahzsc2sfxne2fkn5ppsp7ftlf # Agent admin key (testing)
+  - &admin_age age1u40h6589nq3razzkuth5h3dysjd2nr50vhgzwpdc0krx0s7wpdhq7r6gcj
 
   # Host keys (derived from SSH host keys)
   # Get with: ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
   # Or remotely: ssh user@host 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age
-  - &gaia_key age1...      # Desktop (Framework laptop) — PLACEHOLDER
+  - &gaia_key age1ks8ru7prm58nnh3t24nz7t0jss70lxzerert8n4fe8qwu0xwkg0sqqhmez
   - &nvr_key age1...       # NVR (Frigate) — PLACEHOLDER
   - &matrix_key age1...    # Matrix/Synapse server — PLACEHOLDER
   - &vpn_key age1...       # WireGuard VPN server — PLACEHOLDER
@@ -51,6 +51,7 @@ creation_rules:
     key_groups:
     - age:
       - *admin_age
+      - *gaia_key
 
   # Monitoring stack secrets (Grafana, alerting)
   - path_regex: secrets/monitoring/[^/]+\.(yaml|json|env|ini)$

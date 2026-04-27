@@ -73,6 +73,9 @@ in
     lib.optionals cfg.profiles.enableDevelopment [
       typst
       git
+      sops
+      age
+      ssh-to-age
     ]
     ++ lib.optionals cfg.features.enableContainerTools [
       docker-compose

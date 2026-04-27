@@ -13,6 +13,8 @@
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../../systemModules/sops.nix
+    ../../systemModules/tailscale.nix
     #../../systemModules/jellyfin.nix
     # ../../systemModules/frigate.nix
   ];
@@ -135,6 +137,15 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+
+  # Tailscale mesh VPN — Gaia acts as subnet router for phone access
+  homelab.tailscale = {
+    enable = true;
+    advertiseRoutes = [
+      "10.0.0.0/24"
+      "10.0.20.0/24"
+    ];
+  };
 
   # Set your time zone.
   time.timeZone = systemSettings.timezone;
@@ -333,10 +344,17 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Decrypt user password hash from sops
+  sops.secrets.user-password = {
+    neededForUsers = true;
+  };
+
+  # Define a user account.
+  users.mutableUsers = false;
   users.users.sandmhan = {
     isNormalUser = true;
     description = "sandmhan";
+    hashedPasswordFile = config.sops.secrets.user-password.path;
     extraGroups = [
       "networkmanager"
       "wheel"

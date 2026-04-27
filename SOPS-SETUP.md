@@ -92,6 +92,106 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt sops -d secrets/matrix/secrets.yam
 sudo ls -la /run/secrets/
 ```
 
+## Service-specific secret workflows
+
+### YAML key format
+
+sops-nix uses slashes in secret names (e.g. `tailscale/auth-key`) to map to nested YAML keys. The secrets file must use nested structure, not flat keys with literal slashes:
+
+```yaml
+# CORRECT — sops-nix finds this as "tailscale/auth-key"
+tailscale:
+  auth-key: tskey-auth-...
+
+# WRONG — sops-nix cannot find the key
+tailscale/auth-key: tskey-auth-...
+```
+
+Flat keys like `user-password` (no slash) work as top-level YAML keys.
+
+### User password (NixOS `hashedPasswordFile`)
+
+Linux authentication requires a hashed password in `/etc/shadow`, not plaintext. The sops-encrypted file stores the hash; NixOS copies it into shadow at activation time.
+
+1. Generate a SHA-512 password hash:
+
+```bash
+mkpasswd -m sha-512
+```
+
+2. Verify the hash by running `mkpasswd` again with the same salt (the portion between the second and third `$`):
+
+```bash
+mkpasswd -m sha-512 --salt "SALT_FROM_HASH"
+```
+
+Compare the output to your original hash — they should be identical.
+
+3. Create the encrypted secrets file:
+
+```bash
+sops secrets/gaia/secrets.yaml
+```
+
+Add the hash as:
+
+```yaml
+user-password: "$6$rounds=4096$salt$hash..."
+```
+
+Save and quit (sops encrypts on save).
+
+4. The NixOS config in `hosts/gaia/default.nix` references it as:
+
+```nix
+sops.secrets.user-password = {
+  neededForUsers = true;
+};
+
+users.mutableUsers = false;
+users.users.sandmhan.hashedPasswordFile = config.sops.secrets.user-password.path;
+```
+
+5. Rebuild: `make gaia`
+
+> **Warning:** `mutableUsers = false` means `passwd` will no longer work. If the hash is wrong, you'll need to boot into single-user mode to fix it. Always verify your hash before rebuilding.
+
+### Tailscale auth key
+
+1. Generate an auth key at [Tailscale admin console](https://login.tailscale.com/admin/settings/keys):
+   - Reusable: yes
+   - Ephemeral: no (nodes are long-lived)
+   - Expiry: 90 days (regenerate before expiry)
+
+2. Create the encrypted secrets file (use nested YAML — see key format section above):
+
+```bash
+sops secrets/tailscale/secrets.yaml
+```
+
+```yaml
+tailscale:
+  auth-key: tskey-auth-YOUR_KEY
+```
+
+3. Ensure the host's age key is in `.sops.yaml` under the tailscale creation rule, then:
+
+```bash
+sops updatekeys secrets/tailscale/secrets.yaml
+git add secrets/tailscale/secrets.yaml
+```
+
+4. The host config just needs:
+
+```nix
+imports = [ ../../systemModules/tailscale.nix ];
+
+homelab.tailscale = {
+  enable = true;
+  advertiseRoutes = [ "10.0.0.0/24" "10.0.20.0/24" ]; # optional, for subnet routing
+};
+```
+
 ## Design decisions
 
 **Domain is not a SOPS secret.** Nginx virtualHost attribute names must be known at Nix evaluation time. SOPS secrets only resolve at activation time. The domain stays as a `let` binding in `systemModules/matrix.nix`.

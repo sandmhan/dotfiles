@@ -224,7 +224,7 @@
           ];
         };
 
-        # WireGuard VPN Server (retained, not deployed — pivoted to Tailscale)
+        # Tailscale Subnet Router — always-on VM for remote access into homelab
         vpn = mkNixosSystem {
           hostname = "vpn";
           modules = [
