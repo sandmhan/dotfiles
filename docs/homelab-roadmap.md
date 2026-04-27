@@ -277,6 +277,14 @@ git push builder main  # Triggers automatic deployment pipeline
 - ✅ **Scalable**: Can build for multiple targets simultaneously
 - ✅ **Reliable**: Retry logic and error handling for robust deployments
 
+### Known Issues
+
+**VMA restore creates duplicate MAC addresses.** Every VM restored from `initialProxmoxVMA` gets the same MAC (`52:54:00:12:34:56`), causing DHCP collisions. The current workaround is manually assigning a unique MAC after restore (`qm set <vmid> --net0 virtio=<mac>,bridge=vmbr0`), but this is error-prone and has already caused a collision (VM 110 vs VM 102). Investigate alternatives:
+- Set MAC via cloud-init or Proxmox API at restore time
+- Use `nixos-anywhere` to push configs directly to fresh VMs without VMA images
+- Generate unique MACs in the `qmrestore` + `qm set` workflow automatically
+- Build per-host VMA images with unique network config baked in
+
 ### Future Enhancements
 
 **Advanced Capabilities:**
