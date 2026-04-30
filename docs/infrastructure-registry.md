@@ -54,6 +54,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 | **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
 | **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | 80,8000,9100 | `deployed` | `http://10.0.0.167/` — Login: `admin` / `adminadmin` |
+| **Tailscale Router** | vpn | 110 | `10.0.0.168` | 1 | 1GB | 20GB | 41641 | `deployed` | `ssh sandmhan@100.120.234.19` (Tailscale only — LAN unreachable, see known issues) |
 
 **Deployment Commands**:
 ```bash
