@@ -95,6 +95,11 @@ in
     networking.firewall = {
       trustedInterfaces = [ "tailscale0" ];
       allowedUDPPorts = [ config.services.tailscale.port ];
+      # Allow forwarding between Tailscale and LAN for subnet routing / exit node
+      extraCommands = mkIf (cfg.advertiseRoutes != [ ] || cfg.exitNode) ''
+        iptables -A FORWARD -i tailscale0 -j ACCEPT
+        iptables -A FORWARD -o tailscale0 -j ACCEPT
+      '';
     };
 
     environment.systemPackages = [ pkgs.tailscale ];
