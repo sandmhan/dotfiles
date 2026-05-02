@@ -59,6 +59,11 @@ sops -e -i secrets/fitness/secrets.yaml
 
 # Verify encryption
 sops -d secrets/fitness/secrets.yaml
+
+# After first deployment, generate the wger API token for the exporter:
+ssh user@fitness-host "sudo podman exec wger python3 manage.py drf_create_token admin"
+# Then add it to the secrets file:
+sops --set '["wger/api-token"] "TOKEN_VALUE_HERE"' secrets/fitness/secrets.yaml
 ```
 
 ### 2. Age Key Setup
@@ -126,6 +131,7 @@ The wger module (`systemModules/wger.nix`) provides these options under `homelab
 | `wger-db` | `postgres:15-alpine` | PostgreSQL database | internal |
 | `wger-redis` | `redis:7-alpine` | Cache and session store | internal |
 | `wger-celery` | `wger/server:latest` | Background task worker | none |
+| `wger-exporter` | Nix-built (`dockerTools`) | Prometheus fitness metrics exporter | 9101 |
 
 ### Systemd Resource Limits
 
@@ -146,6 +152,7 @@ The wger module (`systemModules/wger.nix`) provides these options under `homelab
 | HTTP | 80 | TCP | Nginx reverse proxy |
 | wger | 8000 | TCP | Django direct access (when no proxy) |
 | Node Exporter | 9100 | TCP | Prometheus system metrics |
+| wger Exporter | 9101 | TCP | Custom fitness business metrics for Prometheus |
 
 ### DNS Configuration
 
@@ -184,18 +191,92 @@ curl -H "Authorization: Token YOUR_TOKEN" http://fitness.homelab.local/api/v2/wo
 
 ## Monitoring Integration
 
-### Prometheus Targets
+### Prometheus Scrape Targets
 
-The fitness VM is included in the monitoring configuration:
+The fitness VM exposes three metrics endpoints, all scraped by the lxc-monitor Prometheus instance:
 
-```nix
-# In systemModules/monitoring.nix
-"node-exporters" = [
-  "10.0.20.107:9100"  # fitness VM (provisional IP)
-];
+| Job Name | Target | Interval | Metrics |
+|----------|--------|----------|---------|
+| `node-exporter` | `10.0.0.167:9100` | 15s | System metrics (CPU, RAM, disk, network) |
+| `wger-app` | `10.0.0.167:8000` | 30s | Django application metrics (request rates, response times) via `django-prometheus` at `/prometheus/metrics` |
+| `wger-fitness` | `10.0.0.167:9101` | 5m | Business metrics from custom Python exporter (weight, workouts, nutrition, measurements) |
+
+**Note**: The wger Django app requires `EXPOSE_PROMETHEUS_METRICS=True` (not `ENABLE_PROMETHEUS`) to enable the `/prometheus/metrics` endpoint.
+
+### Custom Exporter (`wger-exporter`)
+
+A Python sidecar container (`systemModules/wger-exporter/exporter.py`) polls the wger REST API every 300 seconds and exposes fitness business metrics as Prometheus gauges at `:9101/metrics`.
+
+**Metrics exposed:**
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `wger_body_weight_lb` | Gauge | Most recent body weight entry in pounds |
+| `wger_body_weight_entries_total` | Counter | Total number of weight entries |
+| `wger_workout_sessions_week` | Gauge | Workout sessions in last 7 days |
+| `wger_workout_volume_lb_today` | Gauge | Total volume (weight x reps) today in pounds |
+| `wger_workouts_logged_total` | Counter | Total workout log entries |
+| `wger_workout_sessions_total` | Counter | Total workout sessions |
+| `wger_nutrition_calories_today` | Gauge | Calories logged today |
+| `wger_nutrition_protein_g_today` | Gauge | Protein in grams today |
+| `wger_nutrition_carbs_g_today` | Gauge | Carbs in grams today |
+| `wger_nutrition_fat_g_today` | Gauge | Fat in grams today |
+| `wger_body_measurement_cm{category}` | Gauge | Most recent measurement per body category |
+| `wger_exporter_scrape_errors_total` | Counter | Failed API scrapes |
+| `wger_exporter_last_successful_scrape_timestamp` | Gauge | Unix timestamp of last successful scrape |
+
+**Important notes:**
+- Weight values are stored in wger as-is (no kg-to-lb conversion needed if entered in lb)
+- The exporter authenticates via a wger API token stored in SOPS at `wger/api-token`
+- The exporter container image is built with `pkgs.dockerTools.buildLayeredImage` (no Docker needed)
+
+### Grafana Dashboard
+
+The **Fitness Overview** dashboard (`systemModules/grafana-dashboards/fitness-overview.json`) is auto-provisioned on the lxc-monitor Grafana instance. It includes:
+
+| Panel | Type | Description |
+|-------|------|-------------|
+| Current Weight | Stat | Latest body weight in lb |
+| Weight Entries | Stat | Total number of weight entries |
+| Workouts This Week | Stat | Sessions in last 7 days (green/yellow/red thresholds) |
+| Workout Volume Today | Stat | Total volume (weight x reps) in lb |
+| Exporter Health | Stat | Scrape error count with healthy/error mapping |
+| Body Weight Trend | Time series | Weight over time with `last_over_time[2d]` for sparse data |
+| Workout Sessions | Time series | 7-day rolling session count (bar chart) |
+| Nutrition Today | Bar gauge | Calorie, protein, carb, fat breakdown |
+| Daily Macros & Calories vs Body Weight | Time series | Stacked macro bars (protein x4 kcal, carbs x4 kcal, fat x9 kcal) on left axis + weight line on right axis |
+| Body Measurements | Time series | All measurement categories over time |
+| Wger App Performance | Time series | Django HTTP request rate by method |
+
+**Dashboard queries use `last_over_time(metric[2d])`** for weight data to bridge gaps between sparse backfilled data points (one sample per day).
+
+### Historical Data Backfill
+
+Historical weight entries were backfilled into Prometheus TSDB using `promtool`:
+
+```bash
+# 1. Create OpenMetrics format file with historical entries
+cat > /tmp/weight_backfill.txt << 'EOF'
+# HELP wger_body_weight_lb Most recent body weight entry in pounds
+# TYPE wger_body_weight_lb gauge
+wger_body_weight_lb{instance="fitness",job="wger-fitness"} 233.0 1776081600
+wger_body_weight_lb{instance="fitness",job="wger-fitness"} 224.6 1777118400
+# ... (timestamps are Unix epoch in seconds, noon UTC)
+# EOF
+EOF
+
+# 2. Create TSDB blocks (promtool is in nixpkgs#prometheus.cli)
+nix build nixpkgs#prometheus.cli --no-link --print-out-paths
+/nix/store/.../bin/promtool tsdb create-blocks-from openmetrics /tmp/weight_backfill.txt /tmp/blocks/
+
+# 3. Stop prometheus, copy blocks, fix ownership, restart
+sudo systemctl stop prometheus.service
+sudo cp -r /tmp/blocks/01* /var/lib/prometheus2/data/
+sudo chown -R prometheus:prometheus /var/lib/prometheus2/data/
+sudo systemctl start prometheus.service
 ```
 
-wger also exposes a native `/metrics` endpoint when `ENABLE_PROMETHEUS=True`, which can be scraped directly by Prometheus for application-level metrics (request counts, response times, etc.).
+**Note**: `promtool` is NOT in the main `prometheus` package — it's in the `.cli` output: `nixpkgs#prometheus.cli`.
 
 ## Maintenance
 
@@ -294,11 +375,18 @@ ssh fitness-host "sudo journalctl -u wger-health-check"
 
 ### Grafana Dashboards
 
-wger exposes Prometheus metrics at `/metrics` which can be visualized in Grafana:
-- Request rate and response times
-- Active user sessions
-- Database query performance
-- Celery task queue depth
+Two types of metrics are visualized in the auto-provisioned Fitness Overview Grafana dashboard:
+
+**Django application metrics** (via `django-prometheus` at `/prometheus/metrics`):
+- HTTP request rate and response times by method
+- Active user sessions and database query performance
+
+**Fitness business metrics** (via custom `wger-exporter` at `:9101/metrics`):
+- Body weight trend (with historical backfill)
+- Workout frequency and volume tracking
+- Daily macro breakdown (protein, carbs, fat as kcal) vs body weight
+- Nutrition calorie tracking
+- Body measurements over time
 
 ### Home Assistant Integration
 

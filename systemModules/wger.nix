@@ -12,6 +12,31 @@ with lib;
 let
   servicePackages = import ./packages.nix { inherit pkgs lib; };
   cfg = config.homelab.wger;
+
+  # Build the wger fitness exporter container image with Nix
+  wgerExporterImage = pkgs.dockerTools.buildLayeredImage {
+    name = "wger-exporter";
+    tag = "latest";
+    contents = [
+      (pkgs.python3.withPackages (ps: [
+        ps.prometheus-client
+        ps.requests
+      ]))
+      pkgs.cacert
+    ];
+    config = {
+      WorkingDir = "/app";
+      Cmd = [
+        "python3"
+        "/app/exporter.py"
+      ];
+      ExposedPorts."9101/tcp" = { };
+    };
+    extraCommands = ''
+      mkdir -p app
+      cp ${./wger-exporter/exporter.py} app/exporter.py
+    '';
+  };
 in
 {
   options.homelab.wger = {
@@ -175,8 +200,8 @@ in
           DJANGO_MEDIA_ROOT = "/home/wger/media";
           DJANGO_STATIC_ROOT = "/home/wger/static";
           TIME_ZONE = "America/New_York";
-          # Enable Prometheus metrics endpoint
-          ENABLE_PROMETHEUS = if cfg.monitoring.enable then "True" else "False";
+          # Enable Prometheus metrics endpoint (/prometheus/metrics via django-prometheus)
+          EXPOSE_PROMETHEUS_METRICS = if cfg.monitoring.enable then "True" else "False";
           # Celery broker
           CELERY_BROKER = "redis://wger-redis:6379/2";
           CELERY_BACKEND = "redis://wger-redis:6379/2";
@@ -304,7 +329,64 @@ in
         ];
       };
 
-      networking.firewall.allowedTCPPorts = [ 9100 ];
+      networking.firewall.allowedTCPPorts = [
+        9100
+        9101 # wger fitness exporter
+      ];
+    })
+
+    # Wger fitness data exporter sidecar (custom Prometheus exporter)
+    (mkIf (cfg.enable && cfg.monitoring.enable) {
+      # SOPS secret for wger API token used by the exporter
+      sops.secrets."wger/api-token" = {
+        mode = "0644";
+      };
+
+      # Load the Nix-built exporter image into podman
+      systemd.services.wger-exporter-image = {
+        description = "Load wger-exporter container image into podman";
+        wantedBy = [ "multi-user.target" ];
+        before = [ "podman-wger-exporter.service" ];
+        after = [ "podman.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${pkgs.podman}/bin/podman load -i ${wgerExporterImage}";
+        };
+      };
+
+      # Generate env file with API token for the exporter container
+      systemd.services.wger-exporter-env = {
+        description = "Generate wger exporter environment file from sops secret";
+        wantedBy = [ "multi-user.target" ];
+        before = [ "podman-wger-exporter.service" ];
+        after = [ "sops-nix.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = pkgs.writeShellScript "wger-exporter-env" ''
+            TOKEN=$(cat ${config.sops.secrets."wger/api-token".path})
+            echo "WGER_API_TOKEN=$TOKEN" > /run/wger-exporter.env
+            chmod 600 /run/wger-exporter.env
+          '';
+        };
+      };
+
+      # Exporter sidecar container
+      virtualisation.oci-containers.containers.wger-exporter = {
+        image = "localhost/wger-exporter:latest";
+        ports = [ "9101:9101" ];
+        environment = {
+          WGER_URL = "http://wger:${toString cfg.httpPort}";
+          POLL_INTERVAL = "300";
+          EXPORTER_PORT = "9101";
+        };
+        environmentFiles = [ "/run/wger-exporter.env" ];
+        dependsOn = [ "wger" ];
+        extraOptions = [
+          "--network=wger-net"
+        ];
+      };
     })
 
     # Firewall configuration

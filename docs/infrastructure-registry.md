@@ -53,7 +53,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 | **NixOS Builder** | nixos-builder | 200 | `10.0.0.7` | 6 | 12GB | 100GB | 22, 9100 | `deployed` | `ssh sandmhan@10.0.0.7` |
 | **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
-| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | 80,8000,9100 | `deployed` | `http://10.0.0.167/` — Login: `admin` / `adminadmin` |
+| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | 80,8000,9100,9101 | `deployed` | `http://10.0.0.167/` — Login: `admin` / `adminadmin` |
 | **Tailscale Router** | vpn | 110 | `10.0.0.168` | 1 | 1GB | 20GB | 41641 | `deployed` | `ssh sandmhan@100.120.234.19` (Tailscale only — LAN unreachable, see known issues) |
 
 **Deployment Commands**:
@@ -83,7 +83,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **AI Server** | llama | 108 | `10.0.20.108` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.108 --flake .#llama` |
 | **NVR** | nvr | 105 | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
 | **Home Assistant** | homeassistant | 103 | `10.0.20.103` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant` |
-| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | — | 80,8000,9100 | `deployed` — see Foundation Services |
+| **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | — | 80,8000,9100,9101 | `deployed` — see Foundation Services |
 | **Media (*arr)** | media | TBD | `10.0.20.110` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.110 --flake .#media` |
 | **NVR (Frigate)** | nvr | TBD | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
 | **Gaming (Sunshine)** | gaming | TBD | `10.0.20.111` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming` |
@@ -110,8 +110,9 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 |---------|-------------|-------------------------|-------------------|---------------|
 | **Proxmox** | `https://10.0.0.126:8006` | `https://10.0.0.126:8006` | `root` / `[proxmox_password]` | Proxmox docs |
 | **Matrix** | `http://10.0.0.6:80` | `https://matrix.sandmhan.dev` | Registration required | [Matrix Setup](../SOPS-SETUP.md) |
-| **Grafana** | `http://10.0.20.107:3000` | `http://grafana.homelab.local:3000` | `admin` / `[sops_encrypted]` | [Monitoring Setup](./monitoring-setup.md) |
-| **Prometheus** | `http://10.0.20.107:9090` | `http://prometheus.homelab.local:9090` | No auth | [Monitoring Setup](./monitoring-setup.md) |
+| **Grafana** | `http://10.0.0.10:3000` | `http://grafana.homelab.local:3000` | `admin` / `[sops_encrypted]` | [Monitoring Setup](./monitoring-setup.md) |
+| **Prometheus** | `http://10.0.0.10:9090` | `http://prometheus.homelab.local:9090` | No auth | [Monitoring Setup](./monitoring-setup.md) |
+| **wger Exporter** | `http://10.0.0.167:9101/metrics` | N/A (internal only) | No auth | [Fitness Setup](./fitness-setup.md) |
 | **Frigate NVR** | `http://10.0.20.105:5000` | `http://nvr.homelab.local:5000` | No auth (local only) | [Frigate Setup](./frigate-nvr-setup.md) |
 | **AI Server** | `http://10.0.20.108:8080` | `http://ai.homelab.local:8080` | No auth (API only) | [AI Setup](./llama-ai-server-setup.md) |
 | **Forgejo Git (VM)** | `http://10.0.20.109:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
@@ -119,6 +120,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Matrix Agent Bridge** | `http://10.0.0.6:9800/health` | N/A (internal only) | Bearer token (webhook) | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
 | **Home Assistant** | `http://10.0.20.103:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
 | **wger Fitness** | `http://10.0.0.167/` | `http://fitness.homelab.local` | `admin` / `adminadmin` | [Fitness Setup](./fitness-setup.md) |
+| **wger Exporter** | `http://10.0.0.167:9101/metrics` | N/A | No auth | [Fitness Setup](./fitness-setup.md) |
 | **MQTT Broker** | `mqtt://10.0.20.103:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
 
 ---
@@ -146,6 +148,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Grafana** | 3000 | — | TCP | Monitoring dashboard (VPN only) |
 | **Prometheus** | 9090 | — | TCP | Metrics API (VPN only) |
 | **Node Exporter** | 9100 | — | TCP | System metrics (internal only) |
+| **wger Exporter** | 9101 | — | TCP | Fitness business metrics (internal only) |
 | **Frigate** | 5000 | — | TCP | NVR interface (VPN only) |
 | **AI Server** | 8080 | — | TCP | AI API (VPN only) |
 | **Forgejo Web** | 3000 | — | TCP | Git web interface (VPN only) |
@@ -169,7 +172,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Forgejo** | `secrets/forgejo/secrets.yaml` | admin, git_key | Admin password, Forgejo secret key |
 | **Home Assistant** | `secrets/homeassistant/secrets.yaml` | admin, homeassistant_key | HA secrets, MQTT password, PostgreSQL password |
 | **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Server private key, client configurations |
-| **Fitness (wger)** | `secrets/fitness/secrets.yaml` | admin, fitness_key | Django secret key, PostgreSQL password |
+| **Fitness (wger)** | `secrets/fitness/secrets.yaml` | admin, fitness_key | Django secret key, PostgreSQL password, wger API token (for exporter) |
 | **Shared** | `secrets/shared/secrets.yaml` | admin, all_host_keys | Cross-service credentials, certificates |
 | **Personal** | `secrets/user/personal.yaml` | admin, gaia_key | Git config, API keys, personal tokens |
 
@@ -270,6 +273,8 @@ done
 | **Matrix Bot** | `http://10.0.0.6:9800/health` | `{"status": "ok", "uptime_seconds": ...}` |
 | **Home Assistant** | `http://[HOST]:8123/api/` | `{"message": "API running."}` |
 | **wger Fitness** | `http://10.0.0.167/api/v2/` | JSON API root with endpoint listing |
+| **wger Exporter** | `http://10.0.0.167:9101/metrics` | Prometheus metrics format |
+| **wger Django Metrics** | `http://10.0.0.167:8000/prometheus/metrics` | Django prometheus metrics |
 | **MQTT Broker** | `mosquitto_sub -h [HOST] -t '$SYS/broker/version' -C 1 -W 5` | Mosquitto version string |
 
 ### Automated Health Check Script
@@ -297,6 +302,8 @@ check_service "Matrix Server" "http://10.0.0.6:8008/_matrix/client/versions"
 
 check_service "Fitness (wger)" "http://10.0.0.167/api/v2/" 200
 check_service "Fitness Node Exporter" "http://10.0.0.167:9100/metrics" 200
+check_service "Fitness wger Exporter" "http://10.0.0.167:9101/metrics" 200
+check_service "Fitness Django Metrics" "http://10.0.0.167:8000/prometheus/metrics" 200
 
 # Add checks for other services as they're deployed
 # check_service "Grafana" "http://10.0.20.107:3000/api/health"
@@ -344,6 +351,7 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-05-02 | Add wger Prometheus exporter sidecar and Grafana fitness dashboard | — | Custom Python exporter (`wger-exporter`) at `:9101` polls wger REST API for body weight, workouts, nutrition macros, and measurements. Fixed `EXPOSE_PROMETHEUS_METRICS` env var bug for django-prometheus. Added `wger-app` and `wger-fitness` scrape jobs. Provisioned Fitness Overview Grafana dashboard with 11 panels including macro breakdown stacked bars and dual-axis calorie/weight chart. Backfilled 6 historical weight entries into Prometheus TSDB via `promtool tsdb create-blocks-from openmetrics`. |
 | 2026-04-25 | Deploy fitness/wger service to VM 106 (10.0.0.167) on Dell node | — | First service deployment with SOPS secrets. Test instance on management VLAN (no DHCP reservation). Containers: wger, PostgreSQL, Redis, Celery. Nginx reverse proxy on port 80. |
 | 2026-04-25 | Add media (nixflix), fitness (wger), gaming (Sunshine) systemModules and host configs | — | Configuration only — NOT deployed (except fitness). Requires SOPS setup, DHCP reservations, VM creation |
 | 2026-04-25 | Refactor Frigate NVR into option-based systemModule with dynamic camera config | — | Configuration only — NOT deployed. Replaces hardcoded cameras with NixOS options |

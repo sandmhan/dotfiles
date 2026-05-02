@@ -36,6 +36,7 @@ let
     cp ${./grafana-dashboards/node-overview.json} $out/node-overview.json
     cp ${./grafana-dashboards/prometheus-stats.json} $out/prometheus-stats.json
     cp ${./grafana-dashboards/infrastructure-health.json} $out/infrastructure-health.json
+    cp ${./grafana-dashboards/fitness-overview.json} $out/fitness-overview.json
   '';
 in
 {
@@ -107,7 +108,7 @@ in
             "10.0.20.103:9100" # homeassistant VM — provisional IP
             "10.0.20.206:9100" # lxc-git — provisional IP
             "10.0.20.203:9100" # lxc-homeassistant — provisional IP
-            "10.0.20.107:9100" # fitness (wger VM) — provisional IP
+            "10.0.0.167:9100" # fitness (wger VM) — provisional IP
             "10.0.20.111:9100" # gaming (Sunshine VM) — provisional IP
             "10.0.20.110:9100" # media VM — provisional IP, needs DHCP assignment
             # "10.0.20.TBD:9100" # nvr (frigate) — add when static IP is assigned
@@ -142,7 +143,7 @@ in
           "10.0.20.103" = "homeassistant";
           "10.0.20.206" = "lxc-git";
           "10.0.20.203" = "lxc-homeassistant";
-          "10.0.20.107" = "fitness"; # provisional IP
+          "10.0.0.167" = "fitness"; # DHCP-assigned on management VLAN
           "10.0.20.111" = "gaming"; # provisional IP
           "10.0.20.110" = "media"; # provisional IP
           "localhost" = "lxc-monitor";
@@ -171,6 +172,35 @@ in
             ];
             metrics_path = "/_synapse/metrics";
             scrape_interval = "30s";
+          }
+          # wger fitness app metrics (django-prometheus)
+          {
+            job_name = "wger-app";
+            static_configs = [
+              {
+                targets = [ "10.0.0.167:8000" ];
+                labels = {
+                  service = "wger";
+                  instance = "fitness";
+                };
+              }
+            ];
+            metrics_path = "/prometheus/metrics";
+            scrape_interval = "30s";
+          }
+          # wger fitness data exporter (body weight, workouts, nutrition, measurements)
+          {
+            job_name = "wger-fitness";
+            static_configs = [
+              {
+                targets = [ "10.0.0.167:9101" ];
+                labels = {
+                  service = "wger-exporter";
+                  instance = "fitness";
+                };
+              }
+            ];
+            scrape_interval = "5m";
           }
         ];
         description = "Additional Prometheus scrape configurations";

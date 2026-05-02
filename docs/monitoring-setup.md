@@ -106,13 +106,20 @@ The monitoring configuration automatically scrapes metrics from:
 # Default scrape targets (configured in systemModules/monitoring.nix)
 node-exporters:
   - 10.0.0.6:9100      # matrix server
-  - 10.0.0.5:9100    # agent-sandbox  
-  - 10.0.0.7:9100    # nixos-builder
-  - localhost:9100     # monitoring host itself
+  - 10.0.0.5:9100      # agent-sandbox  
+  - 10.0.0.7:9100      # nixos-builder
+  - 10.0.0.167:9100    # fitness (wger VM)
+  - localhost:9100      # monitoring host itself
 
 homelab-services:
   - 10.0.0.6:8008      # Matrix Synapse metrics endpoint
-  
+
+wger-app:                               # django-prometheus (30s interval)
+  - 10.0.0.167:8000                     # path: /prometheus/metrics
+
+wger-fitness:                           # Custom Python exporter (5m interval)
+  - 10.0.0.167:9101                     # Fitness business metrics
+
 wireguard:
   # VPN server metrics (populated when VPN is deployed)
 ```
@@ -158,11 +165,13 @@ homelab.monitoring.prometheus.additionalScrapeConfigs = [
 
 #### Default Dashboards
 
-The monitoring stack includes pre-configured dashboards:
+The monitoring stack includes pre-configured dashboards (auto-provisioned from `systemModules/grafana-dashboards/`):
 
-- **Node Exporter Full**: System metrics for all hosts
+- **Fleet Overview**: System metrics summary across all hosts
+- **Node Overview**: Detailed per-host system metrics
 - **Prometheus Stats**: Monitoring system health
-- **Homelab Overview**: Custom dashboard for service overview
+- **Infrastructure Health**: Service availability and network overview
+- **Fitness Overview**: Body weight trends, workout tracking, nutrition macros, body measurements (from wger exporter)
 
 #### Adding Custom Dashboards
 

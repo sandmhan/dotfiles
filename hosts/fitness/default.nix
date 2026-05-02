@@ -46,6 +46,8 @@
     # Allow Prometheus scraping from management and services VLANs
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
     iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9101 -j ACCEPT
+    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9101 -j ACCEPT
   '';
 
   # VM resource recommendations (configure on Proxmox host):

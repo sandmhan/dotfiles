@@ -1,0 +1,465 @@
+{
+  "uid": "homelab-fitness-overview",
+  "title": "Fitness Overview",
+  "description": "Body weight, workout activity, nutrition tracking, and body measurements from wger",
+  "tags": ["homelab", "fitness", "wger"],
+  "timezone": "browser",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "time": { "from": "now-30d", "to": "now" },
+  "panels": [
+    {
+      "title": "Current Weight (lb)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "blue", "value": null }
+          ]}
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_body_weight_lb",
+          "legendFormat": "",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Weight Entries",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "purple", "value": null }
+          ]}
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_body_weight_entries_total",
+          "legendFormat": "",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Workouts This Week",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 1 },
+            { "color": "green", "value": 3 }
+          ]}
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_workout_sessions_week",
+          "legendFormat": "",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Workout Volume Today (lb)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-orange", "value": null }
+          ]}
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_workout_volume_lb_today",
+          "legendFormat": "",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "title": "Exporter Health",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "Healthy", "color": "green" }, "1": { "text": "Errors", "color": "red" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "red", "value": 1 }
+          ]}
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_exporter_scrape_errors_total",
+          "legendFormat": "",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" }
+    },
+    {
+      "title": "Body Weight Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 15,
+            "pointSize": 6,
+            "showPoints": "always",
+            "spanNulls": true,
+            "axisCenteredZero": false
+          },
+          "color": { "mode": "fixed", "fixedColor": "blue" },
+          "displayName": "Weight (lb)"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "last_over_time(wger_body_weight_lb[2d])",
+          "legendFormat": "Weight (lb)",
+          "refId": "A",
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "title": "Workout Sessions (7-day rolling)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 60,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "color": { "mode": "fixed", "fixedColor": "green" },
+          "displayName": "Sessions"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_workout_sessions_week",
+          "legendFormat": "Sessions (7d)",
+          "refId": "A",
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "title": "Nutrition Today",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }
+          ]}
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Calories" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1800 },
+                { "color": "red", "value": 2500 }
+              ]}}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Protein (g)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Carbs (g)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Fat (g)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "wger_nutrition_calories_today",
+          "legendFormat": "Calories",
+          "refId": "A",
+          "instant": true
+        },
+        {
+          "expr": "wger_nutrition_protein_g_today",
+          "legendFormat": "Protein (g)",
+          "refId": "B",
+          "instant": true
+        },
+        {
+          "expr": "wger_nutrition_carbs_g_today",
+          "legendFormat": "Carbs (g)",
+          "refId": "C",
+          "instant": true
+        },
+        {
+          "expr": "wger_nutrition_fat_g_today",
+          "legendFormat": "Fat (g)",
+          "refId": "D",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 8,
+        "minVizHeight": 16,
+        "valueMode": "text"
+      }
+    },
+    {
+      "title": "Daily Macros & Calories vs Body Weight",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Protein (kcal)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } },
+              { "id": "custom.drawStyle", "value": "bars" },
+              { "id": "custom.fillOpacity", "value": 80 },
+              { "id": "custom.lineWidth", "value": 0 },
+              { "id": "custom.stacking", "value": { "mode": "normal", "group": "macros" } },
+              { "id": "custom.axisPlacement", "value": "left" },
+              { "id": "custom.axisLabel", "value": "Calories (kcal)" },
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Carbs (kcal)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } },
+              { "id": "custom.drawStyle", "value": "bars" },
+              { "id": "custom.fillOpacity", "value": 80 },
+              { "id": "custom.lineWidth", "value": 0 },
+              { "id": "custom.stacking", "value": { "mode": "normal", "group": "macros" } },
+              { "id": "custom.axisPlacement", "value": "hidden" },
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Fat (kcal)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } },
+              { "id": "custom.drawStyle", "value": "bars" },
+              { "id": "custom.fillOpacity", "value": 80 },
+              { "id": "custom.lineWidth", "value": 0 },
+              { "id": "custom.stacking", "value": { "mode": "normal", "group": "macros" } },
+              { "id": "custom.axisPlacement", "value": "hidden" },
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Weight (lb)" },
+            "properties": [
+              { "id": "color", "value": { "mode": "fixed", "fixedColor": "super-light-blue" } },
+              { "id": "custom.drawStyle", "value": "line" },
+              { "id": "custom.lineInterpolation", "value": "smooth" },
+              { "id": "custom.lineWidth", "value": 3 },
+              { "id": "custom.fillOpacity", "value": 0 },
+              { "id": "custom.pointSize", "value": 6 },
+              { "id": "custom.showPoints", "value": "always" },
+              { "id": "custom.spanNulls", "value": true },
+              { "id": "custom.stacking", "value": { "mode": "none" } },
+              { "id": "custom.axisPlacement", "value": "right" },
+              { "id": "custom.axisLabel", "value": "Weight (lb)" },
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 1 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "wger_nutrition_protein_g_today * 4",
+          "legendFormat": "Protein (kcal)",
+          "refId": "A",
+          "range": true
+        },
+        {
+          "expr": "wger_nutrition_carbs_g_today * 4",
+          "legendFormat": "Carbs (kcal)",
+          "refId": "B",
+          "range": true
+        },
+        {
+          "expr": "wger_nutrition_fat_g_today * 9",
+          "legendFormat": "Fat (kcal)",
+          "refId": "C",
+          "range": true
+        },
+        {
+          "expr": "last_over_time(wger_body_weight_lb[2d])",
+          "legendFormat": "Weight (lb)",
+          "refId": "D",
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "mean", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      }
+    },
+    {
+      "title": "Body Measurements",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "pointSize": 6,
+            "showPoints": "always",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "wger_body_measurement_cm",
+          "legendFormat": "{{category}}",
+          "refId": "A",
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "title": "Wger App Performance",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "datasource": { "type": "prometheus", "uid": "" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "fillOpacity": 20,
+            "pointSize": 3,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "rate(django_http_requests_total_by_method_total{job=\"wger-app\"}[5m])",
+          "legendFormat": "{{method}} requests/s",
+          "refId": "A",
+          "range": true
+        }
+      ],
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "links": []
+}
