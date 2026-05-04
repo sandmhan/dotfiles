@@ -1,0 +1,8 @@
+[Unit]
+Description=e1000e NIC hang watchdog
+Documentation=https://github.com/sandmhan/dotfiles
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/e1000e-watchdog.sh
+TimeoutStartSec=30

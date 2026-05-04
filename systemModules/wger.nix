@@ -205,6 +205,11 @@ in
           # Celery broker
           CELERY_BROKER = "redis://wger-redis:6379/2";
           CELERY_BACKEND = "redis://wger-redis:6379/2";
+          # Ingredient sync and Open Food Facts integration
+          DOWNLOAD_INGREDIENTS_FROM = "WGER";
+          SYNC_INGREDIENTS_CELERY = "True";
+          SYNC_INGREDIENTS_DUMP_URL = "https://wger.de/media/ingredients/ingredients.jsonl.gz";
+          WGER_INSTANCE = "https://wger.de";
         };
         volumes = [
           "wger-media:/home/wger/media"
@@ -242,6 +247,11 @@ in
           CELERY_BROKER = "redis://wger-redis:6379/2";
           CELERY_BACKEND = "redis://wger-redis:6379/2";
           TIME_ZONE = "America/New_York";
+          # Ingredient sync and Open Food Facts integration
+          DOWNLOAD_INGREDIENTS_FROM = "WGER";
+          SYNC_INGREDIENTS_CELERY = "True";
+          SYNC_INGREDIENTS_DUMP_URL = "https://wger.de/media/ingredients/ingredients.jsonl.gz";
+          WGER_INSTANCE = "https://wger.de";
         };
         volumes = [
           "wger-media:/home/wger/media"
@@ -292,6 +302,21 @@ in
               port = 80;
             }
           ];
+
+          # Barcode normalization: phone scanners return 12-digit UPC-A codes but
+          # wger stores 13-digit EAN-13 (UPC-A with leading zero). Rewrite the code
+          # query parameter to zero-pad before proxying to Django.
+          locations."~ ^/api/v2/ingredient(info)?/" = {
+            proxyPass = "http://127.0.0.1:${toString cfg.httpPort}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              if ($args ~ "^(.*)code=(\d{12})(&.*)?$") {
+                set $args $1code=0$2$3;
+              }
+              proxy_set_header X-Forwarded-Proto $scheme;
+              client_max_body_size 20M;
+            '';
+          };
 
           locations."/" = {
             proxyPass = "http://127.0.0.1:${toString cfg.httpPort}";
