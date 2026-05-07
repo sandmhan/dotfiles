@@ -36,18 +36,16 @@
   };
 
   # Additional firewall rules for fitness VM access
+  # All services on flat 10.0.0.0/24 network
+  # TODO: Add services VLAN (10.0.20.0/24) rules once VLANs are deployed
   networking.firewall.extraCommands = ''
-    # Allow wger web access from management and services VLANs
+    # Allow wger web access from homelab network
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 80 -j ACCEPT
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8000 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8000 -j ACCEPT
 
-    # Allow Prometheus scraping from management and services VLANs
+    # Allow Prometheus scraping from homelab network
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9101 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9101 -j ACCEPT
   '';
 
   # VM resource recommendations (configure on Proxmox host):

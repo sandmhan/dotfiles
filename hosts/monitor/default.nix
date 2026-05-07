@@ -54,17 +54,15 @@
       # 3100  # Loki (if enabled)
     ];
 
-    # Allow monitoring access from all homelab VLANs
+    # Allow monitoring access from homelab network
+    # TODO: Add services VLAN (10.0.20.0/24) rules once VLANs are deployed
     extraCommands = ''
-      # Allow Grafana access from management and services VLANs
+      # Allow Grafana and Prometheus access from homelab network
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 3000 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 3000 -j ACCEPT
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9090 -j ACCEPT
 
-      # Allow Prometheus access from services VLAN (for federation)
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9090 -j ACCEPT
-
-      # Allow scraping from monitoring server to all networks
-      iptables -A OUTPUT -d 10.0.0.0/16 -p tcp --dport 9100 -j ACCEPT
+      # Allow scraping from monitoring server to all hosts
+      iptables -A OUTPUT -d 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
     '';
   };
 

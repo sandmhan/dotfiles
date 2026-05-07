@@ -296,10 +296,9 @@ Create `hosts/example-service/default.nix`:
       8081  # Metrics (configured by module)
     ];
     
-    # Allow access from monitoring and management VLANs
+    # Allow access from homelab network
     extraCommands = ''
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8080 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8080 -j ACCEPT
     '';
   };
   
@@ -452,16 +451,16 @@ Add to `docs/infrastructure-registry.md`:
 
 | Service | Hostname | VM/CT ID | IP Address | Cores | RAM | Disk | Ports | Status | Access |
 |---------|----------|----------|------------|-------|-----|------|-------|---------|--------|
-| **Example Service** | example-service | 109 | `10.0.20.109` | 2 | 4GB | 50GB | 8080,8081 | `planned` | `http://example.homelab.local:8080` |
-| **Example Service (LXC)** | lxc-example-service | 209 | `10.0.20.209` | 1 | 2GB | 20GB | 8080 | `planned` | `http://example.homelab.local:8080` |
+| **Example Service** | example-service | 109 | `10.0.0.TBD` | 2 | 4GB | 50GB | 8080,8081 | `planned` | `http://example.homelab.local:8080` |
+| **Example Service (LXC)** | lxc-example-service | 209 | `10.0.0.TBD` | 1 | 2GB | 20GB | 8080 | `planned` | `http://example.homelab.local:8080` |
 
 **Deployment Commands**:
 ```bash
 # Example Service VM
-nixos-rebuild switch --target-host sandmhan@10.0.20.109 --flake .#example-service --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#example-service --sudo
 
 # Example Service Container  
-nixos-rebuild switch --target-host monitor@10.0.20.209 --flake .#lxc-example-service --sudo
+nixos-rebuild switch --target-host monitor@10.0.0.TBD --flake .#lxc-example-service --sudo
 ```
 ```
 
@@ -512,11 +511,11 @@ nix build --dry-run .#nixosConfigurations.lxc-example-service.config.system.buil
 qmrestore /var/lib/vz/dump/base-image.vma.zst 109 --storage local-zfs
 qm set 109 --cores 2 --memory 4096 --name example-service
 qm start 109
-nixos-rebuild switch --target-host sandmhan@10.0.20.109 --flake .#example-service --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#example-service --sudo
 
 # Verify service health
-curl http://10.0.20.109:8080/health
-curl http://10.0.20.109:8081/metrics
+curl http://10.0.0.TBD:8080/health
+curl http://10.0.0.TBD:8081/metrics
 ```
 
 ### Monitoring Integration

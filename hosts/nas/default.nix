@@ -73,7 +73,7 @@ with lib;
       version = 4;
       # Additional exports for specific services
       exports = [
-        "/srv/nas/media 10.0.20.108(rw,sync,no_subtree_check) 10.0.20.105(rw,sync,no_subtree_check)"  # AI and NVR
+        "/srv/nas/media 10.0.0.TBD(rw,sync,no_subtree_check) 10.0.0.TBD(rw,sync,no_subtree_check)"  # AI and NVR — set IPs after deployment
       ];
     };
 
@@ -112,17 +112,14 @@ with lib;
   networking.firewall = {
     # Standard NAS ports configured by module
     # Custom rules for specific access patterns
+    # TODO: Add services VLAN (10.0.20.0/24) rules once VLANs are deployed
     extraCommands = ''
-      # Allow full NAS access from management VLAN
+      # Allow full NAS access from homelab network
       iptables -A INPUT -s 10.0.0.0/24 -p tcp -m multiport --dports 111,2049,139,445 -j ACCEPT
       iptables -A INPUT -s 10.0.0.0/24 -p udp -m multiport --dports 111,137,138 -j ACCEPT
 
-      # Allow NAS access from services VLAN
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp -m multiport --dports 111,2049 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p udp --dport 111 -j ACCEPT
-
       # Backup access (SSH for Borg)
-      iptables -A INPUT -s 10.0.0.0/16 -p tcp --dport 22 -j ACCEPT
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 22 -j ACCEPT
     '';
   };
 

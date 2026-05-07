@@ -7,7 +7,7 @@ Frigate is a Network Video Recorder (NVR) that provides real-time object detecti
 ## Architecture
 
 ```
-                    IoT VLAN (10.0.10.0/24)          Services VLAN (10.0.20.0/24)
+                    IoT VLAN (future)                Homelab Network (10.0.0.0/24)
                     +-----------------------+         +---------------------------+
                     |   IP Cameras          |  RTSP   |   Frigate NVR VM          |
                     |   - fishtank          |-------->|   - Object Detection      |

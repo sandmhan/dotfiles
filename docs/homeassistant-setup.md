@@ -27,7 +27,7 @@ The Home Assistant deployment consists of several integrated services:
                                        |
                                +-------v-------+
                                | IoT Devices   |
-                               | (VLAN 10)     |
+                               | (future VLAN) |
                                | Zigbee/Z-Wave |
                                | ESPHome       |
                                +---------------+
@@ -67,7 +67,7 @@ qm set 103 --usb1 host=0658:0200  # Example: Aeotec Z-Stick
 
 # 5. Start VM and deploy
 qm start 103
-nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#homeassistant --sudo
 ```
 
 ### LXC Container Deployment
@@ -76,7 +76,7 @@ Lighter alternative without USB passthrough. Use network-based Zigbee bridges (e
 
 ```bash
 # Create LXC container on Proxmox, then deploy:
-nixos-rebuild switch --target-host hass@10.0.20.203 --flake .#lxc-homeassistant --sudo
+nixos-rebuild switch --target-host hass@10.0.0.TBD --flake .#lxc-homeassistant --sudo
 ```
 
 ## USB Device Passthrough Setup
@@ -133,11 +133,13 @@ usb = {
 };
 ```
 
-## IoT VLAN Integration
+## IoT VLAN Integration (Future)
+
+> **Note:** VLANs are planned but not yet implemented. All services currently run on the flat `10.0.0.0/24` network. The VLAN structure below describes the future target architecture.
 
 ### Network Requirements
 
-Home Assistant needs to communicate with IoT devices on VLAN 10 (10.0.10.0/24). This requires:
+When VLANs are implemented, Home Assistant will need to communicate with IoT devices on VLAN 10 (10.0.10.0/24). This will require:
 
 1. **Protectli Router Configuration**: Enable inter-VLAN routing between Services VLAN (20) and IoT VLAN (10)
 2. **Firewall Rules**: The systemModule automatically adds iptables rules for:
@@ -145,19 +147,19 @@ Home Assistant needs to communicate with IoT devices on VLAN 10 (10.0.10.0/24). 
    - Home Assistant -> IoT VLAN (outbound for device control/discovery)
    - Management VLAN -> MQTT (for debugging)
 
-### Router Firewall Rules (Protectli/OPNsense)
+### Router Firewall Rules (Protectli/OPNsense) — Future
 
-Add these rules on the router to allow inter-VLAN traffic:
+These rules will be needed when VLANs are implemented:
 
 ```
 # Allow HA (Services VLAN) to reach IoT devices
-Source: 10.0.20.103  Destination: 10.0.10.0/24  Action: ALLOW
+Source: [HA_IP]  Destination: 10.0.10.0/24  Action: ALLOW
 
 # Allow IoT devices to reach MQTT broker
-Source: 10.0.10.0/24  Destination: 10.0.20.103  Port: 1883  Action: ALLOW
+Source: 10.0.10.0/24  Destination: [HA_IP]  Port: 1883  Action: ALLOW
 
 # Block IoT from reaching other services
-Source: 10.0.10.0/24  Destination: 10.0.20.0/24  Action: DENY (except above)
+Source: 10.0.10.0/24  Destination: [Services_Subnet]  Action: DENY (except above)
 ```
 
 ### mDNS/Discovery
@@ -172,13 +174,13 @@ When the NVR VM is deployed, enable Frigate integration:
    ```nix
    frigate = {
      enable = true;
-     url = "http://10.0.20.105:5000";
+     url = "http://10.0.0.TBD:5000";
    };
    ```
 
 2. In Home Assistant UI, add the Frigate integration:
    - Settings -> Devices & Services -> Add Integration -> Frigate
-   - URL: `http://10.0.20.105:5000`
+   - URL: `http://10.0.0.TBD:5000`
 
 3. Frigate provides:
    - Camera feeds in HA dashboard
@@ -199,7 +201,7 @@ Home Assistant exposes Prometheus metrics at `/api/prometheus`. To scrape them:
    homelab.monitoring.prometheus.additionalScrapeConfigs = [
      {
        job_name = "homeassistant";
-       static_configs = [{ targets = [ "10.0.20.103:8123" ]; }];
+       static_configs = [{ targets = [ "10.0.0.TBD:8123" ]; }];
        metrics_path = "/api/prometheus";
        bearer_token_file = "/path/to/ha-token";
        scrape_interval = "30s";
@@ -215,12 +217,12 @@ Import the Home Assistant community Grafana dashboard:
 
 ### Node Exporter
 
-System-level metrics (CPU, memory, disk) are automatically exported on port 9100. Add `10.0.20.103:9100` to the monitoring module's node exporter targets.
+System-level metrics (CPU, memory, disk) are automatically exported on port 9100. Add `10.0.0.TBD:9100` to the monitoring module's node exporter targets.
 
 ## Mobile App Setup
 
 1. Install "Home Assistant" app from App Store / Play Store
-2. Connect via local URL: `http://10.0.20.103:8123`
+2. Connect via local URL: `http://10.0.0.TBD:8123`
 3. For remote access (via WireGuard VPN):
    - Connect to homelab VPN first
    - App will automatically reconnect to HA
@@ -331,7 +333,7 @@ mosquitto_sub -h localhost -t '#' -v  # Subscribe to all topics
 mosquitto_pub -h localhost -t test -m "hello"  # Publish test message
 
 # Check MQTT from IoT VLAN
-mosquitto_sub -h 10.0.20.103 -p 1883 -t '#' -v
+mosquitto_sub -h 10.0.0.TBD -p 1883 -t '#' -v
 ```
 
 ### PostgreSQL Issues
@@ -376,8 +378,8 @@ sudo iptables -L -n -v
 
 # Test connectivity from IoT VLAN
 # From an IoT device:
-nc -zv 10.0.20.103 1883  # Test MQTT
-nc -zv 10.0.20.103 8123  # Test HA
+nc -zv 10.0.0.TBD 1883  # Test MQTT
+nc -zv 10.0.0.TBD 8123  # Test HA
 ```
 
 ### Health Check

@@ -188,7 +188,7 @@ imports = [ ../../systemModules/tailscale.nix ];
 
 homelab.tailscale = {
   enable = true;
-  advertiseRoutes = [ "10.0.0.0/24" "10.0.20.0/24" ]; # optional, for subnet routing
+  advertiseRoutes = [ "10.0.0.0/24" ]; # optional, for subnet routing (add more subnets when VLANs are implemented)
 };
 ```
 

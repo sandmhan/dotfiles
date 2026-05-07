@@ -206,8 +206,8 @@ class HomelabBot:
     async def _cmd_services(self, room_id: str, args: list[str]):
         services = {
             "matrix": ("10.0.0.6", 8008, "/_matrix/client/versions"),
-            "prometheus": ("10.0.20.107", 9090, "/-/ready"),
-            "grafana": ("10.0.20.107", 3000, "/api/health"),
+            "prometheus": ("10.0.0.10", 9090, "/-/ready"),  # lxc-monitor
+            "grafana": ("10.0.0.10", 3000, "/api/health"),  # lxc-monitor
         }
         lines = ["**Homelab Services**\n"]
         for name, (host, port, path) in services.items():

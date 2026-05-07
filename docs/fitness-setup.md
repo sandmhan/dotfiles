@@ -158,7 +158,7 @@ The wger module (`systemModules/wger.nix`) provides these options under `homelab
 
 ```bash
 # Add to your DNS server or /etc/hosts
-10.0.20.107 fitness.homelab.local
+10.0.0.167 fitness.homelab.local
 ```
 
 ## Usage

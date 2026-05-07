@@ -67,7 +67,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.7 --flake .#nixos-builder --s
 # Matrix Server (deployed)
 nixos-rebuild switch --target-host sandmhan@10.0.0.6 --flake .#matrix --sudo
 
-# Fitness / wger (deployed — test instance on management VLAN, no DHCP reservation)
+# Fitness / wger (deployed — no DHCP reservation, DHCP-assigned IP)
 nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 ```
 
@@ -75,20 +75,23 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 
 ## Planned VM Services (Gaming PC Node)
 
+> **NETWORK NOTE**: All services below will be deployed on the current flat `10.0.0.0/24` network. IPs will be assigned via DHCP reservation once each VM is created. VLAN segmentation (`10.0.20.0/24` services VLAN, etc.) is planned for a future phase once the managed switch is integrated with pfSense — see [Future: VLAN Segmentation](#future-vlan-segmentation) below.
+
 | Service | Hostname | VM ID | IP (Planned) | Cores | RAM | Disk | GPU | Ports | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-----|-------|------------|
-| **Monitoring** | monitor | 107 | `10.0.20.107` | 2 | 4GB | 50GB | — | 3000,9090,9100 | `qmrestore [VMA] 107; qm set 107 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.107 --flake .#monitor` |
-| **Git Server** | git | 109 | `10.0.20.109` | 2 | 2GB | 30GB | — | 80,443,3022,9187 | `qmrestore [VMA] 109; qm set 109 --cores 2 --memory 2048; nixos-rebuild switch --target-host sandmhan@10.0.20.109 --flake .#git` |
-| **WireGuard VPN** | vpn | 106 | `10.0.20.106` | 1 | 1GB | 20GB | — | 51820 | `qmrestore [VMA] 106; qm set 106 --cores 1 --memory 1024; nixos-rebuild switch --target-host sandmhan@10.0.20.106 --flake .#vpn` |
-| **AI Server** | llama | 108 | `10.0.20.108` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.108 --flake .#llama` |
-| **NVR** | nvr | 105 | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
-| **Home Assistant** | homeassistant | 103 | `10.0.20.103` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@10.0.20.103 --flake .#homeassistant` |
+| **Monitoring** | monitor | 107 | `10.0.0.TBD` | 2 | 4GB | 50GB | — | 3000,9090,9100 | `qmrestore [VMA] 107; qm set 107 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#monitor` |
+| **Git Server** | git | 109 | `10.0.0.TBD` | 2 | 2GB | 30GB | — | 80,443,3022,9187 | `qmrestore [VMA] 109; qm set 109 --cores 2 --memory 2048; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#git` |
+| **WireGuard VPN** | vpn | 106 | `10.0.0.TBD` | 1 | 1GB | 20GB | — | 51820 | `qmrestore [VMA] 106; qm set 106 --cores 1 --memory 1024; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#vpn` |
+| **AI Server** | llama | 108 | `10.0.0.TBD` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#llama` |
+| **NVR** | nvr | 105 | `10.0.0.TBD` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#nvr` |
+| **Home Assistant** | homeassistant | 103 | `10.0.0.TBD` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#homeassistant` |
 | **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | — | 80,8000,9100,9101 | `deployed` — see Foundation Services |
-| **Media (*arr)** | media | TBD | `10.0.20.110` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.110 --flake .#media` |
-| **NVR (Frigate)** | nvr | TBD | `10.0.20.105` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.105 --flake .#nvr` |
-| **Gaming (Sunshine)** | gaming | TBD | `10.0.20.111` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming` |
+| **Media (*arr)** | media | TBD | `10.0.0.TBD` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#media` |
+| **NVR (Frigate)** | nvr | TBD | `10.0.0.TBD` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#nvr` |
+| **Gaming (Sunshine)** | gaming | TBD | `10.0.0.TBD` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#gaming` |
+| **Manga (Komga + Suwayomi)** | manga | TBD | `10.0.0.TBD` | 2 | 4GB | 40GB | — | 80,25600,4567,9100 | `qmrestore [VMA] [ID]; qm set [ID] --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#manga` |
 
-> **NOTE**: All services above marked with provisional IPs (`10.0.20.*`) are **configuration-only — NOT deployed**. NixOS modules and host configs evaluate cleanly via `nix build --dry-run` but require SOPS secrets setup, DHCP reservations, and VM/LXC creation before deployment. See individual setup docs for prerequisites.
+> **NOTE**: All services above are **configuration-only — NOT deployed**. NixOS modules and host configs evaluate cleanly via `nix build --dry-run` but require SOPS secrets setup, DHCP reservations on the `10.0.0.0/24` network, and VM/LXC creation before deployment. See individual setup docs for prerequisites.
 
 ---
 
@@ -97,10 +100,10 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | Service | Hostname | CT ID | IP (Planned) | Cores | RAM | Disk | Ports | Status | Deployment |
 |---------|----------|-------|--------------|-------|-----|------|-------|--------|------------|
 | **Monitoring** | lxc-monitor | 207 | `10.0.0.10` | 1 | 1GB | 10GB | 3000,9090,9100 | `deployed` | `nixos-rebuild switch --target-host monitor@10.0.0.10 --flake .#lxc-monitor --sudo` |
-| **Matrix Chat** | lxc-matrix | 204 | `10.0.20.204` | 1 | 2GB | 30GB | 80,443,8448 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host matrix@10.0.20.204 --flake .#lxc-matrix` |
-| **Git Server** | lxc-git | 206 | `10.0.20.206` | 1 | 1GB | 20GB | 80,443,3022 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host git@10.0.20.206 --flake .#lxc-git` |
-| **NAS** | lxc-nas | 201 | `10.0.20.201` | 1 | 2GB | 100GB | 2049,445 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host nas@10.0.20.201 --flake .#lxc-nas` |
-| **Home Assistant** | lxc-homeassistant | 203 | `10.0.20.203` | 1 | 2GB | 20GB | 80,8123,1883,1884,9100 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host hass@10.0.20.203 --flake .#lxc-homeassistant` |
+| **Matrix Chat** | lxc-matrix | 204 | `10.0.0.TBD` | 1 | 2GB | 30GB | 80,443,8448 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host matrix@[IP] --flake .#lxc-matrix` |
+| **Git Server** | lxc-git | 206 | `10.0.0.TBD` | 1 | 1GB | 20GB | 80,443,3022 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host git@[IP] --flake .#lxc-git` |
+| **NAS** | lxc-nas | 201 | `10.0.0.TBD` | 1 | 2GB | 100GB | 2049,445 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host nas@[IP] --flake .#lxc-nas` |
+| **Home Assistant** | lxc-homeassistant | 203 | `10.0.0.TBD` | 1 | 2GB | 20GB | 80,8123,1883,1884,9100 | `planned` | `[Create LXC]; nixos-rebuild switch --target-host hass@[IP] --flake .#lxc-homeassistant` |
 
 ---
 
@@ -113,28 +116,47 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Grafana** | `http://10.0.0.10:3000` | `http://grafana.homelab.local:3000` | `admin` / `[sops_encrypted]` | [Monitoring Setup](./monitoring-setup.md) |
 | **Prometheus** | `http://10.0.0.10:9090` | `http://prometheus.homelab.local:9090` | No auth | [Monitoring Setup](./monitoring-setup.md) |
 | **wger Exporter** | `http://10.0.0.167:9101/metrics` | N/A (internal only) | No auth | [Fitness Setup](./fitness-setup.md) |
-| **Frigate NVR** | `http://10.0.20.105:5000` | `http://nvr.homelab.local:5000` | No auth (local only) | [Frigate Setup](./frigate-nvr-setup.md) |
-| **AI Server** | `http://10.0.20.108:8080` | `http://ai.homelab.local:8080` | No auth (API only) | [AI Setup](./llama-ai-server-setup.md) |
-| **Forgejo Git (VM)** | `http://10.0.20.109:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
-| **Forgejo Git (LXC)** | `http://10.0.20.206:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
+| **Frigate NVR** | `http://[NVR_IP]:5000` | `http://nvr.homelab.local:5000` | No auth (local only) | [Frigate Setup](./frigate-nvr-setup.md) |
+| **AI Server** | `http://[LLAMA_IP]:8080` | `http://ai.homelab.local:8080` | No auth (API only) | [AI Setup](./llama-ai-server-setup.md) |
+| **Forgejo Git (VM)** | `http://[GIT_IP]:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
+| **Forgejo Git (LXC)** | `http://[LXC_GIT_IP]:3000` | `https://git.homelab.local` | `admin` / `[sops_encrypted]` | [Git Setup](./forgejo-setup.md) |
 | **Matrix Agent Bridge** | `http://10.0.0.6:9800/health` | N/A (internal only) | Bearer token (webhook) | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
-| **Home Assistant** | `http://10.0.20.103:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
+| **Home Assistant** | `http://[HA_IP]:8123` | `http://homeassistant.homelab.local` | Onboarding required | [HA Setup](./homeassistant-setup.md) |
 | **wger Fitness** | `http://10.0.0.167/` | `http://fitness.homelab.local` | `admin` / `adminadmin` | [Fitness Setup](./fitness-setup.md) |
 | **wger Exporter** | `http://10.0.0.167:9101/metrics` | N/A | No auth | [Fitness Setup](./fitness-setup.md) |
-| **MQTT Broker** | `mqtt://10.0.20.103:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
+| **MQTT Broker** | `mqtt://[HA_IP]:1883` | N/A (internal only) | Anonymous (homelab) | [HA Setup](./homeassistant-setup.md) |
+| **Komga (Manga)** | `http://[MANGA_IP]:25600` | `http://komga.homelab.local` | First-run setup | [Manga Setup](./manga-setup.md) |
+| **Suwayomi (Manga)** | `http://[MANGA_IP]:4567` | `http://suwayomi.homelab.local` | No auth (local only) | [Manga Setup](./manga-setup.md) |
 
 ---
 
 ## Network Configuration
 
-### VLAN Structure
+### Current Network
+
+All homelab infrastructure currently runs on a **flat `10.0.0.0/24` network**. VMs and containers receive IPs via DHCP from the pfSense router, with static reservations for deployed services.
+
+| Subnet | Purpose | Status |
+|--------|---------|--------|
+| `10.0.0.0/24` | All homelab services, management, and VMs | **Active** |
+
+### Future: VLAN Segmentation
+
+VLAN segmentation is planned once the managed switch is properly integrated with pfSense and additional Proxmox nodes are online. **None of these VLANs exist yet.**
 
 | VLAN ID | Subnet | Purpose | Firewall Rules | DNS |
 |---------|--------|---------|----------------|-----|
-| **1** | `10.0.0.0/24` | Management VLAN | Full access to all VLANs | `*.homelab.local` |
-| **10** | `10.0.10.0/24` | IoT VLAN | Restricted: NVR access only, no internet except NTP | Camera hostnames |
-| **20** | `10.0.20.0/24` | Services VLAN | Inter-service communication, internet access | Service hostnames |
-| **30** | `10.0.30.0/24` | Guest VLAN | Internet only, no homelab access | No internal DNS |
+| **1** | `10.0.0.0/24` | Management | Full access to all VLANs | `*.homelab.local` |
+| **10** | `10.0.10.0/24` | IoT | Restricted: NVR access only, no internet except NTP | Camera hostnames |
+| **20** | `10.0.20.0/24` | Services | Inter-service communication, internet access | Service hostnames |
+| **30** | `10.0.30.0/24` | Guest | Internet only, no homelab access | No internal DNS |
+
+**Prerequisites for VLAN deployment:**
+- [ ] Managed switch configured with 802.1Q VLAN trunking
+- [ ] pfSense VLAN interfaces and DHCP scopes created
+- [ ] Inter-VLAN firewall rules configured
+- [ ] All existing service IPs migrated from `10.0.0.x` to appropriate VLAN subnets
+- [ ] NixOS host configs, systemModules, and monitoring targets updated with new IPs
 
 ### Port Mappings
 
@@ -158,6 +180,8 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Home Assistant** | 8123 | — | TCP | Smart home dashboard (VPN only) |
 | **MQTT** | 1883 | — | TCP | IoT device message broker (internal only) |
 | **MQTT WebSocket** | 1884 | — | TCP | MQTT browser clients (internal only) |
+| **Komga** | 25600 | — | TCP | Manga library server + OPDS (VPN only) |
+| **Suwayomi** | 4567 | — | TCP | Manga source aggregator (VPN only) |
 
 ---
 
@@ -173,6 +197,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 | **Home Assistant** | `secrets/homeassistant/secrets.yaml` | admin, homeassistant_key | HA secrets, MQTT password, PostgreSQL password |
 | **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Server private key, client configurations |
 | **Fitness (wger)** | `secrets/fitness/secrets.yaml` | admin, fitness_key | Django secret key, PostgreSQL password, wger API token (for exporter) |
+| **Manga** | `secrets/manga/secrets.yaml` | admin, manga_key | Komga/Suwayomi credentials (optional — interactive first-run setup) |
 | **Shared** | `secrets/shared/secrets.yaml` | admin, all_host_keys | Cross-service credentials, certificates |
 | **Personal** | `secrets/user/personal.yaml` | admin, gaia_key | Git config, API keys, personal tokens |
 
@@ -275,6 +300,8 @@ done
 | **wger Fitness** | `http://10.0.0.167/api/v2/` | JSON API root with endpoint listing |
 | **wger Exporter** | `http://10.0.0.167:9101/metrics` | Prometheus metrics format |
 | **wger Django Metrics** | `http://10.0.0.167:8000/prometheus/metrics` | Django prometheus metrics |
+| **Komga** | `http://[MANGA_IP]:25600/api/v1/libraries` | JSON library list |
+| **Suwayomi** | `http://[MANGA_IP]:4567/api/v1/settings/about` | JSON server info |
 | **MQTT Broker** | `mosquitto_sub -h [HOST] -t '$SYS/broker/version' -C 1 -W 5` | Mosquitto version string |
 
 ### Automated Health Check Script
@@ -351,6 +378,8 @@ ssh [HOST] "sudo ls -la /run/secrets/"
 
 | Date | Change | Commit | Notes |
 |------|--------|--------|-------|
+| 2026-05-03 | Add manga stack (Komga + Suwayomi) systemModules with monitoring integration | — | Configuration only — NOT deployed. Requires SOPS setup, DHCP reservation, VM creation, and SSH user verification. Modules: `systemModules/manga/{default,komga,suwayomi,monitoring}.nix`. Placeholder scrape targets added to `monitoring.nix`. See [Manga Setup](./manga-setup.md) for deployment checklist. |
+| 2026-05-03 | Enable Matrix Synapse metrics (`enable_metrics = true`) | — | Configuration only — NOT deployed. Requires SSH user verification on matrix VM (may be `sandmhan` or `matrix` depending on pre-refactor state). See `docs/todo-matrix-metrics.md`. |
 | 2026-05-02 | Add wger Prometheus exporter sidecar and Grafana fitness dashboard | — | Custom Python exporter (`wger-exporter`) at `:9101` polls wger REST API for body weight, workouts, nutrition macros, and measurements. Fixed `EXPOSE_PROMETHEUS_METRICS` env var bug for django-prometheus. Added `wger-app` and `wger-fitness` scrape jobs. Provisioned Fitness Overview Grafana dashboard with 11 panels including macro breakdown stacked bars and dual-axis calorie/weight chart. Backfilled 6 historical weight entries into Prometheus TSDB via `promtool tsdb create-blocks-from openmetrics`. |
 | 2026-04-25 | Deploy fitness/wger service to VM 106 (10.0.0.167) on Dell node | — | First service deployment with SOPS secrets. Test instance on management VLAN (no DHCP reservation). Containers: wger, PostgreSQL, Redis, Celery. Nginx reverse proxy on port 80. |
 | 2026-04-25 | Add media (nixflix), fitness (wger), gaming (Sunshine) systemModules and host configs | — | Configuration only — NOT deployed (except fitness). Requires SOPS setup, DHCP reservations, VM creation |

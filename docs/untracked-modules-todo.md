@@ -19,10 +19,10 @@ All systemModules evaluate cleanly via `nix build --dry-run`. **One service (Fit
   - Fixed celery command path (`/home/wger/.local/bin/celery -A wger worker`)
   - Opened firewall ports 8000/9100 for management VLAN access
 - **Known limitations (test instance):**
-  - Running on management VLAN (10.0.0.0/24), no DHCP reservation
+  - Running on flat network (10.0.0.0/24), no DHCP reservation
   - Django running in dev mode (runserver, not gunicorn)
   - SOPS secrets decrypted to files but not yet injected as container env vars (containers use hardcoded test values)
-  - No VLAN 20 or DNS (`.homelab.local`) setup yet
+  - No DNS (`.homelab.local`) setup yet
 
 ## Completed — Configuration Only (NOT Deployed)
 
@@ -73,10 +73,10 @@ All systemModules evaluate cleanly via `nix build --dry-run`. **One service (Fit
 These must be completed before any service can be deployed:
 
 - [ ] **SOPS secrets setup**: Encrypt all `secrets/*/secrets.yaml` files with age keys. Currently plaintext placeholders.
-- [ ] **DHCP reservations**: All `10.0.20.*` IPs are provisional — create reservations on Protectli router
+- [ ] **DHCP reservations**: Undeployed services need static IPs on the `10.0.0.0/24` network — create reservations on Protectli router when deploying
 - [ ] **VM/LXC provisioning**: Create VMs from VMA images or LXC containers on Proxmox
-- [ ] **VLAN 20 setup**: Services VLAN not yet configured on Cisco 3750G switch
 - [ ] **DNS**: No internal DNS for `*.homelab.local` domains yet
+- [ ] **VLAN setup (future)**: Services VLAN not yet configured on Cisco 3750G switch — planned but deferred
 
 ### Per-Service Pre-Deployment Notes
 
@@ -87,5 +87,5 @@ These must be completed before any service can be deployed:
 | **Matrix Agent Bridge** | Bot user must be registered on Synapse, access token generated |
 | **Frigate NVR** | Camera RTSP URLs must be updated with real credentials |
 | **Media** | NAS must be deployed first (NFS mounts); GPU PCI IDs need discovery on Gaming PC |
-| **Fitness** | **DEPLOYED** — test instance at 10.0.0.167. Production deployment needs DHCP reservation, VLAN 20, and real secrets injected into container env vars |
+| **Fitness** | **DEPLOYED** — test instance at 10.0.0.167. Production deployment needs DHCP reservation and real secrets injected into container env vars |
 | **Gaming** | Gaming PC must be repurposed as Proxmox node; GPU PCI IDs need discovery |

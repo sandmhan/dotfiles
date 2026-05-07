@@ -217,7 +217,7 @@ git commit -m "Enable Git LFS tracking"
 
 ```bash
 # Add to your DNS server or /etc/hosts
-10.0.20.206 git.homelab.local
+10.0.0.TBD git.homelab.local
 ```
 
 ## Monitoring Integration
@@ -231,7 +231,7 @@ Add the Git server to the monitoring configuration:
 homelab.monitoring.prometheus.staticTargets = {
   "node-exporters" = [
     # ... existing targets
-    "10.0.20.206:9100"  # Git server
+    "10.0.0.TBD:9100"  # Git server
   ];
 };
 
@@ -240,7 +240,7 @@ homelab.monitoring.prometheus.additionalScrapeConfigs = [
     job_name = "forgejo-postgres";
     static_configs = [
       {
-        targets = [ "10.0.20.206:9187" ];
+        targets = [ "10.0.0.TBD:9187" ];
         labels = { service = "forgejo-postgres"; };
       }
     ];

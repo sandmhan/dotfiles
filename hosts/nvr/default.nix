@@ -24,7 +24,8 @@
     resourceProfile = "standard";
 
     # Camera definitions
-    # Camera streams on IoT VLAN (10.0.10.0/24), Frigate VM on services VLAN (20)
+    # Camera streams currently on 10.0.0.0/24 (flat network)
+    # TODO: Move cameras to IoT VLAN (10.0.10.0/24) once VLANs are deployed
     cameras = {
       fishtank = {
         rtspUrl = "rtsp://192.168.50.174:554/ch0_0.h264";

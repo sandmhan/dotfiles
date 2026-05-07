@@ -30,7 +30,7 @@
     # NAS storage configuration
     # PLACEHOLDER: Update nasAddress with actual NAS VM IP after deployment
     storage = {
-      nasAddress = "10.0.20.104"; # PLACEHOLDER - NAS VM IP
+      nasAddress = "10.0.0.TBD"; # PLACEHOLDER — set after NAS VM is deployed on 10.0.0.0/24
       mediaPath = "/data/media";
       downloadsPath = "/data/downloads";
     };
@@ -95,22 +95,19 @@
       9100 # Node exporter
     ];
 
+    # TODO: Add services VLAN (10.0.20.0/24) rules once VLANs are deployed
     extraCommands = ''
-      # Allow media access from management VLAN
+      # Allow media access from homelab network
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8096 -j ACCEPT
 
-      # Allow media access from services VLAN
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 80 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8096 -j ACCEPT
+      # Allow Prometheus scraping from homelab network
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
 
-      # Allow Prometheus scraping from monitoring server
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
-
-      # Allow *arr services access from services VLAN (for inter-service communication)
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8989 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 7878 -j ACCEPT
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9696 -j ACCEPT
+      # Allow *arr services access from homelab network (inter-service communication)
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8989 -j ACCEPT
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 7878 -j ACCEPT
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9696 -j ACCEPT
     '';
   };
 

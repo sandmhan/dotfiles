@@ -48,7 +48,7 @@ in
     storage = {
       nasAddress = mkOption {
         type = types.str;
-        default = "10.0.20.104"; # PLACEHOLDER - update with actual NAS IP
+        default = "10.0.0.TBD"; # PLACEHOLDER - update with actual NAS IP when deployed
         description = "IP address of the NAS VM providing NFS shares";
       };
 
@@ -560,11 +560,13 @@ in
         iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
         iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 443 -j ACCEPT
 
-        # Allow media services access from services VLAN
-        iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 80 -j ACCEPT
+        # Allow media services access from local network
+        # TODO: Restrict to services VLAN (10.0.20.0/24) once VLANs are deployed
+        iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
 
         # Allow Prometheus scraping from monitoring server
-        iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
+        # TODO: Restrict to services VLAN (10.0.20.0/24) once VLANs are deployed
+        iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
       '';
     })
 

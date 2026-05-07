@@ -133,12 +133,12 @@ To monitor additional services, update the monitoring configuration:
 homelab.monitoring.prometheus.staticTargets = {
   "node-exporters" = [
     # ... existing targets
-    "10.0.20.108:9100"  # New service host
+    "10.0.0.TBD:9100"  # New service host (assign IP when deployed)
   ];
   
   "homelab-services" = [
     # ... existing targets  
-    "10.0.20.109:8080"  # New service metrics endpoint
+    "10.0.0.TBD:8080"  # New service metrics endpoint (assign IP when deployed)
   ];
 };
 
@@ -148,7 +148,7 @@ homelab.monitoring.prometheus.additionalScrapeConfigs = [
     job_name = "custom-service";
     static_configs = [
       {
-        targets = [ "10.0.20.110:9091" ];
+        targets = [ "10.0.0.TBD:9091" ];
         labels = {
           service = "custom-app";
           environment = "production";
@@ -210,8 +210,8 @@ The monitoring stack is accessible on these ports:
 
 | Service | Port | Access |
 |---------|------|--------|
-| Grafana Web UI | 3000 | Management + Services VLANs |
-| Prometheus Web UI | 9090 | Services VLAN only |
+| Grafana Web UI | 3000 | Homelab network (10.0.0.0/24) |
+| Prometheus Web UI | 9090 | Homelab network (10.0.0.0/24) |
 | Node Exporter | 9100 | Monitoring host only |
 
 ### Remote Access via VPN
@@ -223,8 +223,8 @@ Once WireGuard VPN is deployed, access monitoring remotely:
 sudo wg-quick up homelab
 
 # Access services
-curl http://10.0.20.107:3000  # Grafana (via VPN)
-curl http://10.0.20.107:9090  # Prometheus (via VPN)
+curl http://10.0.0.10:3000  # Grafana (via VPN)
+curl http://10.0.0.10:9090  # Prometheus (via VPN)
 ```
 
 ### DNS Configuration (Optional)
@@ -233,8 +233,8 @@ Add DNS entries for easier access:
 
 ```bash
 # Add to your DNS server or /etc/hosts
-10.0.20.107 grafana.homelab.local
-10.0.20.107 prometheus.homelab.local
+10.0.0.10 grafana.homelab.local
+10.0.0.10 prometheus.homelab.local
 ```
 
 ## Monitoring Integration

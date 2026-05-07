@@ -337,18 +337,21 @@ in
       # to allow traffic from IoT VLAN to the services VLAN where HA runs
       networking.firewall.extraCommands = ''
         # Allow IoT VLAN devices to reach MQTT broker
+        # NOTE: IoT VLAN (10.0.10.0/24) not yet deployed; rules kept for future use
         iptables -A INPUT -s 10.0.10.0/24 -p tcp --dport ${toString cfg.mqtt.port} -j ACCEPT
         iptables -A INPUT -s 10.0.10.0/24 -p tcp --dport ${toString cfg.mqtt.websocketPort} -j ACCEPT
 
         # Allow Home Assistant to reach IoT VLAN devices (for discovery and control)
+        # NOTE: IoT VLAN (10.0.10.0/24) not yet deployed; rule kept for future use
         iptables -A OUTPUT -d 10.0.10.0/24 -j ACCEPT
 
-        # Allow management VLAN access to MQTT for debugging
+        # Allow local network access to MQTT for debugging
         iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport ${toString cfg.mqtt.port} -j ACCEPT
 
-        # Allow services VLAN access to Home Assistant and MQTT
-        iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport ${toString cfg.httpPort} -j ACCEPT
-        iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport ${toString cfg.mqtt.port} -j ACCEPT
+        # Allow local network access to Home Assistant and MQTT
+        # TODO: Restrict to services VLAN (10.0.20.0/24) once VLANs are deployed
+        iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport ${toString cfg.httpPort} -j ACCEPT
+        iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport ${toString cfg.mqtt.port} -j ACCEPT
       '';
     })
 
@@ -490,7 +493,7 @@ in
       # Home Assistant exposes metrics at /api/prometheus
       # The monitoring module can scrape this endpoint
       # Add this target to the monitoring module's staticTargets:
-      #   "homelab-services" = [ "10.0.20.103:8123" ];
+      #   "homelab-services" = [ "10.0.0.TBD:8123" ];
       #
       # Prometheus scrape config for Home Assistant:
       #   job_name = "homeassistant"

@@ -33,7 +33,7 @@ in
       default = [ ];
       example = [
         "10.0.0.0/24"
-        "10.0.20.0/24"
+        # "10.0.20.0/24" # TODO: Add once services VLAN is deployed
       ];
       description = "Subnets to advertise to the Tailscale network (subnet router)";
     };

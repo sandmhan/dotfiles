@@ -39,8 +39,8 @@ in
     allowedSubnets = mkOption {
       type = types.listOf types.str;
       default = [
-        "10.0.0.0/24"    # Management VLAN
-        "10.0.20.0/24"   # Services VLAN
+        "10.0.0.0/24" # Homelab network (flat — all services)
+        # TODO: Add "10.0.20.0/24" once services VLAN is deployed
       ];
       description = "Homelab subnets accessible via VPN";
     };

@@ -26,6 +26,8 @@
         ../secrets/media/secrets.yaml
       else if (config.networking.hostName == "gaming") then
         ../secrets/gaming/secrets.yaml
+      else if (config.networking.hostName == "manga") then
+        ../secrets/manga/secrets.yaml
       else
         ../secrets/shared/secrets.yaml;
 

@@ -91,7 +91,7 @@ Media and downloads are stored on the NAS VM via NFS:
 
 ```nix
 homelab.media.storage = {
-  nasAddress = "10.0.20.104";  # NAS VM IP
+  nasAddress = "10.0.0.TBD";  # NAS VM IP
   mediaPath = "/data/media";
   downloadsPath = "/data/downloads";
 };
@@ -195,8 +195,8 @@ sops --encrypt --age $(cat /var/lib/sops-nix/key.txt | grep -oP 'public key: \K.
 
 | Resource | Address | Notes |
 |----------|---------|-------|
-| Media VM | 10.0.20.110 | PROVISIONAL - needs DHCP reservation |
-| NAS VM (NFS) | 10.0.20.104 | PLACEHOLDER - update after NAS deployment |
+| Media VM | 10.0.0.TBD | Not deployed — assign IP on 10.0.0.0/24 when deploying |
+| NAS VM (NFS) | 10.0.0.TBD | Not deployed — assign IP on 10.0.0.0/24 when deploying |
 
 ## Troubleshooting
 
@@ -213,8 +213,8 @@ ls /data/media
 ls /data/downloads
 
 # Check NAS connectivity
-ping 10.0.20.104
-showmount -e 10.0.20.104
+ping 10.0.0.TBD
+showmount -e 10.0.0.TBD
 ```
 
 ### Jellyfin not transcoding with GPU

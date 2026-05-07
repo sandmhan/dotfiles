@@ -93,8 +93,8 @@
     # Allow Sunshine web UI from management VLAN only
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 47990 -j ACCEPT
 
-    # Allow Prometheus scraping from monitoring server
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
+    # Allow Prometheus scraping from homelab network
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
   '';
 
   # VM resource recommendations (configure on Proxmox host):

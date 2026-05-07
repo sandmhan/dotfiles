@@ -43,7 +43,7 @@
     # Frigate integration (enable when NVR is deployed)
     # frigate = {
     #   enable = true;
-    #   url = "http://10.0.20.105:5000";
+    #   url = "http://10.0.0.TBD:5000"; # NVR IP — set after deployment
     # };
 
     # Prometheus monitoring
@@ -65,8 +65,8 @@
     # Allow access from all homelab networks
     iptables -A INPUT -s 10.0.0.0/16 -p tcp -m multiport --dports 80,8123,1883,1884 -j ACCEPT
 
-    # Allow IoT VLAN to reach MQTT broker
-    iptables -A INPUT -s 10.0.10.0/24 -p tcp --dport 1883 -j ACCEPT
+    # TODO: Restrict MQTT to IoT VLAN (10.0.10.0/24) once VLANs are deployed
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 1883 -j ACCEPT
   '';
 
   # Container resource optimization

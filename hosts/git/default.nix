@@ -33,16 +33,15 @@
     actions.enable = false; # Enable when CI/CD runner is needed
   };
 
-  # VM-specific: additional firewall rules for VLAN access
+  # VM-specific: additional firewall rules for homelab access
+  # TODO: Add services VLAN (10.0.20.0/24) rules once VLANs are deployed
   networking.firewall.extraCommands = ''
-    # Allow Forgejo web access from management and services VLANs
+    # Allow Forgejo web access from homelab network
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
     iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 443 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 80 -j ACCEPT
-    iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 443 -j ACCEPT
 
-    # Allow Git SSH from all homelab networks
-    iptables -A INPUT -s 10.0.0.0/16 -p tcp --dport 3022 -j ACCEPT
+    # Allow Git SSH from homelab network
+    iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 3022 -j ACCEPT
   '';
 
   # System tuning for Git workload

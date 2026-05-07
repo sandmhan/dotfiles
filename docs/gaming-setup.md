@@ -102,7 +102,7 @@ qm set 108 --cpu host  # CPU passthrough for performance
 qm set 108 --hostpci0 01:00.0,pcie=1,x-vga=1  # GPU passthrough
 
 # Deploy NixOS configuration
-nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#gaming --sudo
 ```
 
 ## Configuration
@@ -145,15 +145,15 @@ nix build --dry-run .#nixosConfigurations.gaming.config.system.build.toplevel
 ### Deploy
 
 ```bash
-nixos-rebuild switch --target-host sandmhan@10.0.20.111 --flake .#gaming --sudo
+nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#gaming --sudo
 ```
 
 ## Client Setup (Moonlight)
 
 1. Install Moonlight on client device (phone, tablet, PC, Steam Deck)
-2. Open Moonlight and add host: `10.0.20.111` (or gaming VM IP)
+2. Open Moonlight and add host: `10.0.0.TBD` (or gaming VM IP)
 3. First connection requires pairing via Sunshine web UI:
-   - Open `https://10.0.20.111:47990` in a browser
+   - Open `https://10.0.0.TBD:47990` in a browser
    - Log in with configured credentials
    - Accept the pairing request from Moonlight
 4. Select applications to stream

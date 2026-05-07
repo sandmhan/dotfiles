@@ -300,7 +300,11 @@ This builder infrastructure enables true **autonomous homelab management** where
 
 ## Network Architecture
 
-### VLANs (Cisco 3750G)
+### Current: Flat Network
+
+All services currently run on a single flat `10.0.0.0/24` network. VLANs are planned for the future but not yet implemented.
+
+### Future VLANs (Cisco 3750G) — NOT YET IMPLEMENTED
 
 | VLAN | Subnet | Purpose |
 |------|--------|---------|
@@ -309,7 +313,7 @@ This builder infrastructure enables true **autonomous homelab management** where
 | 20 | 10.0.20.0/24 | Homelab services (VMs) |
 | 30 | 10.0.30.0/24 | Guest network |
 
-### Firewall Rules (Protectli / Proxmox firewall)
+### Future Firewall Rules (Protectli / Proxmox firewall)
 - **IoT (VLAN 10)**: Can reach NVR (Frigate) and Home Assistant only. No internet except NTP. No access to other VLANs.
 - **Services (VLAN 20)**: Inter-VM communication allowed. Internet for updates/APIs. Accessible from management VLAN.
 - **Guest (VLAN 30)**: Internet only. No access to any other VLAN.
@@ -452,11 +456,11 @@ systemModules/homeassistant.nix
 └── networking.firewall (ports 8123, 1883, 1884)
 ```
 
-**VLAN Integration:**
+**Network Integration (currently flat 10.0.0.0/24; VLANs planned):**
 - **Management VLAN (1)**: Home Assistant server access
-- **IoT VLAN (10)**: Isolated device communication via MQTT bridge
-- **Services VLAN (20)**: Integration with Frigate, Grafana, Matrix
-- **Cross-VLAN rules**: Controlled access between IoT devices and services
+- **IoT VLAN (10)**: Isolated device communication via MQTT bridge (future)
+- **Services VLAN (20)**: Integration with Frigate, Grafana, Matrix (future)
+- **Cross-VLAN rules**: Controlled access between IoT devices and services (future)
 
 **Automation Examples:**
 - **Pet care**: Feeding schedules, water level monitoring, litterbox cleaning alerts
@@ -628,7 +632,7 @@ nixflix = {
 - Motion zones and detection masks per camera
 - Recording storage on NAS mount via NFS
 - MQTT integration for Home Assistant
-- Camera streams on IoT VLAN (VLAN 10), Frigate VM on services VLAN (VLAN 20) with cross-VLAN access to IoT
+- Camera streams on IoT VLAN (future), Frigate VM on homelab network with cross-VLAN access to IoT (when VLANs are implemented)
 
 #### 3d. Fitness Tracking — wger (`hosts/fitness/`, `systemModules/wger.nix`)
 

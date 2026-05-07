@@ -109,8 +109,7 @@ in
       allowedSources = mkOption {
         type = types.listOf types.str;
         default = [
-          "10.0.0.0/24"
-          "10.0.20.0/24"
+          "10.0.0.0/24" # TODO: Restrict to services VLAN (10.0.20.0/24) once VLANs are deployed
           "127.0.0.1/32"
         ];
         description = "IP ranges allowed to post webhooks";

@@ -52,7 +52,7 @@
     # Frigate integration (enable when NVR is deployed)
     # frigate = {
     #   enable = true;
-    #   url = "http://10.0.20.105:5000";
+    #   url = "http://10.0.0.TBD:5000"; # NVR IP — set after deployment
     # };
 
     # Prometheus monitoring integration
@@ -69,23 +69,18 @@
       9100 # Node exporter metrics
     ];
 
-    # Allow access from all homelab VLANs
+    # Allow access from homelab network
+    # TODO: Add VLAN-specific rules once VLANs are deployed (services 10.0.20.0/24, IoT 10.0.10.0/24)
     extraCommands = ''
-      # Allow Home Assistant access from management VLAN
+      # Allow Home Assistant access from homelab network
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 8123 -j ACCEPT
       iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 80 -j ACCEPT
 
-      # Allow Home Assistant access from services VLAN
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 8123 -j ACCEPT
+      # Allow MQTT broker from homelab network (IoT devices will use 10.0.10.0/24 once VLANs exist)
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 1883 -j ACCEPT
 
-      # Allow IoT VLAN to reach MQTT broker (for device communication)
-      iptables -A INPUT -s 10.0.10.0/24 -p tcp --dport 1883 -j ACCEPT
-
-      # Allow Home Assistant to reach IoT devices for control/discovery
-      iptables -A OUTPUT -d 10.0.10.0/24 -j ACCEPT
-
-      # Allow Prometheus scraping from monitoring server
-      iptables -A INPUT -s 10.0.20.0/24 -p tcp --dport 9100 -j ACCEPT
+      # Allow Prometheus scraping from homelab network
+      iptables -A INPUT -s 10.0.0.0/24 -p tcp --dport 9100 -j ACCEPT
     '';
   };
 

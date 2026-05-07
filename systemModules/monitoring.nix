@@ -99,27 +99,29 @@ in
         type = types.attrsOf (types.listOf types.str);
         default = {
           # Default homelab infrastructure targets
+          # All services are on flat 10.0.0.0/24 network (no VLANs yet)
           "node-exporters" = [
             "10.0.0.6:9100" # matrix server
             "10.0.0.5:9100" # agent-sandbox
             "10.0.0.7:9100" # nixos-builder
-            # PLACEHOLDER IPs — update after DHCP reservations are created
-            "10.0.20.109:9100" # git (forgejo VM) — provisional IP
-            "10.0.20.103:9100" # homeassistant VM — provisional IP
-            "10.0.20.206:9100" # lxc-git — provisional IP
-            "10.0.20.203:9100" # lxc-homeassistant — provisional IP
-            "10.0.0.167:9100" # fitness (wger VM) — provisional IP
-            "10.0.20.111:9100" # gaming (Sunshine VM) — provisional IP
-            "10.0.20.110:9100" # media VM — provisional IP, needs DHCP assignment
-            # "10.0.20.TBD:9100" # nvr (frigate) — add when static IP is assigned
+            "10.0.0.167:9100" # fitness (wger VM)
+            # NOT YET DEPLOYED — uncomment and set IP after DHCP reservation on 10.0.0.0/24
+            # "10.0.0.TBD:9100" # git (forgejo VM)
+            # "10.0.0.TBD:9100" # homeassistant VM
+            # "10.0.0.TBD:9100" # lxc-git
+            # "10.0.0.TBD:9100" # lxc-homeassistant
+            # "10.0.0.TBD:9100" # gaming (Sunshine VM)
+            # "10.0.0.TBD:9100" # media VM
+            # "10.0.0.TBD:9100" # nvr (frigate)
+            # "10.0.0.TBD:9100" # manga (Komga + Suwayomi VM)
           ];
 
           # Service-specific targets (populated by deployment type)
           "wireguard" = [ ];
-          # PLACEHOLDER IPs — update after DHCP reservations are created
+          # NOT YET DEPLOYED — uncomment and set IP after DHCP reservation on 10.0.0.0/24
           "homelab-services" = [
-            "10.0.20.109:9187" # git postgres exporter — provisional IP
-            "10.0.20.103:8123" # homeassistant prometheus endpoint — provisional IP
+            # "10.0.0.TBD:9187" # git postgres exporter
+            # "10.0.0.TBD:8123" # homeassistant prometheus endpoint
           ];
           "matrix-services" = [
             "10.0.0.6:8008" # Matrix Synapse metrics endpoint
@@ -134,19 +136,21 @@ in
       targetLabels = mkOption {
         type = types.attrsOf types.str;
         default = {
+          # Deployed services (10.0.0.0/24 — flat network, no VLANs)
           "10.0.0.5" = "agent-sandbox";
           "10.0.0.6" = "matrix";
           "10.0.0.7" = "nixos-builder";
           "10.0.0.10" = "lxc-monitor";
-          # PLACEHOLDER IPs — update after DHCP reservations are created
-          "10.0.20.109" = "git";
-          "10.0.20.103" = "homeassistant";
-          "10.0.20.206" = "lxc-git";
-          "10.0.20.203" = "lxc-homeassistant";
-          "10.0.0.167" = "fitness"; # DHCP-assigned on management VLAN
-          "10.0.20.111" = "gaming"; # provisional IP
-          "10.0.20.110" = "media"; # provisional IP
+          "10.0.0.167" = "fitness";
           "localhost" = "lxc-monitor";
+          # NOT YET DEPLOYED — add entries here after DHCP reservation on 10.0.0.0/24
+          # "10.0.0.TBD" = "git";
+          # "10.0.0.TBD" = "homeassistant";
+          # "10.0.0.TBD" = "lxc-git";
+          # "10.0.0.TBD" = "lxc-homeassistant";
+          # "10.0.0.TBD" = "gaming";
+          # "10.0.0.TBD" = "media";
+          # "10.0.0.TBD" = "manga";
         };
         description = ''
           Map of IP/host to friendly instance name. Applied as the "instance"
@@ -202,6 +206,36 @@ in
             ];
             scrape_interval = "5m";
           }
+          # Komga manga library server (actuator metrics endpoint)
+          # PLACEHOLDER IP — update after DHCP reservation is created
+          # {
+          #   job_name = "komga";
+          #   static_configs = [
+          #     {
+          #       targets = [ "10.0.0.TBD:25600" ];
+          #       labels = {
+          #         service = "komga";
+          #         instance = "manga";
+          #       };
+          #     }
+          #   ];
+          #   metrics_path = "/actuator/prometheus";
+          #   scrape_interval = "30s";
+          # }
+          # Suwayomi manga source aggregator
+          # {
+          #   job_name = "suwayomi";
+          #   static_configs = [
+          #     {
+          #       targets = [ "10.0.0.TBD:4567" ];
+          #       labels = {
+          #         service = "suwayomi";
+          #         instance = "manga";
+          #       };
+          #     }
+          #   ];
+          #   scrape_interval = "60s";
+          # }
         ];
         description = "Additional Prometheus scrape configurations";
       };
@@ -359,7 +393,7 @@ in
       services.prometheus = {
         enable = true;
         port = cfg.prometheus.port;
-        listenAddress = "0.0.0.0"; # Allow access from other VLANs
+        listenAddress = "0.0.0.0"; # Allow access from all homelab hosts
 
         # Data retention and storage
         retentionTime = cfg.prometheus.retention;

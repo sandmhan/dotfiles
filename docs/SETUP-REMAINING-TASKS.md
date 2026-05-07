@@ -214,16 +214,19 @@ sudo wg show
 
 ### 4. Network Infrastructure Setup
 
-#### 4.1 VLAN Configuration
+#### 4.1 VLAN Configuration (Future — Not Yet Implemented)
+
+> **Note:** All services currently run on the flat `10.0.0.0/24` network. VLAN setup is deferred until after core services are deployed and stable.
+
 ```bash
-# Configure Cisco 3750G switch with planned VLANs:
+# Future: Configure Cisco 3750G switch with planned VLANs:
 # VLAN 1: 10.0.0.0/24 (Management)
 # VLAN 10: 10.0.10.0/24 (IoT devices)  
 # VLAN 20: 10.0.20.0/24 (Services)
 # VLAN 30: 10.0.30.0/24 (Guest)
 
-# Update Protectli router configuration
-# Configure inter-VLAN routing and firewall rules
+# Future: Update Protectli router configuration
+# Future: Configure inter-VLAN routing and firewall rules
 ```
 
 #### 4.2 DNS Configuration

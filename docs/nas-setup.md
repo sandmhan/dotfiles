@@ -139,7 +139,7 @@ homelab.nas = {
 
 ### Prerequisites
 
-1. **Network Setup**: Ensure homelab VLANs are configured
+1. **Network Setup**: Ensure homelab network is configured (currently flat 10.0.0.0/24; VLANs planned for future)
 2. **Storage Planning**: Calculate storage needs for shares and retention
 3. **DNS Configuration**: Set up hostname resolution
 
@@ -183,23 +183,23 @@ homelab.nas = {
    ```bash
    # Wait for VM to boot and get IP address
    # Deploy configuration
-   nixos-rebuild switch --target-host sandmhan@10.0.20.101 --flake .#nas --sudo
+   nixos-rebuild switch --target-host sandmhan@10.0.0.TBD --flake .#nas --sudo
    ```
 
 3. **Verify NAS Services**:
    ```bash
    # Test SSH access
-   ssh sandmhan@10.0.20.101
+   ssh sandmhan@10.0.0.TBD
    
    # Check NFS exports
-   showmount -e 10.0.20.101
+   showmount -e 10.0.0.TBD
    
    # Check SMB shares
-   smbclient -L //10.0.20.101 -N
+   smbclient -L //10.0.0.TBD -N
    
    # Test file access
    sudo mkdir /mnt/test
-   sudo mount -t nfs4 10.0.20.101:/srv/nas/media /mnt/test
+   sudo mount -t nfs4 10.0.0.TBD:/srv/nas/media /mnt/test
    ls /mnt/test
    sudo umount /mnt/test
    ```
@@ -212,13 +212,13 @@ homelab.nas = {
    # This is a placeholder for actual LXC creation process
    
    # Deploy configuration once container is running
-   nixos-rebuild switch --target-host nasadmin@10.0.20.201 --flake .#lxc-nas --sudo
+   nixos-rebuild switch --target-host nasadmin@10.0.0.TBD --flake .#lxc-nas --sudo
    ```
 
 2. **Verify Container NAS**:
    ```bash
    # Check container status
-   ssh nasadmin@10.0.20.201
+   ssh nasadmin@10.0.0.TBD
    
    # Verify NFS service
    systemctl status nfs-server

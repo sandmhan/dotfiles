@@ -142,8 +142,8 @@
   homelab.tailscale = {
     enable = true;
     advertiseRoutes = [
-      "10.0.0.0/24"
-      "10.0.20.0/24"
+      "10.0.0.0/24" # Homelab network (flat — all services)
+      # TODO: Add "10.0.20.0/24" once services VLAN is deployed
     ];
   };
 

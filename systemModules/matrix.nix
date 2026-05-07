@@ -146,7 +146,7 @@ in
       max_upload_size_mib = 100;
       url_preview_enabled = true;
       enable_registration = false;
-      enable_metrics = false;
+      enable_metrics = true;
       registration_shared_secret_path = config.sops.secrets.registration_shared_secret.path;
 
       trusted_key_servers = [

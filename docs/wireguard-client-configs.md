@@ -234,10 +234,10 @@ iperf3 -c 10.0.0.X  # From client
 Once connected via WireGuard, access homelab services directly:
 
 - **Matrix**: `https://matrix.sandmhan.dev` (if DNS configured)
-- **Grafana**: `http://10.0.20.100:3000` (monitoring VM)
-- **Home Assistant**: `http://10.0.0.103:8123`
-- **SSH to VMs**: `ssh user@10.0.20.X`
-- **Proxmox Web UI**: `https://10.0.0.1:8006`
+- **Grafana**: `http://10.0.0.10:3000` (monitoring LXC)
+- **Home Assistant**: `http://[HA_IP]:8123` (not yet deployed)
+- **SSH to VMs**: `ssh user@10.0.0.X`
+- **Proxmox Web UI**: `https://10.0.0.4:8006`
 
 ## Client Management
 

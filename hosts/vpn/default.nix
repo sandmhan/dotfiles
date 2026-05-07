@@ -23,8 +23,8 @@
   homelab.tailscale = {
     enable = true;
     advertiseRoutes = [
-      "10.0.0.0/24" # Management VLAN - Proxmox, SSH access
-      "10.0.20.0/24" # Services VLAN - Matrix, Grafana, etc.
+      "10.0.0.0/24" # Homelab network (flat — all services)
+      # TODO: Add "10.0.20.0/24" once services VLAN is deployed
     ];
   };
 
