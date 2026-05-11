@@ -26,6 +26,7 @@
       enableAudioTools = mkEnableOption "audio management tools";
       enableBluetoothTools = mkEnableOption "Bluetooth management";
       enableNetworkTools = mkEnableOption "network management GUI tools";
+      enableScreenshotTools = mkEnableOption "screenshot and screen recording tools (grim, slurp, swappy, wf-recorder)";
       enable3DPrinting = mkEnableOption "3D printing tools (FreeCAD, OrcaSlicer, OpenSCAD)";
 
       # Development features

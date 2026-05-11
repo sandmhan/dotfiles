@@ -12,6 +12,7 @@ in
     ./wm.nix
     ./moonlight.nix
     ./sunshine.nix
+    ./screenshot.nix
   ];
 
   # Rofi application launcher

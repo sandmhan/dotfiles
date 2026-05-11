@@ -32,6 +32,7 @@
       enableAudioTools = true;
       enableBluetoothTools = true;
       enableNetworkTools = true;
+      enableScreenshotTools = true;
       enable3DPrinting = true;
 
       # Development features
