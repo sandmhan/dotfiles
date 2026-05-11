@@ -11,6 +11,7 @@
   # Git configuration
   programs.git = {
     enable = true;
+    signing.format = null;
     settings.user = {
       email = userSettings.email;
       name = userSettings.username;

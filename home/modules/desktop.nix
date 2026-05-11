@@ -133,4 +133,7 @@ in
     ++ lib.optionals cfg.features.enableFonts [
       nerd-fonts.blex-mono
     ];
+
+  # Silence legacy default warning for gtk4 theme (stateVersion < 26.05)
+  gtk.gtk4.theme = lib.mkIf cfg.profiles.enableDesktop null;
 }
