@@ -53,6 +53,7 @@ in
           "cpu"
           "battery"
           "tray"
+          "custom/tailscale"
         ];
 
         network = {
@@ -66,6 +67,27 @@ in
           tooltip-format-ethernet = "{ifname} ";
           tooltip-format-disconnected = "Disconnected";
           max-length = 5;
+          on-click = "${pkgs.alacritty}/bin/alacritty --class floating-nmtui -e ${pkgs.networkmanager}/bin/nmtui";
+        };
+
+        "custom/tailscale" = {
+          format = "{}";
+          interval = 5;
+          exec = pkgs.writeShellScript "waybar-tailscale" ''
+            if ${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null | ${pkgs.jq}/bin/jq -e '.Self.Online' >/dev/null 2>&1; then
+              echo '{"text": "󰖂", "tooltip": "Tailscale: connected", "class": "connected"}'
+            else
+              echo '{"text": "󰖂", "tooltip": "Tailscale: disconnected", "class": "disconnected"}'
+            fi
+          '';
+          return-type = "json";
+          on-click = pkgs.writeShellScript "waybar-tailscale-toggle" ''
+            if ${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null | ${pkgs.jq}/bin/jq -e '.Self.Online' >/dev/null 2>&1; then
+              sudo ${pkgs.tailscale}/bin/tailscale down
+            else
+              sudo ${pkgs.tailscale}/bin/tailscale up
+            fi
+          '';
         };
 
         "sway/window" = {

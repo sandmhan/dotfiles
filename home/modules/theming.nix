@@ -373,6 +373,18 @@ let
       padding: 0 8px;
     }
 
+    #custom-tailscale {
+      padding: 0 10px;
+    }
+
+    #custom-tailscale.connected {
+      color: @base0B;
+    }
+
+    #custom-tailscale.disconnected {
+      color: @base03;
+    }
+
     tooltip {
       background-color: @base01;
       color: @base05;

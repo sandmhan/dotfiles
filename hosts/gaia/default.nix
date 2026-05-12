@@ -351,6 +351,23 @@
 
   # Define a user account.
   users.mutableUsers = false;
+  # Passwordless sudo for tailscale toggle (waybar widget)
+  security.sudo.extraRules = [
+    {
+      users = [ "sandmhan" ];
+      commands = [
+        {
+          command = "${pkgs.tailscale}/bin/tailscale up";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "${pkgs.tailscale}/bin/tailscale down";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+
   users.users.sandmhan = {
     isNormalUser = true;
     description = "sandmhan";
