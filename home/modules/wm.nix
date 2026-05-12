@@ -46,27 +46,27 @@ in
         ];
         modules-right = [
           "pulseaudio"
-          "network"
           "mpd"
           "temperature"
           "memory"
           "cpu"
           "battery"
           "tray"
+          "network"
           "custom/tailscale"
         ];
 
         network = {
-          interface = "{essid}";
-          format = "{ifname}";
-          format-wifi = "{essid} ({signalStrength}%) ";
-          format-ethernet = "{ipaddr}/{cidr} 󰊗";
-          format-disconnected = ""; # An empty format will hide the module
-          tooltip-format = "{ifname} via {gwaddr} 󰊗";
-          tooltip-format-wifi = "{essid} ({signalStrength}%) ";
-          tooltip-format-ethernet = "{ifname} ";
+          interval = 5;
+          format-wifi = "{icon} {bandwidthDownBytes}";
+          format-icons = [ "󰤯" "󰤟" "󰤢" "󰤥" "󰤨" ];
+          format-ethernet = "󰈀 {bandwidthDownBytes}";
+          format-disconnected = "󰤭";
+          tooltip-format-wifi = "{essid} ({signalStrength}%)\n{ipaddr}/{cidr}\n {bandwidthUpBytes}  {bandwidthDownBytes}";
+          tooltip-format-ethernet = "{ifname}\n{ipaddr}/{cidr}\n {bandwidthUpBytes}  {bandwidthDownBytes}";
           tooltip-format-disconnected = "Disconnected";
-          max-length = 5;
+          min-length = 12;
+          align = 0;
           on-click = "${pkgs.alacritty}/bin/alacritty --class floating-nmtui -e ${pkgs.networkmanager}/bin/nmtui";
         };
 

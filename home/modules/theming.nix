@@ -303,8 +303,18 @@ let
       font-weight: bold;
     }
 
+    #pulseaudio,
+    #network,
+    #mpd,
+    #temperature,
+    #memory,
+    #cpu,
+    #battery,
+    #custom-tailscale {
+      padding: 0 8px;
+    }
+
     #battery {
-      padding: 0 10px;
       color: @base0B;
     }
 
@@ -322,17 +332,14 @@ let
     }
 
     #cpu {
-      padding: 0 10px;
       color: @base0D;
     }
 
     #memory {
-      padding: 0 10px;
       color: @base0E;
     }
 
     #temperature {
-      padding: 0 10px;
       color: @base0C;
     }
 
@@ -342,7 +349,6 @@ let
     }
 
     #network {
-      padding: 0 10px;
       color: @base05;
     }
 
@@ -351,7 +357,6 @@ let
     }
 
     #pulseaudio {
-      padding: 0 10px;
       color: @base05;
     }
 
@@ -360,7 +365,6 @@ let
     }
 
     #mpd {
-      padding: 0 10px;
       color: @base0D;
     }
 
@@ -371,10 +375,6 @@ let
 
     #tray {
       padding: 0 8px;
-    }
-
-    #custom-tailscale {
-      padding: 0 10px;
     }
 
     #custom-tailscale.connected {
