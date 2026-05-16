@@ -71,12 +71,22 @@ home/
     ├── core.nix       # git, home-manager, nixpkgs config
     ├── terminal.nix   # tmux, bash, alacritty, shell tools
     ├── desktop.nix    # rofi, swaylock, bluetooth, browser, moonlight/sunshine
-    ├── development.nix # claude code, containers, dev tools
+    ├── development.nix # dev packages, imports ai-*.nix modules
     ├── theming.nix    # stylix, fonts, theme-switch script
     ├── wm.nix         # sway + waybar (large, own file)
     ├── nvf/           # neovim config (14 files)
-    ├── claude/        # claude code skills, rules, assets
-    └── claude-agent.nix # agent VM claude config
+    ├── ai/            # provider-agnostic AI skills, rules, assets
+    │   ├── skills/    # shared skills (SKILL.md + references/)
+    │   ├── rules/     # shared rules (markdown)
+    │   ├── assets/    # templates (envrc, flake starters)
+    │   ├── agent-skills/  # agent-only skills
+    │   └── agent-rules/   # agent-only rules
+    ├── claude/        # Claude-specific agent personality files only
+    │   └── agents/
+    ├── ai-skills.nix  # shared data module (myHome.ai.skills, myHome.ai.rules)
+    ├── ai-claude.nix  # Claude Code provider config
+    ├── ai-codex.nix   # Codex provider config
+    └── ai-agent.nix   # agent VM overlay (autonomous mode for all providers)
 
 hosts/
 ├── gaia/              # Desktop (Framework 13 AMD)
@@ -89,6 +99,14 @@ systemModules/         # NixOS system services (frigate, jellyfin, matrix, llama
 themes/                # 58 curated base16 color schemes with polarity metadata
 docs/                  # Documentation
 ```
+
+### AI Tools Architecture
+- Provider-agnostic skills and rules live in `home/modules/ai/`
+- `ai-skills.nix` exposes them via `myHome.ai.skills` and `myHome.ai.rules` options
+- Each tool has a dedicated module (`ai-claude.nix`, `ai-codex.nix`) that maps shared data to the tool's native config format
+- Agent-specific skills overlay via `ai-agent.nix` for autonomous VM operation
+- Canonical discovery directory at `~/.local/share/ai/` (env var `AI_SKILLS_DIR`) for non-Nix tools
+- To add a new AI tool: create `ai-<tool>.nix` that reads `config.myHome.ai.*`, add `enable<Tool>` option, import in `development.nix`
 
 ### Theme System
 - 58 base16 color schemes in `themes/<name>/` with YAML, polarity, wallpaper URL, and SHA256

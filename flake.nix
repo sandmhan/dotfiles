@@ -273,7 +273,7 @@
                 users.agent = {
                   imports = [
                     ./home/profiles/headless-terminal.nix
-                    ./home/modules/claude-agent.nix
+                    ./home/modules/ai-agent.nix
                     nvf.homeManagerModules.default
                   ];
                 };

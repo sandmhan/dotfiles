@@ -1,7 +1,11 @@
 {
   lib,
+  config,
   ...
 }:
+let
+  cfg = config.myHome;
+in
 {
   options.myHome = with lib; {
     profiles = {
@@ -29,8 +33,12 @@
       enableScreenshotTools = mkEnableOption "screenshot and screen recording tools (grim, slurp, swappy, wf-recorder)";
       enable3DPrinting = mkEnableOption "3D printing tools (FreeCAD, OrcaSlicer, OpenSCAD)";
 
-      # Development features
+      # AI tools
+      enableAISkills = mkEnableOption "shared AI skills and rules content";
       enableClaudeCode = mkEnableOption "Claude Code configuration";
+      enableCodex = mkEnableOption "OpenAI Codex CLI configuration";
+
+      # Development features
       enableNixvim = mkEnableOption "Nixvim/Neovim configuration";
       enableContainerTools = mkEnableOption "container development tools";
 
@@ -83,4 +91,9 @@
       enableDotfileSymlinks = mkEnableOption "symlink dotfiles to home directory";
     };
   };
+
+  # Auto-derive enableAISkills when any AI tool is enabled
+  config.myHome.features.enableAISkills = lib.mkDefault (
+    cfg.features.enableClaudeCode || cfg.features.enableCodex
+  );
 }
