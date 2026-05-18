@@ -162,7 +162,7 @@ workspace homelab     # Navigate to workspace/homelab
 mkcd new-project      # Create and enter directory
 ```
 
-## Claude Code Configuration
+## AI Tool Configuration
 
 ### Agent-Specific Skills
 
@@ -175,6 +175,8 @@ The agent VM comes with specialized skills for infrastructure development:
 - **homelab-architect**: Infrastructure design patterns
 - **vm-deployment**: Automated VM provisioning
 - **container-management**: OCI service management
+
+These skills are defined once in `home/modules/ai/` and exposed through the shared `myHome.ai.skills` registry. Claude consumes them directly, while Codex receives a materialized copy under `~/.codex/skills/` at Home Manager activation time. The materialization step is intentional because Codex indexes regular files there more reliably than Nix-store symlinks.
 
 ### Recommended Prompts
 

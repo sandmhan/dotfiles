@@ -95,13 +95,11 @@ hosts/agent/
 
 ### 4.2 Agent-Specific Skills Configuration ✅
 ```
-homeModules/claude-agent.nix     # Declarative Claude Code setup ✅
-├── skills/                      # Agent-specific skills ✅
-│   ├── homelab-architect.md     # Infrastructure design patterns ✅
-│   ├── vm-deployment.md         # Proxmox deployment automation ✅
-│   └── container-management.md  # OCI container patterns ✅
-├── settings.json               # Autonomous permissions config ✅
-└── shell integration           # Workspace aliases ✅
+home/modules/ai-agent.nix        # Agent-specific AI overlay ✅
+home/modules/ai/agent-skills/    # Agent-specific skill sources ✅
+home/modules/ai-skills.nix       # Shared skill registry ✅
+home/modules/ai-codex.nix        # Codex skill materialization ✅
+~/.codex/skills/                 # Runtime Codex skill directory ✅
 ```
 
 ### 4.3 Curated Skill Set ✅

@@ -50,6 +50,9 @@ in
     sessionVariables = {
       EDITOR = "nvim";
     };
+    initExtra = ''
+      export PATH="/home/${userSettings.username}/repos/pi-mono/result/bin:$PATH"
+    '';
     shellAliases = {
       ll = "ls -l";
       ".." = "cd ..";
@@ -154,6 +157,9 @@ in
   # Set up home directory and username
   home = {
     username = userSettings.username;
+    sessionPath = [
+      "/home/${userSettings.username}/repos/pi-mono/result/bin"
+    ];
     homeDirectory =
       if cfg.platform.enableLinuxSpecific then
         "/home/${userSettings.username}"

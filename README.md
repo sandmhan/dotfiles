@@ -25,13 +25,14 @@ Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete ste
 ├── CLAUDE.md                    # Claude Code project documentation
 ├── configuration.nix            # Desktop NixOS configuration
 ├── flake.nix                    # Main flake with all configurations
-├── home/                        # 🆕 New option-based Home Manager system
+├── home/                        # 🆕 Option-based Home Manager system
 │   ├── options.nix              # Complete option definitions
-│   ├── implementations/         # Implementation modules
+│   ├── modules/                 # Home Manager feature modules
 │   │   ├── core.nix             # Essential modules (always enabled)
 │   │   ├── terminal.nix         # Terminal environment
-│   │   ├── desktop.nix          # GUI applications
-│   │   ├── development.nix      # Development tools
+│   │   ├── development.nix      # Development tools and AI integrations
+│   │   ├── ai-skills.nix        # Shared AI skills/rules source registry
+│   │   ├── ai-codex.nix         # Codex-specific materialization logic
 │   │   └── theming.nix          # Theming and fonts
 │   └── profiles/                # Declarative configuration profiles
 │       ├── README.md            # Profile customization guide
@@ -39,17 +40,6 @@ Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete ste
 │       ├── desktop.nix          # Full desktop profile
 │       ├── macos.nix            # macOS-optimized profile
 │       └── wsl.nix              # WSL-optimized profile
-├── homeModules/                 # 📦 Legacy individual modules (still used)
-│   ├── claude.nix               # Claude Code configuration
-│   ├── claude/                  # Claude Code skills and rules
-│   ├── git.nix, terminal.nix    # Individual feature modules
-│   ├── nvf/                     # Modular Neovim configuration
-│   │   ├── default.nix          # Entry point
-│   │   ├── keymaps.nix          # Key mappings and leader
-│   │   ├── lsp.nix              # LSP servers
-│   │   ├── completion.nix       # Autocomplete system
-│   │   └── ...                  # Other nvf modules
-│   └── ...                      # Other legacy modules
 ├── hosts/                       # Homelab host configurations
 │   ├── server/                  # Base Proxmox VM configuration
 │   └── nvr/                     # Network Video Recorder
@@ -83,7 +73,7 @@ The configuration now uses `lib.mkOption` and `lib.mkEnableOption` for:
 - **Home Manager** with option-based profiles for user environments
 - **Stylix** for consistent theming and fonts
 - **nvf** for modular, feature-rich Neovim configuration
-- **Claude Code** for AI-assisted development with custom skills and rules
+- **Claude Code** and **Codex** for AI-assisted development with shared skills and rules
 - **Platform Support**: Linux desktop, macOS, WSL, and headless systems
 
 ---
@@ -217,7 +207,7 @@ sudo nixos-rebuild switch --flake .#gaia
 
 ## Neovim Configuration (nvf)
 
-The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `homeModules/nvf/`:
+The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`:
 
 | File | Description |
 |------|-------------|
@@ -235,13 +225,24 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 
 ## Claude Code Configuration
 
-Claude Code is configured declaratively via Home Manager in `homeModules/claude.nix`. Configuration includes:
+Claude Code is configured declaratively from `home/modules/ai-claude.nix` using shared content from `home/modules/ai-skills.nix`. Configuration includes:
 
 - **Settings**: Permissions, model selection, theme
-- **Skills**: Custom guidance for specific tasks (e.g., `nix-flake.md` for Nix development)
+- **Skills**: Custom guidance for specific tasks (e.g., the `nix-flake` skill for Nix development)
 - **Rules**: Project conventions (e.g., `nix-conventions.md`, `homelab.md`)
 
-Skills and rules are stored as markdown files in `homeModules/claude/` and loaded with `builtins.readFile`.
+Skills and rules are stored under `home/modules/ai/`. Home Manager maps them into Claude's config directly and also exports a canonical copy to `~/.local/share/ai/`.
+
+## Codex Configuration
+
+Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes the same shared skill/rule registry as Claude.
+
+- **Shared source**: `home/modules/ai-skills.nix` defines the provider-agnostic `myHome.ai.skills` and `myHome.ai.rules` sets
+- **Canonical export**: Home Manager also writes a tool-agnostic cache to `~/.local/share/ai/`
+- **Codex runtime path**: Codex reads skills from `~/.codex/skills/`
+- **Important behavior**: Codex only picked up regular files reliably, so Home Manager materializes real files into `~/.codex/skills/` during activation instead of leaving Nix-store symlinks in place
+
+This keeps the source of truth declarative while matching Codex's runtime discovery behavior.
 
 ---
 
@@ -276,4 +277,3 @@ Build locally and push to the remote host:
 ```bash
 nixos-rebuild switch --target-host sandmhan@<ip> --flake .#<config> --sudo
 ```
-

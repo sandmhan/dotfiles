@@ -187,6 +187,10 @@ AGENT_DISK_SIZE=40                 # Disk size in GB
     ├── skills/      # Development skills and patterns
     ├── rules/       # Operating guidelines
     └── settings.json # Autonomous permissions
+└── .codex/          # Codex configuration
+    ├── skills/      # Materialized skill files for Codex indexing
+    ├── AGENTS.md    # Combined project rules
+    └── config.toml  # Codex runtime settings
 ```
 
 ### Git Configuration

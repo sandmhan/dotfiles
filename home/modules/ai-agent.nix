@@ -124,23 +124,22 @@ in
   };
 
   # Override Codex config for autonomous mode
-  xdg.configFile."codex/config.toml".text = lib.mkForce ''
-    model = "o3"
-    approval_policy = "never"
-    sandbox_mode = "danger-full-access"
-
-    [features]
-    web_search = true
-    memories = true
-    multi_agent = true
-
-    [agents]
-    max_threads = 4
-    max_depth = 2
-  '';
-
   # Agent workspace directories
   home.file = {
+    ".codex/config.toml".text = lib.mkForce ''
+      model = "o3"
+      approval_policy = "never"
+      sandbox_mode = "danger-full-access"
+
+      [features]
+      web_search = true
+      memories = true
+      multi_agent = true
+
+      [agents]
+      max_threads = 4
+      max_depth = 2
+    '';
     "workspace/.gitkeep".text = "";
     "workspace/homelab/.gitkeep".text = "";
     "workspace/testing/.gitkeep".text = "";
