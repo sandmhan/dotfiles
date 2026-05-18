@@ -26,13 +26,19 @@
 
       # Protocol settings
       Protocol = 2;
-      AllowUsers = [ "agent" "sandmhan" ];
+      AllowUsers = [
+        "agent"
+        "sandmhan"
+      ];
 
       # Disable unnecessary features
       PermitEmptyPasswords = false;
       PermitUserEnvironment = false;
       AllowAgentForwarding = true; # Needed for git operations
-      AllowTcpForwarding = false;
+      # Needed for OAuth callbacks from CLI tools running on the VM, such as
+      # Codex auth through pi. Restrict forwarding to local forwards only.
+      AllowTcpForwarding = "local";
+      PermitOpen = "localhost:1455 127.0.0.1:1455";
       X11Forwarding = false;
       PrintMotd = false;
 
