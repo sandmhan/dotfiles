@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Linting"
+  short_description: "Lint skills for structural correctness"
+  default_prompt: "Use $skill-linting to lint the skills/git skill."

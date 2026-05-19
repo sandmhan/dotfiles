@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Validation"
+  short_description: "Validate skill quality and effectiveness"
+  default_prompt: "Use $skill-validation to validate the skills/git skill."

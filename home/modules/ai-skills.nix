@@ -100,6 +100,74 @@ in
         content = builtins.readFile "${aiDir}/skills/nix-lang/SKILL.md";
         sourceDir = "${aiDir}/skills/nix-lang";
       };
+      "git" = {
+        content = builtins.readFile "${aiDir}/skills/git/SKILL.md";
+        sourceDir = "${aiDir}/skills/git";
+      };
+      "edit-files" = {
+        content = builtins.readFile "${aiDir}/skills/edit-files/SKILL.md";
+        sourceDir = "${aiDir}/skills/edit-files";
+      };
+      "rg" = {
+        content = builtins.readFile "${aiDir}/skills/rg/SKILL.md";
+        sourceDir = "${aiDir}/skills/rg";
+      };
+      "jq" = {
+        content = builtins.readFile "${aiDir}/skills/jq/SKILL.md";
+        sourceDir = "${aiDir}/skills/jq";
+      };
+      "yq" = {
+        content = builtins.readFile "${aiDir}/skills/yq/SKILL.md";
+        sourceDir = "${aiDir}/skills/yq";
+      };
+      "curl" = {
+        content = builtins.readFile "${aiDir}/skills/curl/SKILL.md";
+        sourceDir = "${aiDir}/skills/curl";
+      };
+      "sqlite" = {
+        content = builtins.readFile "${aiDir}/skills/sqlite/SKILL.md";
+        sourceDir = "${aiDir}/skills/sqlite";
+      };
+      "rsync" = {
+        content = builtins.readFile "${aiDir}/skills/rsync/SKILL.md";
+        sourceDir = "${aiDir}/skills/rsync";
+      };
+      "ssh-client" = {
+        content = builtins.readFile "${aiDir}/skills/ssh-client/SKILL.md";
+        sourceDir = "${aiDir}/skills/ssh-client";
+      };
+      "openssl" = {
+        content = builtins.readFile "${aiDir}/skills/openssl/SKILL.md";
+        sourceDir = "${aiDir}/skills/openssl";
+      };
+      "changelog" = {
+        content = builtins.readFile "${aiDir}/skills/changelog/SKILL.md";
+        sourceDir = "${aiDir}/skills/changelog";
+      };
+      "skill-creator" = {
+        content = builtins.readFile "${aiDir}/skills/skill-creator/SKILL.md";
+        sourceDir = "${aiDir}/skills/skill-creator";
+      };
+      "skill-linting" = {
+        content = builtins.readFile "${aiDir}/skills/skill-linting/SKILL.md";
+        sourceDir = "${aiDir}/skills/skill-linting";
+      };
+      "skill-validation" = {
+        content = builtins.readFile "${aiDir}/skills/skill-validation/SKILL.md";
+        sourceDir = "${aiDir}/skills/skill-validation";
+      };
+      "test-driven-development" = {
+        content = builtins.readFile "${aiDir}/skills/test-driven-development/SKILL.md";
+        sourceDir = "${aiDir}/skills/test-driven-development";
+      };
+      "domain-driven-design" = {
+        content = builtins.readFile "${aiDir}/skills/domain-driven-design/SKILL.md";
+        sourceDir = "${aiDir}/skills/domain-driven-design";
+      };
+      "software-architecture" = {
+        content = builtins.readFile "${aiDir}/skills/software-architecture/SKILL.md";
+        sourceDir = "${aiDir}/skills/software-architecture";
+      };
       # Standalone skills (single .md, no references/)
       "nix-best-practices" = {
         content = builtins.readFile "${aiDir}/skills/nix-best-practices.md";

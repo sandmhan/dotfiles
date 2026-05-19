@@ -1,0 +1,4 @@
+interface:
+  display_name: "rg"
+  short_description: "Fast regex search with recursive directory support"
+  default_prompt: "Use $rg to search and filter text with regex."

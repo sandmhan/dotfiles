@@ -1,0 +1,4 @@
+interface:
+  display_name: "jq"
+  short_description: "Query and transform JSON data"
+  default_prompt: "Use $jq to query and transform JSON."

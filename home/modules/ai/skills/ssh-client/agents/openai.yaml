@@ -1,0 +1,4 @@
+interface:
+  display_name: "ssh"
+  short_description: "Secure remote access with strict host key verification"
+  default_prompt: "Use $ssh to establish secure connections with StrictHostKeyChecking enabled."

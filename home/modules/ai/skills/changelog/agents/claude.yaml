@@ -1,0 +1,4 @@
+interface:
+  display_name: "changelog"
+  short_description: "Maintain keepachangelog-format CHANGELOG.md files"
+  default_prompt: "Use $changelog to add entries, cut releases, or fix formatting in CHANGELOG.md following keepachangelog.com/en/1.1.0/."

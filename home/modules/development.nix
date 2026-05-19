@@ -12,6 +12,7 @@ in
     ./ai-skills.nix
     ./ai-claude.nix
     ./ai-codex.nix
+    ./ai-pi.nix
   ];
 
   # Development packages

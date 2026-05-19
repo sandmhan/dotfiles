@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git"
+  short_description: "Git workflows, history rewriting, and recovery"
+  default_prompt: "Use $git to help me with [branching/rebasing/resolving conflicts/etc.]."

@@ -1,0 +1,64 @@
+---
+name: your-skill-name
+description: >
+  Brief, comprehensive description of what the skill does and when to use it.
+  Include trigger phrases and concrete use cases.
+  Start with action verbs: "Guide for...", "Help with...", "Automate..."
+  Aim for 10-14 lines covering all "when to trigger" scenarios.
+---
+
+# Your Skill Name
+
+Short intro paragraph explaining what this skill enables the agent to do.
+
+## Intent Router
+
+| Request | Reference | Load When |
+|---|---|---|
+| Common workflows | `references/workflows.md` | User asks for multi-step task or "how do I..." |
+| Command reference | `references/command-reference.md` | User needs quick command lookup |
+| Troubleshooting | `references/troubleshooting.md` | Errors occur or tool misbehaves |
+
+## Quick Reference
+
+The 80% case inline — most common commands/patterns the agent will use without needing refs.
+
+### Example Pattern
+```bash
+# Brief example with explanation
+command --flag "value"
+```
+
+## Workflow Patterns
+
+Step-by-step sequences for common multi-step tasks.
+
+### Pattern 1: Basic Task
+1. Step one
+2. Step two
+3. Verify result
+
+## Safety Rules
+
+| Operation | Guardrail | Example |
+|---|---|---|
+| Destructive | Always confirm before executing | `--force`, `delete`, `rm` |
+| Write-heavy | Log output before applying | `--apply`, `--commit` |
+
+## Platform Notes
+
+### Windows / PowerShell
+Notes specific to Windows execution.
+
+### Linux / macOS
+Notes specific to Unix-like systems.
+
+## Scripts
+
+- `scripts/probe.sh` — Verify tool availability and emit diagnostics
+- `scripts/workflow.sh` — [description of what it automates]
+
+## References
+
+- Load `references/command-reference.md` for comprehensive command documentation
+- Load `references/troubleshooting.md` for error recovery and edge cases

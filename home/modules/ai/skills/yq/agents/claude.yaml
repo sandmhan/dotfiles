@@ -1,0 +1,4 @@
+interface:
+  display_name: "yq"
+  short_description: "Process YAML, XML, and TOML with jq-like filters"
+  default_prompt: "Use $yq when processing, filtering, converting, or editing YAML, XML, and TOML files with jq-style syntax."

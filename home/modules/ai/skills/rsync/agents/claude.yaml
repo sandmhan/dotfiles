@@ -1,0 +1,4 @@
+interface:
+  display_name: "rsync"
+  short_description: "Efficient file sync locally or over SSH; always dry-run first."
+  default_prompt: "Use $rsync to synchronise a file or directory tree, starting with a dry-run to preview changes."

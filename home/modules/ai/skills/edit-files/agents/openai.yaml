@@ -1,0 +1,4 @@
+interface:
+  display_name: "edit-files"
+  short_description: "Safe file editing with planning, patches, and verification"
+  default_prompt: "Use $edit-files to plan and apply safe file edits, preferring jq for JSON and yq for YAML-family data when appropriate."

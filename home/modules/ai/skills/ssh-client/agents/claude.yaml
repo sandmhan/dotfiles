@@ -1,0 +1,4 @@
+interface:
+  display_name: "ssh Client"
+  short_description: "Strict host verification and SSH diagnostics"
+  default_prompt: "Use $ssh-client-command to add known_hosts entries and run strict SSH connectivity checks before Git-over-SSH operations."

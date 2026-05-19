@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test-Driven Development"
+  short_description: "Red-green-refactor testing workflow"
+  default_prompt: "Use $test-driven-development to plan and implement this change with failing tests first."

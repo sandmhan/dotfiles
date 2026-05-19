@@ -1,0 +1,4 @@
+interface:
+  display_name: "openssl"
+  short_description: "Cryptographic operations for certificates and TLS"
+  default_prompt: "Use $openssl to perform certificate inspection, key management, hashing, and TLS diagnostics with explicit algorithms."

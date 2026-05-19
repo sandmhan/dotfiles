@@ -1,0 +1,4 @@
+interface:
+  display_name: "openssl Command"
+  short_description: "Safe, reproducible workflows for openssl"
+  default_prompt: "Use $openssl-command to plan and run reliable openssl commands for this task."

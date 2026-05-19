@@ -1,0 +1,4 @@
+interface:
+  display_name: "curl"
+  short_description: "HTTP requests, downloads, uploads, and API inspection."
+  default_prompt: "Use $curl to craft a safe curl command for an API request, download, upload, or HTTP troubleshooting flow."

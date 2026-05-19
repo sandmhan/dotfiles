@@ -1,0 +1,4 @@
+interface:
+  display_name: "jq Command"
+  short_description: "Safe, reproducible workflows for jq"
+  default_prompt: "Use $jq-command to plan and run reliable jq commands for this task."

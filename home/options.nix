@@ -37,6 +37,7 @@ in
       enableAISkills = mkEnableOption "shared AI skills and rules content";
       enableClaudeCode = mkEnableOption "Claude Code configuration";
       enableCodex = mkEnableOption "OpenAI Codex CLI configuration";
+      enablePi = mkEnableOption "pi coding agent configuration";
 
       # Development features
       enableNixvim = mkEnableOption "Nixvim/Neovim configuration";
@@ -92,8 +93,11 @@ in
     };
   };
 
-  # Auto-derive enableAISkills when any AI tool is enabled
-  config.myHome.features.enableAISkills = lib.mkDefault (
+  # Auto-derive shared AI skill content and pi integration when any AI tool is enabled
+  config.myHome.features.enablePi = lib.mkDefault (
     cfg.features.enableClaudeCode || cfg.features.enableCodex
+  );
+  config.myHome.features.enableAISkills = lib.mkDefault (
+    cfg.features.enableClaudeCode || cfg.features.enableCodex || cfg.features.enablePi
   );
 }

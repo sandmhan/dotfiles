@@ -1,0 +1,4 @@
+interface:
+  display_name: "rg Command"
+  short_description: "Safe, reproducible workflows for rg"
+  default_prompt: "Use $rg-command to plan and run reliable rg commands for this task."
