@@ -2,6 +2,8 @@
 
 This directory contains all configuration files for managing both **NixOS** systems and **Home Manager** environments using a unified **flake-based** setup with a modern **option-based configuration system**.
 
+Start at the [documentation hub](./docs/index.md) for architecture, ADRs, plans, operations, audits, and tickets.
+
 ## 🚀 Quick Start
 
 **New to this configuration?**
@@ -47,7 +49,7 @@ Option 2: **Manual Setup** - Use the profile-specific commands below and see [ho
 │   ├── forgejo.nix, media.nix, nas.nix, tailscale.nix
 │   ├── frigate.nix, llama.nix, matrix.nix, monitoring.nix
 │   └── manga/                   # Manga stack modules
-├── docs/                        # Operational documentation
+├── docs/                        # Documentation hub (architecture, ADRs, plans, operations)
 ├── themes/                      # Stylix/base16 themes
 ├── Makefile                     # Build shortcuts
 └── ...                          # Other files

@@ -63,7 +63,7 @@ Current mode: homelab-readonly. Infrastructure mutation tools are disabled.
 Example of context to avoid in the base prompt:
 
 ```text
-For Proxmox, read docs/infrastructure-registry.md, docs/vm-deployment-lessons.md, and docs/rca/... before running qm commands.
+For Proxmox, read docs/architecture/infrastructure-registry.md, docs/operations/runbooks/vm-deployment-lessons.md, and docs/rca/... before running qm commands.
 ```
 
 The latter belongs in a homelab extension, skill, or project-local instructions.

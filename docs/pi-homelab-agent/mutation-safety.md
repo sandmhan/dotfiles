@@ -100,7 +100,7 @@ These rules encode prior incident lessons for the Dell node and should be enforc
 A safe deployment tool should require this sequence:
 
 1. Confirm host exists in `flake.nix`.
-2. Confirm target host/IP/user match `docs/infrastructure-registry.md` or ask for override.
+2. Confirm target host/IP/user match `docs/architecture/infrastructure-registry.md` or ask for override.
 3. Run eval or dry-build.
 4. Show deployment command.
 5. Ask for confirmation.

@@ -115,7 +115,7 @@ What is being built, why, and how it fits into the existing infrastructure.
 - [ ] Deployed to target
 - [ ] Health checks pass
 - [ ] Monitoring confirmed (node exporter, service metrics)
-- [ ] docs/infrastructure-registry.md updated
+- [ ] docs/architecture/infrastructure-registry.md updated
 - [ ] Committed with descriptive message
 ```
 
@@ -123,7 +123,7 @@ Update this document as implementation progresses. Check off milestones as they 
 
 ### Infrastructure Registry
 
-Maintain `docs/infrastructure-registry.md` as the single source of truth for deployed infrastructure. **Every time a host is created, modified, or decommissioned, this file must be updated in the same commit.**
+Maintain `docs/architecture/infrastructure-registry.md` as the single source of truth for deployed infrastructure. **Every time a host is created, modified, or decommissioned, this file must be updated in the same commit.**
 
 The registry must contain for each host:
 
@@ -147,10 +147,10 @@ The registry must contain for each host:
 The `docs/` directory is the operational knowledge base. It is not optional or aspirational — it must reflect the actual state of the infrastructure at all times.
 
 Rules:
-- **New host deployed** → update `docs/infrastructure-registry.md` in the same commit
+- **New host deployed** → update `docs/architecture/infrastructure-registry.md` in the same commit
 - **Service configuration changed** → update the relevant working doc
-- **Lessons learned during deployment** → append to `docs/vm-deployment-lessons.md`
-- **Roadmap item completed** → update `docs/homelab-roadmap.md` status table and check off in the relevant working doc
+- **Lessons learned during deployment** → append to `docs/operations/runbooks/vm-deployment-lessons.md`
+- **Roadmap item completed** → update `docs/plans/homelab-roadmap.md` status table and check off in the relevant working doc
 - **Design decision made** → record the decision and rationale in the working doc, not in a comment or commit message alone
 
 ## Git & Source Control
@@ -195,8 +195,8 @@ Rules:
 
 ### After Completing Work
 1. Verify all checklist items in the working doc are checked
-2. Confirm `docs/infrastructure-registry.md` is current
-3. Confirm `docs/homelab-roadmap.md` status table reflects completed work
+2. Confirm `docs/architecture/infrastructure-registry.md` is current
+3. Confirm `docs/plans/homelab-roadmap.md` status table reflects completed work
 4. Run a final `nix flake check` if flake outputs changed
 5. Ensure all changes are committed with clear messages
 

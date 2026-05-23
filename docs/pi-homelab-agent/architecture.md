@@ -23,7 +23,7 @@ Global tools should avoid assuming this specific homelab layout unless the curre
 These should be project-local because they depend on this repo's structure:
 
 - Parsing `flake.nix` host definitions.
-- Reading `docs/infrastructure-registry.md` as source-of-truth metadata.
+- Reading `docs/architecture/infrastructure-registry.md` as source-of-truth metadata.
 - Understanding `hosts/*`, `systemModules/*`, and `home/modules/*` conventions.
 - Mapping services to VM/CT IDs, IPs, SSH users, deployment status, ports, and docs.
 - Proxmox-specific safety policy for the Dell node.
