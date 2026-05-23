@@ -1,5 +1,7 @@
 # Agent VM Implementation - Change Log
 
+> **Status:** historical implementation log. The canonical registry now lists `agent-sandbox` as deployed on Proxmox at VM ID 105 / `10.0.0.5`.
+
 ## Overview
 Complete implementation of an autonomous agent sandbox VM for safe Claude Code operation with `--dangerously-accept-permissions`. The VM provides an isolated environment for homelab infrastructure development using declarative Nix configuration.
 
@@ -46,11 +48,11 @@ Complete implementation of an autonomous agent sandbox VM for safe Claude Code o
 **`hosts/agent/image.nix`**
 - Proxmox VMA image configuration
 - Cloud-init integration for initial setup
-- Optimized build settings (4 cores, 8GB RAM, 40GB disk)
+- Optimized build settings (4 cores, 8GB RAM, 50GB disk)
 - Minimal package set for reduced image size
 - Auto-cleanup and optimization
 
-### 2. Declarative Claude Code Integration (`homeModules/claude-agent.nix`)
+### 2. Declarative Claude Code Integration (`home/modules/ai-agent.nix`)
 
 **Auto-Installation System**
 - Claude Code installer via Home Manager activation
@@ -108,6 +110,9 @@ Complete implementation of an autonomous agent sandbox VM for safe Claude Code o
 ### 4. Deployment Automation (`scripts/deploy-agent-vm.sh`)
 
 **Complete Lifecycle Management**
+
+These helper commands document the original deployment workflow and remain useful for redeployments, but current deployed status should be checked against `docs/infrastructure-registry.md` first.
+
 - `deploy` - Build VMA image and deploy to Proxmox
 - `start/stop` - VM lifecycle control
 - `status` - Health checking and IP discovery

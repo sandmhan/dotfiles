@@ -36,18 +36,17 @@
 | Server base template | Done | `hosts/server/` | Reusable for all VMs |
 | Agent sandbox VM | **Deployed** | `hosts/agent/` | VM ID 105, 10.0.0.5 |
 | NixOS Builder VM | **Deployed** | `hosts/nixos-builder/` | VM ID 200, autonomous builds |
-| llama.cpp module | Complete | `systemModules/llama.nix` | Needs real GPU PCI IDs |
+| llama.cpp module | Complete | `systemModules/llama.nix` | Deployed via `hosts/llama/`; needs real GPU PCI IDs for passthrough |
 | Matrix Synapse | Complete | `systemModules/matrix.nix` | Needs DNS + ACME |
 | Frigate | Partial | `systemModules/frigate.nix` | Hardcoded cameras, no AI detector |
-| Jellyfin | Stub | `systemModules/jellyfin.nix` | Just `enable = true` |
-| sops-nix | Partial | `feat/sops` branch | Initial integration, needs secrets populated |
-| Remote access | In development | `systemModules/tailscale.nix` | Pivoted to Tailscale (WireGuard module retained, not deployed) |
-| Monitoring | In development | — | systemModules/monitoring.nix (Prometheus + Grafana) |
-| NAS/backup | In development | — | systemModules/nas.nix (NFS/Samba) |
-| Media stack (*arr) | Not started | — | nixflix integration planned |
-| Fitness tracking | Not started | — | wger (OCI container) |
-| Git server | In development | — | systemModules/forgejo.nix |
-| Remote gaming | HM modules exist | `homeModules/sunshine.nix` | Not a server VM yet |
+| Media stack (*arr) | Implemented | `systemModules/media.nix` | Jellyfin + *arr stack host exists at `hosts/media/` |
+| sops-nix | Partial | `.sops.yaml` | Initial integration, some service secrets still planned |
+| Remote access | Deployed | `systemModules/tailscale.nix` / `hosts/vpn/` | Tailscale router is current remote access; WireGuard retained/planned |
+| Monitoring | Implemented | `systemModules/monitoring.nix` | Prometheus + Grafana; LXC monitor deployed |
+| NAS/backup | Implemented | `systemModules/nas.nix` | NFS/Samba host and LXC configs exist |
+| Fitness tracking | Deployed | `systemModules/wger.nix` / `hosts/fitness/` | wger OCI stack on VM ID 106 |
+| Git server | Implemented | `systemModules/forgejo.nix` / `hosts/git/` | Forgejo host and LXC configs exist |
+| Remote gaming | Implemented | `systemModules/sunshine-server.nix`, `home/modules/sunshine.nix` | Gaming VM config exists; deployment depends on GPU passthrough |
 
 ---
 
@@ -95,24 +94,24 @@ Given limited hardware resources (especially on the Dell node), we should consid
 - **Gaming PC**: Use VMs for GPU workloads, LXCs for support services
 - **GPU Efficiency**: Multiple LXCs can share GPU for light inference tasks
 
-### LXC Scaffolding Requirements
+### LXC Scaffolding Status
 
-To implement this strategy, we need parallel infrastructure:
+The repository now includes LXC infrastructure under normal `nixosConfigurations` outputs rather than a separate LXC-specific attrset:
 
 ```
 hosts/
-├── lxc-base/              # Base LXC configuration (equivalent to server/)
+├── lxc-base/              # Base LXC image/configuration
 │   ├── default.nix        # Common LXC settings, networking, SSH
-│   ├── networking.nix     # DHCP, systemd-networkd for containers
-│   └── monitoring.nix     # Prometheus node exporter
+│   └── image.nix          # Proxmox LXC tarball build
 ├── lxc-matrix/            # Matrix in LXC
 ├── lxc-git/               # Forgejo in LXC
 ├── lxc-monitor/           # Monitoring stack in LXC
+├── lxc-homeassistant/     # Home Assistant in LXC
 └── lxc-nas/               # NAS services in LXC
 
-flake.nix additions:
-- lxcConfigurations = { ... }  # Parallel to nixosConfigurations
-- LXC build targets for proxmox-lxc module
+flake.nix outputs:
+- `nixosConfigurations.initialLXC.config.system.build.tarball` builds the base LXC image
+- `nixosConfigurations.lxc-*` entries define the service containers
 ```
 
 **Implementation Notes:**
@@ -157,13 +156,15 @@ This frees up **50% more resources** for additional services or the Gaming PC tr
 |----|----|-------|-----|-----|------|-------|
 | **ai** | 102 | 6 | 14GB | RTX 3060 (passthrough) | 60GB | 3 |
 | **media** | 103 | 4 | 8GB | 1080 Ti (transcode) | 80GB + NAS mount | 3 |
-| **nvr** | 105 | 2 | 4GB | — (uses ai API for detection) | 30GB + NAS mount | 3 |
+| **nvr** | TBD — avoid 105 | 2 | 4GB | — (uses ai API for detection) | 30GB + NAS mount | 3 |
 | **fitness** | 107 | 1 | 1GB | — | 20GB | 3 |
 | **gaming** | 108 | 6 | 12GB | 1080 Ti or 3060 | 200GB | 4 |
 | **agent-sandbox** | 105 | 4 | 8GB | — | 24GB | Done |
 | **nixos-builder** | 200 | 6 | 12GB | — | 100GB | 1 |
 
-> Note: VMs that need GPU passthrough can only run on the Gaming PC node. Lightweight services run on the Dell now and can be migrated later.
+> Note: VM IDs in this roadmap are planning notes. Use `docs/infrastructure-registry.md` plus live Proxmox `qm list` output as the canonical source before creating or restoring VMs. VM ID 105 is already assigned to `agent-sandbox`; planned NVR deployment must choose a different ID.
+>
+> VMs that need GPU passthrough can only run on the Gaming PC node. Lightweight services run on the Dell now and can be migrated later.
 
 ---
 
@@ -348,7 +349,7 @@ The `feat/sops` branch has initial sops-nix integration. Plan:
 
 ## Implementation Phases
 
-> **Note**: Each phase can be implemented with **VMs** (current approach) or **LXC containers** (resource-efficient alternative). LXC requires developing parallel scaffolding (`hosts/lxc-base/`, `lxcConfigurations` in flake.nix) but offers 50% better resource utilization.
+> **Note**: Each phase can be implemented with **VMs** (current approach) or **LXC containers** (resource-efficient alternative). LXC scaffolding already exists under `hosts/lxc-*` and `nixosConfigurations.lxc-*`, with `initialLXC` producing the base tarball.
 
 ### Phase 1 — Foundation & Observability (Dell node, build configs now, selective deployment)
 
@@ -576,7 +577,7 @@ services.forgejo = {
 
 These all need significant CPU/RAM/GPU and wait for the Gaming PC to become a Proxmox node.
 
-#### 3a. Local AI Server (`hosts/ai/`, extend `systemModules/llama.nix`)
+#### 3a. Local AI Server (`hosts/llama/`, extend `systemModules/llama.nix`)
 
 **GPU**: RTX 3060 (12GB VRAM) via PCI passthrough
 
@@ -664,7 +665,7 @@ nixflix = {
 - Most complex setup — needs full GPU passthrough, virtual display, PulseAudio/PipeWire
 - GPU: 3060 or 1080 Ti (dedicated, not shared with AI)
 - Sunshine server with Moonlight clients on Framework laptop, phones
-- Existing `homeModules/sunshine.nix` is user-level — needs a system-level module for headless VM
+- `home/modules/sunshine.nix` is the user-level desktop module; `systemModules/sunshine-server.nix` provides the headless VM service
 - May require Looking Glass for local+remote simultaneous use
 - **Recommendation**: Tackle last, after all other services are stable
 
@@ -678,7 +679,7 @@ hosts/
 ├── nas/default.nix            # NFS + Samba + backups (VM)
 ├── matrix/default.nix         # Wrapper around systemModules/matrix.nix (VM)
 ├── git/default.nix            # Forgejo (VM)
-├── ai/default.nix             # GPU passthrough + multi-service AI (VM)
+├── llama/default.nix          # GPU passthrough + local AI inference (VM)
 ├── media/default.nix          # nixflix media stack (VM)
 ├── fitness/default.nix        # wger + supporting services (VM)
 ├── gaming/default.nix         # Sunshine remote gaming (VM)

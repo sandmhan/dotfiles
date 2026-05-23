@@ -145,7 +145,7 @@ Edit `/hosts/llama/default.nix` to customize:
 
 Example configuration:
 ```nix
-services.llama-cpp = {
+homelab.llama = {
   enable = true;
   host = "0.0.0.0";
   port = 8080;

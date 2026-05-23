@@ -38,7 +38,7 @@ nixos-rebuild switch --target-host sandmhan@<host> --flake .#<config> --sudo
 - **Inputs**: nixpkgs (unstable), nixos-hardware, home-manager, stylix (theming), nvf (Neovim)
 - **Helpers**: `mkNixosSystem` (VM configs), `mkHomeConfiguration` (HM configs)
 - **Settings**: `baseUserSettings`, `linuxUserSettings`, `macUserSettings` define shared config; `systemSettings` for NixOS-specific options
-- **Theme resolution**: Reads `~/.config/active-theme` at eval time for hot-swap, falls back to `gruvbox-dark-hard`
+- **Theme resolution**: Build-time default is statically set to `gruvbox-dark-hard`; `theme-switch` writes `~/.config/active-theme` and triggers Home Manager activation for runtime changes
 - **specialArgs**: User and system settings are passed to modules via `specialArgs`/`extraSpecialArgs`
 
 ### NixOS Configurations
@@ -48,8 +48,19 @@ nixos-rebuild switch --target-host sandmhan@<host> --flake .#<config> --sudo
 - `nvr` — Network Video Recorder VM (Frigate)
 - `llama` — LLM inference server VM
 - `matrix` — Matrix homeserver VM
+- `git` — Forgejo Git server
+- `fitness` — wger fitness tracking
+- `homeassistant` — Home Assistant smart-home automation
+- `media` — Jellyfin + *arr media stack
+- `vpn` — Tailscale subnet router
+- `monitor` — Prometheus + Grafana monitoring stack
+- `nas` — NFS/Samba storage services
+- `nixos-builder` — Dedicated NixOS builder VM
 - `agent-sandbox` — Autonomous agent development VM
-- `agentVMA` — Agent VM Proxmox image
+- `agentVMA` — Agent VM Proxmox image (50GB disk)
+- `gaming` — Sunshine remote gaming VM
+- `initialLXC` — Proxmox LXC base tarball
+- `lxc-matrix`, `lxc-monitor`, `lxc-git`, `lxc-homeassistant`, `lxc-nas` — LXC service containers
 
 ### Home Manager Configurations
 - `sandmhan` — Linux desktop with full GUI environment (x86_64-linux) — **daily driver**
@@ -93,9 +104,13 @@ hosts/
 ├── server/            # Base template for Proxmox VMs
 ├── agent/             # Agent sandbox VM
 ├── llama/             # LLM inference VM
+├── media/, git/, vpn/ # Homelab service VMs
+├── lxc-*/             # LXC service containers
 └── nvr/               # Network video recorder VM
 
-systemModules/         # NixOS system services (frigate, jellyfin, matrix, llama)
+systemModules/         # NixOS services: forgejo, frigate, homeassistant, jellyfin,
+                       # llama, manga, matrix(+agent bridge), media, monitoring,
+                       # nas, sops, sunshine-server, tailscale, wger, wireguard
 themes/                # 58 curated base16 color schemes with polarity metadata
 docs/                  # Documentation
 ```

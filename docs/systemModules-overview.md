@@ -8,19 +8,28 @@ The `systemModules/` directory contains reusable NixOS service configurations th
 
 | Module | Status | Description | Documentation |
 |--------|--------|-------------|---------------|
-| **wireguard.nix** | ✅ Complete | VPN server for secure remote access | [WireGuard Setup](./wireguard-client-configs.md) |
-| **monitoring.nix** | ✅ Complete | Prometheus + Grafana observability stack | [Monitoring Setup](./monitoring-setup.md) |
+| **forgejo.nix** | ✅ Complete | Forgejo Git server with PostgreSQL and metrics | [Forgejo Setup](./forgejo-setup.md) |
 | **frigate.nix** | ✅ Complete | Network Video Recorder with AI detection | [Frigate NVR Setup](./frigate-nvr-setup.md) |
+| **homeassistant.nix** | ✅ Complete | Home Assistant + MQTT stack | [Home Assistant Setup](./homeassistant-setup.md) |
+| **jellyfin.nix** | 🚧 Legacy/basic | Minimal Jellyfin-only module; broader media stack is `media.nix` | *Prefer `media.nix` for new deployments* |
 | **llama.nix** | ✅ Complete | Local AI inference server (llama.cpp) | [AI Server Setup](./llama-ai-server-setup.md) |
+| **manga/default.nix** | ✅ Complete | Manga stack wrapper for Komga, Suwayomi, and monitoring | [Manga Setup](./manga-setup.md) |
 | **matrix.nix** | ✅ Complete | Matrix homeserver (Synapse + Coturn) | [Matrix Setup](../SOPS-SETUP.md#matrix-configuration) |
+| **matrix-agent-bridge.nix** | ✅ Complete | Matrix webhook bridge for agent control | [Agent Bridge Setup](./matrix-agent-bridge-setup.md) |
+| **media.nix** | ✅ Complete | Jellyfin + Sonarr/Radarr/Prowlarr/qBittorrent/SABnzbd stack | *See infrastructure registry* |
+| **monitoring.nix** | ✅ Complete | Prometheus + Grafana observability stack | [Monitoring Setup](./monitoring-setup.md) |
+| **nas.nix** | ✅ Complete | NFS/Samba NAS services | *See infrastructure registry* |
 | **sops.nix** | ✅ Complete | Encrypted secrets management | [SOPS Setup](./sops-secrets-setup.md) |
-| **jellyfin.nix** | 🚧 Stub | Media server (basic configuration) | *Needs expansion* |
+| **sunshine-server.nix** | ✅ Complete | Headless Sunshine game-streaming server | [Gaming Setup](./gaming-setup.md) |
+| **tailscale.nix** | ✅ Complete | Tailscale subnet router for current remote access | *See infrastructure registry* |
+| **wger.nix** | ✅ Complete | wger fitness tracking OCI stack | [Fitness Setup](./fitness-setup.md) |
+| **wireguard.nix** | ✅ Retained/planned | WireGuard VPN module; not the currently deployed remote-access path | [WireGuard Setup](./wireguard-client-configs.md) |
 
 ## Module Architecture
 
 ### Common Patterns
 
-All systemModules follow these conventions:
+Most systemModules follow these conventions. A few older modules are exceptions: `matrix.nix` and `jellyfin.nix` do not expose the same `homelab.<service>` option shape as the newer modules.
 
 ```nix
 # Standard module structure

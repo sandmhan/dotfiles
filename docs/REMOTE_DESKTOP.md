@@ -1,18 +1,18 @@
 # Remote Desktop Modules
 
-This directory contains standalone modules for Moonlight/Sunshine remote desktop streaming.
+This document covers the Home Manager Moonlight/Sunshine feature modules. They are part of this repository's option-based Home Manager stack, not standalone modules intended for direct import into arbitrary Home Manager configs.
 
 ## Modules
 
 ### `moonlight.nix` - Client Module
 - **Package**: `moonlight-qt`
 - **Description**: Game streaming client for connecting to Sunshine or NVIDIA GameStream servers
-- **Usage**: Import this module on devices you want to stream TO (your home laptop)
+- **Usage**: Enable with `myHome.features.enableMoonlight` on devices you want to stream TO (your home laptop)
 
 ### `sunshine.nix` - Server Module
 - **Package**: `sunshine`
 - **Description**: Game streaming server that hosts applications for remote access
-- **Usage**: Import this module on devices you want to stream FROM (your work machine)
+- **Usage**: Enable with `myHome.features.enableSunshine` on devices you want to stream FROM (your work machine)
 - **Features**:
   - Systemd user service (auto-starts with user session)
   - Web UI at https://localhost:47990
@@ -33,27 +33,9 @@ myHome.features = {
 
 **Platform Support**: Both modules work on Linux and macOS with automatic platform detection.
 
-### For Direct Import (Legacy Style)
+### Import Requirements
 
-Import directly in your Home Manager configuration:
-
-```nix
-# For client machine (home laptop)
-imports = [
-  ./homeModules/moonlight.nix
-];
-
-# For server machine (work setup)
-imports = [
-  ./homeModules/sunshine.nix
-];
-
-# For both (if you want bidirectional streaming)
-imports = [
-  ./homeModules/moonlight.nix
-  ./homeModules/sunshine.nix
-];
-```
+`home/modules/moonlight.nix` and `home/modules/sunshine.nix` read `config.myHome.*` options. They should be imported through a profile that also imports `home/options.nix` and sets the relevant `myHome.features` flags. The repository's standard profiles already provide that wiring; if you create a custom profile, import an existing profile such as `home/profiles/desktop.nix` or include the same option definitions before enabling these features.
 
 ## Setup Notes
 

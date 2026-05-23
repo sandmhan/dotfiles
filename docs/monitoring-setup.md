@@ -111,8 +111,11 @@ node-exporters:
   - 10.0.0.167:9100    # fitness (wger VM)
   - localhost:9100      # monitoring host itself
 
-homelab-services:
+matrix-services:
   - 10.0.0.6:8008      # Matrix Synapse metrics endpoint
+
+# Matrix also has an additionalScrapeConfigs job named matrix-synapse
+# with metrics_path = /_synapse/metrics.
 
 wger-app:                               # django-prometheus (30s interval)
   - 10.0.0.167:8000                     # path: /prometheus/metrics
@@ -136,8 +139,12 @@ homelab.monitoring.prometheus.staticTargets = {
     "10.0.0.TBD:9100"  # New service host (assign IP when deployed)
   ];
   
+  "matrix-services" = [
+    "10.0.0.6:8008"  # Matrix Synapse metrics endpoint
+  ];
+
   "homelab-services" = [
-    # ... existing targets  
+    # Non-Matrix service metrics endpoints go here after deployment.
     "10.0.0.TBD:8080"  # New service metrics endpoint (assign IP when deployed)
   ];
 };

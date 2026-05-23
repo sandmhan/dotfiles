@@ -151,7 +151,7 @@ If a lookup fails:
 If you want hostname resolution to work even when pfSense is unreachable (e.g., during network maintenance), add a local fallback in your NixOS config for Gaia:
 
 ```nix
-# hosts/gaia/configuration.nix (or networking section)
+# hosts/gaia/default.nix (or an imported networking module)
 networking.extraHosts = ''
   10.0.0.4    proxmox.homelab.local proxmox
   10.0.0.5    agent-sandbox.homelab.local agent-sandbox

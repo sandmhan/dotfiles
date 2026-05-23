@@ -162,6 +162,25 @@ sops updatekeys secrets/*/secrets.yaml
 
 Create and encrypt secrets for each service:
 
+#### Service Creation Rule Checklist
+
+Before adding or rotating a service secret file, make sure `.sops.yaml` has a matching `creation_rules` entry for that path. `systemModules/sops.nix` currently routes these hostnames to service-specific files, so the SOPS creation rules must be added before deployment:
+
+- [ ] Forgejo: `secrets/forgejo/secrets.yaml` (`git`, `lxc-git`)
+- [ ] Home Assistant: `secrets/homeassistant/secrets.yaml` (`homeassistant`, `lxc-homeassistant`)
+- [ ] Media: `secrets/media/secrets.yaml` (`media`)
+- [ ] Gaming: `secrets/gaming/secrets.yaml` (`gaming`)
+- [ ] Manga: `secrets/manga/secrets.yaml` (`manga`; create the file only when the host/output exists)
+
+After adding a rule or recipient, update encryption metadata:
+
+```bash
+sops updatekeys secrets/<service>/secrets.yaml
+```
+
+Do not commit decrypted secret contents. This docs-only checklist intentionally does not modify `.sops.yaml`.
+
+
 #### Matrix Secrets
 ```bash
 # Create unencrypted matrix secrets

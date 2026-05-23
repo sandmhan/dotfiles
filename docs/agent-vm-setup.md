@@ -1,19 +1,24 @@
 # Agent VM Setup Guide
 
+> **Status:** `agent-sandbox` is deployed according to `docs/infrastructure-registry.md` (VM ID 105, `10.0.0.5`). Some commands below are historical/local deployment helpers and may need adjustment before reuse.
+
 ## Overview
 
-The Agent VM is an autonomous sandbox environment where Claude Code can operate with `--dangerously-accept-permissions` to develop, test, and deploy homelab infrastructure safely. This guide covers the complete setup process from building the VM to running autonomous tasks.
+The Agent VM is an autonomous sandbox environment where Claude Code can operate with `--dangerously-accept-permissions` to develop, test, and deploy homelab infrastructure safely. This guide covers setup and operations for the deployed VM plus historical build/deploy workflows.
 
 ## Quick Start
 
-### 1. Deploy the Agent VM
+### 1. Verify or Redeploy the Agent VM
+
+The canonical deployed endpoint is `agent@10.0.0.5`.
 
 ```bash
-# Build and deploy the VM to Proxmox
-./scripts/deploy-agent-vm.sh deploy
+# Check current deployed VM status
+ssh agent@10.0.0.5 'hostname && uptime'
 
-# Check status and get IP address
+# Historical helper for rebuilding/redeploying if needed
 ./scripts/deploy-agent-vm.sh status
+./scripts/deploy-agent-vm.sh deploy
 ```
 
 ### 2. Set Up SSH Access
@@ -233,7 +238,7 @@ graph TD
     C --> D[Test VM deployment]
     D --> E{Tests pass?}
     E -->|No| A
-    E -->|Yes| F[Production deployment]
+    E -->|Yes| F[Deploy/update target host]
     F --> G[Monitoring & validation]
 ```
 

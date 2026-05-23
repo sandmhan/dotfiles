@@ -42,8 +42,8 @@ The Local AI Server provides self-hosted large language model (LLM) inference us
 ### Basic Configuration
 
 ```nix
-# In hosts/ai/default.nix
-services.llama-cpp = {
+# In hosts/llama/default.nix
+homelab.llama = {
   enable = true;
   host = "0.0.0.0";        # Allow external access
   port = 8080;             # API port
@@ -68,7 +68,7 @@ services.llama-cpp = {
 
 #### CPU Optimization
 ```nix
-services.llama-cpp = {
+homelab.llama = {
   acceleration = "cpu";
   extraArgs = [
     "--threads" "16"        # Use all CPU cores
@@ -81,7 +81,7 @@ services.llama-cpp = {
 
 #### NVIDIA GPU (CUDA)
 ```nix
-services.llama-cpp = {
+homelab.llama = {
   acceleration = "cuda";
   extraArgs = [
     "--n-gpu-layers" "999"  # Offload all layers to GPU
@@ -101,7 +101,7 @@ systemd.tmpfiles.rules = [
 
 #### AMD GPU (OpenCL)
 ```nix
-services.llama-cpp = {
+homelab.llama = {
   acceleration = "opencl";
   extraArgs = [
     "--opencl-gpu" "0"      # Select GPU device
@@ -173,7 +173,7 @@ wget https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/P
    qm set 102 --scsi1 local-zfs:100,size=100G
    
    qm start 102
-   nixos-rebuild switch --target-host sandmhan@[AI_IP] --flake .#ai --sudo
+   nixos-rebuild switch --target-host sandmhan@[AI_IP] --flake .#llama --sudo
    ```
 
 2. **Download Initial Models**:
@@ -348,7 +348,7 @@ ask_ai() {
 ### Memory Optimization
 
 ```nix
-services.llama-cpp = {
+homelab.llama = {
   extraArgs = [
     # Memory management
     "--mmap"               # Memory-map model files
@@ -376,7 +376,7 @@ services.llama-cpp = {
 
 ```nix
 # For NVIDIA GPUs
-services.llama-cpp = {
+homelab.llama = {
   acceleration = "cuda";
   extraArgs = [
     "--n-gpu-layers" "999"     # Offload all layers
@@ -435,7 +435,7 @@ curl http://ai-host:8080/v1/models | jq
 # Switch models (requires restart)
 sudo systemctl stop llama-cpp
 # Update configuration with new defaultModel
-nixos-rebuild switch --flake .#ai
+nixos-rebuild switch --flake .#llama
 sudo systemctl start llama-cpp
 
 # Check model loading time
@@ -605,7 +605,7 @@ df -h /var/lib/llama-cpp
 
 ```nix
 # Enable verbose logging
-services.llama-cpp.extraArgs = [
+homelab.llama.extraArgs = [
   "--verbose"
   "--log-format" "json"
 ];

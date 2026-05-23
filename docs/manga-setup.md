@@ -132,7 +132,7 @@ All steps below must be completed before the manga stack is operational. Items a
   - Uncomment the manga node-exporter line in `staticTargets.node-exporters` and replace `10.0.0.TBD` with the manga VM IP
   - Uncomment the `komga` and `suwayomi` scrape jobs in `additionalScrapeConfigs` and replace `10.0.0.TBD`
   - Uncomment the manga entry in `targetLabels` and replace `10.0.0.TBD`
-- [ ] **Deploy configuration** — `nixos-rebuild switch --target-host sandmhan@<manga-ip> --flake .#manga --sudo`
+- [ ] **Deploy configuration** — `nixos-rebuild switch --target-host sandmhan@<manga-ip> --flake .#<manga-output> --sudo`
 - [ ] **Redeploy monitoring** — Push updated scrape targets to the monitoring host so Prometheus starts scraping the manga VM.
 - [ ] **Verify Komga first-run** — Open `http://<manga-ip>:25600`, create admin account, add a library pointing to `/data`.
 - [ ] **Verify Suwayomi** — Open `http://<manga-ip>:4567`, install desired extensions (MangaDex, etc.).
@@ -196,7 +196,7 @@ manga = mkNixosSystem {
 ### 5. Deploy Configuration
 
 ```bash
-nixos-rebuild switch --target-host sandmhan@<manga-ip> --flake .#manga --sudo
+nixos-rebuild switch --target-host sandmhan@<manga-ip> --flake .#<manga-output> --sudo
 ```
 
 ### 6. Update Monitoring Targets

@@ -1,7 +1,9 @@
 # Agent VM Test Results - Local Validation Complete ✅
 
+> **Status:** historical local-QEMU validation. The canonical registry now lists `agent-sandbox` as deployed on Proxmox at VM ID 105 / `10.0.0.5`.
+
 ## Test Summary
-Successfully built, deployed, and validated the autonomous agent sandbox VM using QEMU for local testing. All core functionality verified and ready for production deployment.
+Successfully built, deployed, and validated the autonomous agent sandbox VM using QEMU for local testing. These results explain the pre-deployment validation that preceded the current Proxmox deployment.
 
 ## Test Environment
 - **Host System**: NixOS with QEMU/KVM
@@ -60,18 +62,17 @@ ssh -o StrictHostKeyChecking=no agent@localhost -p 2222
 pkill -f "qemu.*agent-sandbox"
 ```
 
-### Production Deployment Commands  
+### Deployed VM Commands
 ```bash
-# Deploy to Proxmox
-./scripts/deploy-agent-vm.sh deploy
+# SSH to the deployed Proxmox VM from the registry
+ssh agent@10.0.0.5
 
-# Check status
+# Historical helper commands, if redeployment is required
 ./scripts/deploy-agent-vm.sh status
-
-# SSH to production VM
+./scripts/deploy-agent-vm.sh deploy
 ./scripts/deploy-agent-vm.sh ssh
 
-# Start autonomous development
+# Start autonomous development after connecting
 claude-homelab
 ```
 
@@ -91,13 +92,13 @@ claude-homelab
 4. **Version Control**: Git pre-configured for tracking changes
 5. **Documentation**: Comprehensive guides and change logs created
 
-## Next Steps for Production Use
+## Next Steps for Ongoing Use
 
-### Phase 1: Production Deployment
-1. Deploy VM to Proxmox using deployment script
-2. Verify remote SSH connectivity and port forwarding
-3. Test Claude Code autonomous operation in production environment
-4. Validate network isolation and security boundaries
+### Phase 1: Deployment Verification
+1. Verify the deployed Proxmox VM matches the registry (`agent-sandbox`, VM ID 105, `10.0.0.5`)
+2. Verify remote SSH connectivity
+3. Test Claude Code autonomous operation on the deployed VM
+4. Re-validate network isolation and security boundaries after major config changes
 
 ### Phase 2: Infrastructure Development
 1. Start autonomous development with `claude-homelab`
@@ -122,7 +123,7 @@ claude-homelab
 - ✅ `hosts/agent/image.nix` - VMA image build configuration
 
 ### Claude Code Integration
-- ✅ `homeModules/claude-agent.nix` - Declarative Claude Code setup
+- ✅ `home/modules/ai-agent.nix` - Declarative Claude Code setup
 - ✅ Agent-specific skills and operating guidelines
 - ✅ Workspace and shell integration
 - ✅ Autonomous permissions configuration
@@ -154,7 +155,7 @@ ssh agent@localhost -p 2222 "cd ~/workspace/homelab && claude --help"
 ```
 
 ## Summary
-The autonomous agent sandbox VM is **fully functional and ready for production deployment**. All core components have been tested and validated:
+The autonomous agent sandbox VM was validated locally before Proxmox deployment. The current deployed status is tracked in `docs/infrastructure-registry.md`. All core components tested in this historical validation passed:
 
 - ✅ **Infrastructure**: VM boots, networking isolated, SSH accessible
 - ✅ **Development Environment**: Complete toolchain available and configured  

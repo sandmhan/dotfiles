@@ -21,7 +21,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 ### Access Methods
 - **SSH**: `ssh user@[HOST_IP]` or `ssh user@[HOSTNAME].homelab.local`
 - **Web Services**: `http://[HOST_IP]:[PORT]` or `https://[SERVICE].homelab.local`
-- **VPN Access**: Connect via WireGuard VPN for remote access to all services
+- **VPN Access**: Connect via the deployed Tailscale router for remote access to homelab services; WireGuard remains retained/planned for service-specific use.
 
 ---
 
@@ -42,7 +42,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 |------|--------------|------|---------|---------------|--------|
 | **Base VMA** | `initialProxmoxVMA` | VMA Template | Base image for new VMs | `nixos-rebuild build-image --image-variant proxmox --flake .#initialProxmoxVMA` | `ready` |
 | **Generic VM** | `proxmoxVM` | VM Template | Standard Proxmox VM config | `nixos-rebuild dry-build --flake .#proxmoxVM` | `ready` |
-| **LXC Base** | `lxc-base` | LXC Template | Container base configuration | `nixos-rebuild dry-build --flake .#lxc-monitor` | `ready` |
+| **LXC Base** | `initialLXC` | LXC Template | Container base tarball | `nix build .#nixosConfigurations.initialLXC.config.system.build.tarball` | `ready` |
 
 ### Foundation Services (Dell Node)
 
@@ -81,17 +81,15 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 |---------|----------|-------|--------------|-------|-----|------|-----|-------|------------|
 | **Monitoring** | monitor | 107 | `10.0.0.TBD` | 2 | 4GB | 50GB | — | 3000,9090,9100 | `qmrestore [VMA] 107; qm set 107 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#monitor` |
 | **Git Server** | git | 109 | `10.0.0.TBD` | 2 | 2GB | 30GB | — | 80,443,3022,9187 | `qmrestore [VMA] 109; qm set 109 --cores 2 --memory 2048; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#git` |
-| **WireGuard VPN** | vpn | 106 | `10.0.0.TBD` | 1 | 1GB | 20GB | — | 51820 | `qmrestore [VMA] 106; qm set 106 --cores 1 --memory 1024; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#vpn` |
 | **AI Server** | llama | 108 | `10.0.0.TBD` | 6 | 14GB | 100GB | RTX 3060 | 8080 | `qmrestore [VMA] 108; qm set 108 --cores 6 --memory 14336 --hostpci0 [GPU_ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#llama` |
-| **NVR** | nvr | 105 | `10.0.0.TBD` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] 105; qm set 105 --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#nvr` |
+| **NVR** | nvr | TBD — avoid 105 | `10.0.0.TBD` | 4 | 8GB | 200GB | — | 5000 | `qmrestore [VMA] [ID]; qm set [ID] --cores 4 --memory 8192; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#nvr` |
 | **Home Assistant** | homeassistant | 103 | `10.0.0.TBD` | 2 | 4GB | 50GB | — | 80,8123,1883,1884,9100 | `qmrestore [VMA] 103; qm set 103 --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#homeassistant` |
 | **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | — | 80,8000,9100,9101 | `deployed` — see Foundation Services |
 | **Media (*arr)** | media | TBD | `10.0.0.TBD` | 4 | 8GB | 80GB | 1080 Ti | 8096,8989,7878,9696,8080 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#media` |
-| **NVR (Frigate)** | nvr | TBD | `10.0.0.TBD` | 4 | 8GB | 200GB | — | 5000,1935,8554 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#nvr` |
 | **Gaming (Sunshine)** | gaming | TBD | `10.0.0.TBD` | 6 | 12GB | 200GB | RTX 3060 / 1080 Ti | 47984-47990,47998-48010 | `qmrestore [VMA] [ID]; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#gaming` |
-| **Manga (Komga + Suwayomi)** | manga | TBD | `10.0.0.TBD` | 2 | 4GB | 40GB | — | 80,25600,4567,9100 | `qmrestore [VMA] [ID]; qm set [ID] --cores 2 --memory 4096; nixos-rebuild switch --target-host sandmhan@[IP] --flake .#manga` |
+| **Manga (Komga + Suwayomi)** | module-only/planned | TBD | `10.0.0.TBD` | 2 | 4GB | 40GB | — | 80,25600,4567,9100 | `systemModules/manga/default.nix` exists; no host or flake output yet |
 
-> **NOTE**: All services above are **configuration-only — NOT deployed**. NixOS modules and host configs evaluate cleanly via `nix build --dry-run` but require SOPS secrets setup, DHCP reservations on the `10.0.0.0/24` network, and VM/LXC creation before deployment. See individual setup docs for prerequisites.
+> **NOTE**: Rows marked `deployed` are already live. Planned VM services with host/flake outputs are configuration-ready but still require SOPS secrets setup, DHCP reservations on the `10.0.0.0/24` network, and VM/LXC creation before deployment. Manga is module-only today (`systemModules/manga/default.nix`) and still needs a host and flake output before it can be deployed. See individual setup docs for prerequisites.
 
 ---
 
@@ -111,7 +109,7 @@ nixos-rebuild switch --target-host sandmhan@10.0.0.167 --flake .#fitness --sudo
 
 | Service | Internal URL | External URL (via VPN) | Default Credentials | Documentation |
 |---------|-------------|-------------------------|-------------------|---------------|
-| **Proxmox** | `https://10.0.0.126:8006` | `https://10.0.0.126:8006` | `root` / `[proxmox_password]` | Proxmox docs |
+| **Proxmox** | `https://10.0.0.4:8006` | `https://10.0.0.4:8006` | `root` / `[proxmox_password]` | Proxmox docs |
 | **Matrix** | `http://10.0.0.6:80` | `https://matrix.sandmhan.dev` | Registration required | [Matrix Setup](../SOPS-SETUP.md) |
 | **Grafana** | `http://10.0.0.10:3000` | `http://grafana.homelab.local:3000` | `admin` / `[sops_encrypted]` | [Monitoring Setup](./monitoring-setup.md) |
 | **Prometheus** | `http://10.0.0.10:9090` | `http://prometheus.homelab.local:9090` | No auth | [Monitoring Setup](./monitoring-setup.md) |
@@ -166,7 +164,7 @@ VLAN segmentation is planned once the managed switch is properly integrated with
 | **HTTP** | 80 | 80 | TCP | Web services |
 | **HTTPS** | 443 | 443 | TCP | Secure web services |
 | **Matrix Federation** | 8448 | 8448 | TCP | Matrix server federation |
-| **WireGuard** | 51820 | 51820 | UDP | VPN access |
+| **WireGuard** | 51820 | 51820 | UDP | Planned/optional WireGuard access; current remote access uses Tailscale |
 | **Grafana** | 3000 | — | TCP | Monitoring dashboard (VPN only) |
 | **Prometheus** | 9090 | — | TCP | Metrics API (VPN only) |
 | **Node Exporter** | 9100 | — | TCP | System metrics (internal only) |
@@ -193,13 +191,18 @@ VLAN segmentation is planned once the managed switch is properly integrated with
 |---------|-------------|---------------|----------|
 | **Matrix** | `secrets/matrix/secrets.yaml` | admin, matrix_key | Registration secret, postgres password, bot-access-token, webhook-secret |
 | **Monitoring** | `secrets/monitoring/secrets.yaml` | admin, monitor_key | Grafana admin password, SMTP credentials |
-| **Forgejo** | `secrets/forgejo/secrets.yaml` | admin, git_key | Admin password, Forgejo secret key |
-| **Home Assistant** | `secrets/homeassistant/secrets.yaml` | admin, homeassistant_key | HA secrets, MQTT password, PostgreSQL password |
-| **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Server private key, client configurations |
+| **Tailscale** | `secrets/tailscale/secrets.yaml` | admin, gaia_key, vpn_key | Auth keys for automatic node enrollment |
+| **WireGuard** | `secrets/wireguard/secrets.yaml` | admin, vpn_key | Retained/planned WireGuard keys; not the deployed remote-access path |
 | **Fitness (wger)** | `secrets/fitness/secrets.yaml` | admin, fitness_key | Django secret key, PostgreSQL password, wger API token (for exporter) |
-| **Manga** | `secrets/manga/secrets.yaml` | admin, manga_key | Komga/Suwayomi credentials (optional — interactive first-run setup) |
-| **Shared** | `secrets/shared/secrets.yaml` | admin, all_host_keys | Cross-service credentials, certificates |
+| **Shared** | `secrets/shared/secrets.yaml` | admin, gaia/nvr/matrix keys | Cross-service credentials, certificates |
 | **Personal** | `secrets/user/personal.yaml` | admin, gaia_key | Git config, API keys, personal tokens |
+| **Forgejo** | `secrets/forgejo/secrets.yaml` | TBD git/lxc-git host keys | Routed by `systemModules/sops.nix`; add `.sops.yaml` creation rule before deployment |
+| **Home Assistant** | `secrets/homeassistant/secrets.yaml` | TBD homeassistant/lxc-homeassistant host keys | Routed by `systemModules/sops.nix`; add `.sops.yaml` creation rule before deployment |
+| **Media** | `secrets/media/secrets.yaml` | TBD media host key | Routed by `systemModules/sops.nix`; add `.sops.yaml` creation rule before deployment |
+| **Gaming** | `secrets/gaming/secrets.yaml` | TBD gaming host key | Routed by `systemModules/sops.nix`; add `.sops.yaml` creation rule before deployment |
+| **Manga** | `secrets/manga/secrets.yaml` (missing until service host is added) | TBD manga host key | Runtime mapping exists in `systemModules/sops.nix`; file and `.sops.yaml` rule still need to be created |
+
+> `systemModules/sops.nix` already routes `git`, `lxc-git`, `homeassistant`, `lxc-homeassistant`, `media`, `gaming`, and `manga` to these service-specific files. Current `.sops.yaml` creation rules do **not** yet cover `forgejo`, `homeassistant`, `media`, `gaming`, or `manga`; add rules and run `sops updatekeys secrets/<service>/secrets.yaml` before relying on those files during deployment.
 
 ### Secret Population Commands
 

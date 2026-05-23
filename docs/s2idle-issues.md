@@ -33,7 +33,7 @@ Kernel logs show `Reading current time from RTC took around 133-172 ms` during s
 ## Additional Issues Noticed
 
 ### udev rule spam (unrelated to suspend)
-`/etc/udev/rules.d/99-local.rules:74` references `GROUP="plugdev"` which doesn't exist on NixOS. This is the QMK `hid_listen` rule in `configuration.nix:282`. It fires every ~3 seconds, flooding the journal. Fix: remove `GROUP="plugdev"` from the rule (it already has `TAG+="uaccess"`).
+`/etc/udev/rules.d/99-local.rules:74` references `GROUP="plugdev"` which doesn't exist on NixOS. This is the QMK `hid_listen` rule in the Gaia NixOS config. It fires every ~3 seconds, flooding the journal. Fix: remove `GROUP="plugdev"` from the rule (it already has `TAG+="uaccess"`).
 
 ### TPM timeout errors during suspend
 ```
@@ -75,7 +75,7 @@ systemd.services.fix-resume-input = {
 Check for updates with `sudo fwupdmgr get-updates`. Framework has released BIOS updates that may improve suspend behavior on this platform.
 
 ### Fix plugdev udev rule
-In `configuration.nix`, change the `hid_listen` rule from:
+In the Gaia NixOS config (`hosts/gaia/default.nix` or an imported module), change the `hid_listen` rule from:
 ```
 KERNEL=="hidraw*", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
 ```

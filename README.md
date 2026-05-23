@@ -11,7 +11,7 @@ Option 1: **Automated Setup** (Recommended)
 git clone <your-forked-repository> ~/dotfiles && cd ~/dotfiles && ./scripts/bootstrap.sh
 ```
 
-Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete step-by-step instructions for macOS and WSL.
+Option 2: **Manual Setup** - Use the profile-specific commands below and see [home/profiles/README.md](./home/profiles/README.md) for customization guidance.
 
 **Existing users?** The configuration now uses an option-based system. See the [Migration Guide](#migration-from-old-system) below.
 
@@ -21,18 +21,16 @@ Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete ste
 
 ```plaintext
 .
-├── BOOTSTRAP.md                 # 🚀 Setup guide for macOS and WSL
 ├── CLAUDE.md                    # Claude Code project documentation
-├── configuration.nix            # Desktop NixOS configuration
 ├── flake.nix                    # Main flake with all configurations
-├── home/                        # 🆕 Option-based Home Manager system
+├── home/                        # Option-based Home Manager system
 │   ├── options.nix              # Complete option definitions
 │   ├── modules/                 # Home Manager feature modules
 │   │   ├── core.nix             # Essential modules (always enabled)
 │   │   ├── terminal.nix         # Terminal environment
 │   │   ├── development.nix      # Development tools and AI integrations
-│   │   ├── ai-skills.nix        # Shared AI skills/rules source registry
-│   │   ├── ai-codex.nix         # Codex-specific materialization logic
+│   │   ├── ai-*.nix             # Claude/Codex/agent integrations
+│   │   ├── nvf/                 # Neovim configuration
 │   │   └── theming.nix          # Theming and fonts
 │   └── profiles/                # Declarative configuration profiles
 │       ├── README.md            # Profile customization guide
@@ -40,13 +38,17 @@ Option 2: **Manual Setup** - See [BOOTSTRAP.md](./BOOTSTRAP.md) for complete ste
 │       ├── desktop.nix          # Full desktop profile
 │       ├── macos.nix            # macOS-optimized profile
 │       └── wsl.nix              # WSL-optimized profile
-├── hosts/                       # Homelab host configurations
+├── hosts/                       # NixOS host configurations
+│   ├── gaia/                    # Framework laptop desktop
 │   ├── server/                  # Base Proxmox VM configuration
-│   └── nvr/                     # Network Video Recorder
-├── systemModules/               # NixOS system modules
-│   ├── frigate.nix              # Video surveillance
-│   ├── jellyfin.nix             # Media server
-│   └── matrix.nix               # Chat server
+│   ├── lxc-*/                   # LXC container hosts
+│   └── media/, git/, vpn/, ...  # Homelab service hosts
+├── systemModules/               # Reusable NixOS service modules
+│   ├── forgejo.nix, media.nix, nas.nix, tailscale.nix
+│   ├── frigate.nix, llama.nix, matrix.nix, monitoring.nix
+│   └── manga/                   # Manga stack modules
+├── docs/                        # Operational documentation
+├── themes/                      # Stylix/base16 themes
 ├── Makefile                     # Build shortcuts
 └── ...                          # Other files
 ```
@@ -159,13 +161,15 @@ Create custom profiles by setting options instead of manually importing modules:
 
 ### Old vs New
 
-**Before** (manual imports):
+**Before** (old-style manual imports, illustrative only):
 ```nix
 imports = [
   ./homeModules/terminal.nix
-  ./homeModules/git.nix
+  ./homeModules/core.nix
 ] ++ lib.optionals condition [ ./homeModules/desktop.nix ];
 ```
+
+Current low-level `home/modules/*` files are implementation details behind the option/profile system. Prefer importing `home/profiles/*.nix` and setting options instead of importing feature modules directly.
 
 **After** (declarative options):
 ```nix
@@ -194,8 +198,8 @@ myHome.features.enableGitExtensions = true;
 ## NixOS (System-Level)
 
 Your system-level configuration is defined in:
-- `configuration.nix`
-- `hardware-configuration.nix`
+- `hosts/gaia/default.nix` for the Gaia desktop
+- host-local hardware config files where required (for example under `hosts/server/`)
 
 To rebuild your NixOS system:
 
@@ -248,11 +252,11 @@ This keeps the source of truth declarative while matching Codex's runtime discov
 
 ## HomeLab
 
-This homelab is currently set up on Proxmox with NixOS VMs defined for various services:
+This homelab is currently set up on Proxmox with NixOS VM and LXC configurations defined in `flake.nix`:
 
-- **Frigate** for network video recording
-- **Jellyfin** for media serving
-- **Matrix** for communication
+- **Core/deployed services**: `matrix`, `fitness` (wger), `vpn` (Tailscale router), `lxc-monitor`, `nixos-builder`, and `agent-sandbox`
+- **Service hosts ready/planned for deployment**: `git` (Forgejo), `homeassistant`, `media` (Jellyfin + *arr stack), `nas`, `nvr`, `llama`, `gaming`, and the `monitor` VM output (planned unless Proxmox confirms it is live)
+- **Container outputs**: `initialLXC` base tarball plus `lxc-matrix`, `lxc-monitor`, `lxc-git`, `lxc-homeassistant`, and `lxc-nas`
 
 ### Spinning up a new VM
 

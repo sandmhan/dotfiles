@@ -230,4 +230,4 @@ Sunshine credentials are managed via SOPS in `secrets/gaming/secrets.yaml`.
 | `systemModules/sunshine-server.nix` | System module with all Sunshine configuration |
 | `hosts/gaming/default.nix` | VM host configuration |
 | `secrets/gaming/secrets.yaml` | SOPS-encrypted credentials |
-| `homeModules/sunshine.nix` | Home Manager module (desktop use, separate) |
+| `home/modules/sunshine.nix` | Home Manager module (desktop use, separate) |
