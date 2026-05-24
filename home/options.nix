@@ -20,7 +20,7 @@ in
 
     features = {
       # Terminal features
-      enableAdvancedShell = mkEnableOption "advanced shell features (starship, direnv, etc.)";
+      enableAdvancedShell = mkEnableOption "advanced shell features (starship, zoxide, etc.)";
       enableGitExtensions = mkEnableOption "extended git tools (gitui, gh, etc.)";
       enableTerminalUtils = mkEnableOption "advanced terminal utilities (ripgrep, fd, bat, etc.)";
 

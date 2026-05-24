@@ -89,7 +89,7 @@ See `../options.nix` for the complete list of available options.
 - `enableVirtualization` - Virtualization tools
 
 ### Feature Options (`myHome.features`)
-- `enableAdvancedShell` - Enhanced shell with starship, direnv, zoxide
+- `enableAdvancedShell` - Enhanced shell with starship and zoxide
 - `enableGitExtensions` - Advanced git tools (gitui, gh, lazygit)
 - `enableTerminalUtils` - Terminal utilities (ripgrep, fd, bat, eza)
 - `enableClaudeCode` - Claude Code configuration
@@ -105,6 +105,8 @@ See `../options.nix` for the complete list of available options.
 - `enableDarwinSpecific` - macOS-specific packages
 
 ## Usage Examples
+
+Development profiles enable direnv with nix-direnv caching. In a project with `flake.nix`, add an `.envrc` containing `use flake`, then run `direnv allow` once to auto-enter the dev shell on directory entry.
 
 ```bash
 # Use existing profiles

@@ -151,7 +151,6 @@ in
 
   # Advanced shell features
   programs.starship.enable = lib.mkIf cfg.features.enableAdvancedShell true;
-  programs.direnv.enable = lib.mkIf cfg.features.enableAdvancedShell true;
   programs.zoxide.enable = lib.mkIf cfg.features.enableAdvancedShell true;
 
   # Set up home directory and username

@@ -34,6 +34,13 @@ in
       libvirt
     ];
 
+  # Development shell environments
+  programs.direnv = lib.mkIf cfg.profiles.enableDevelopment {
+    enable = true;
+    enableBashIntegration = true;
+    nix-direnv.enable = true;
+  };
+
   # Development environment variables
   home.sessionVariables = lib.mkIf cfg.profiles.enableDevelopment {
     EDITOR = "nvim";
