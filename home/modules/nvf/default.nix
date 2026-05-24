@@ -17,6 +17,7 @@
     ./editing.nix
     ./git.nix
     ./notes.nix
+    ./tidal.nix
     ./toggles.nix
     ./ui.nix
   ];
