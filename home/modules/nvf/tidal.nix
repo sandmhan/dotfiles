@@ -9,6 +9,41 @@ let
   tidalGhc = pkgs.haskellPackages.ghcWithPackages (haskellPackages: [
     haskellPackages.tidal
   ]);
+
+  haskellToolsConfig = ''
+    vim.g.haskell_tools = {
+      -- LSP
+      hls = {
+        ["auto_attach"] = function()
+          local bufnr = vim.api.nvim_get_current_buf()
+          local name = vim.api.nvim_buf_get_name(bufnr)
+          return not name:match("%.tidal$")
+        end,
+        ["cmd"] = {
+          "${hlsWrapper}",
+          "--lsp",
+        },
+        ["on_attach"] = function(client, bufnr)
+          local ht = require("haskell-tools")
+          local opts = { noremap = true, silent = true, buffer = bufnr }
+          vim.keymap.set('n', '<localleader>cl', vim.lsp.codelens.run, opts)
+          vim.keymap.set('n', '<localleader>hs', ht.hoogle.hoogle_signature, opts)
+          vim.keymap.set('n', '<localleader>ea', ht.lsp.buf_eval_all, opts)
+          vim.keymap.set('n', '<localleader>rr', ht.repl.toggle, opts)
+          vim.keymap.set('n', '<localleader>rf', function()
+            ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+          end, opts)
+          vim.keymap.set('n', '<localleader>rq', ht.repl.quit, opts)
+        end,
+        ["settings"] = {
+          ["haskell"] = {
+            ["cabalFormattingProvider"] = "cabal-fmt",
+            ["formattingProvider"] = "ormolu",
+          },
+        },
+      },
+    }
+  '';
 in
 {
   programs.nvf.settings.vim = {
@@ -21,55 +56,16 @@ in
       };
     };
 
+    # haskell-tools reads vim.g.haskell_tools when its ftplugin first runs.
+    # Put the full config in luaConfigPre so starting nvim on a *.tidal file can
+    # reject auto-attach before tidal.nvim changes the buffer filetype to haskell.
+    luaConfigPre = haskellToolsConfig;
+
     luaConfigRC.haskell-tools-nvim = lib.mkForce {
       after = [ "lsp-servers" ];
       before = [ ];
       data = ''
-        vim.g.haskell_tools = {
-          -- LSP
-          tools = {
-            hover = {
-              enable = true,
-            },
-          },
-          hls = {
-            ["auto_attach"] = function()
-              local name = vim.api.nvim_buf_get_name(0)
-              return not name:match("%.tidal$")
-            end,
-            ["cmd"] = {
-              "${hlsWrapper}",
-              "--lsp",
-            },
-            ["enable"] = false,
-            ["filetypes"] = {
-              "haskell",
-              "lhaskell",
-            },
-            ["on_attach"] = function(client, bufnr)
-              local ht = require("haskell-tools")
-              local opts = { noremap = true, silent = true, buffer = bufnr }
-              vim.keymap.set('n', '<localleader>cl', vim.lsp.codelens.run, opts)
-              vim.keymap.set('n', '<localleader>hs', ht.hoogle.hoogle_signature, opts)
-              vim.keymap.set('n', '<localleader>ea', ht.lsp.buf_eval_all, opts)
-              vim.keymap.set('n', '<localleader>rr', ht.repl.toggle, opts)
-              vim.keymap.set('n', '<localleader>rf', function()
-                ht.repl.toggle(vim.api.nvim_buf_get_name(0))
-              end, opts)
-              vim.keymap.set('n', '<localleader>rq', ht.repl.quit, opts)
-            end,
-            ["root_dir"] = function(bufnr, on_dir)
-              local fname = vim.api.nvim_buf_get_name(bufnr)
-              on_dir(util.root_pattern('hie.yaml', 'stack.yaml', 'cabal.project', '*.cabal', 'package.yaml')(fname))
-            end,
-            ["settings"] = {
-              ["haskell"] = {
-                ["cabalFormattingProvider"] = "cabal-fmt",
-                ["formattingProvider"] = "ormolu",
-              },
-            },
-          },
-        }
+        -- Configured early via luaConfigPre.
       '';
     };
 
