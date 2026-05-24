@@ -17,6 +17,20 @@ in
       };
     };
 
+    luaConfigRC.disable-tidal-hls-autoattach = {
+      after = [ "haskell-tools-nvim" ];
+      before = [ ];
+      data = ''
+        vim.g.haskell_tools = vim.g.haskell_tools or {}
+        vim.g.haskell_tools.hls = vim.g.haskell_tools.hls or {}
+
+        vim.g.haskell_tools.hls.auto_attach = function()
+          local name = vim.api.nvim_buf_get_name(0)
+          return not name:match("%.tidal$")
+        end
+      '';
+    };
+
     extraPlugins.tidal-nvim = {
       package = pkgs.vimUtils.buildVimPlugin {
         pname = "tidal.nvim";
