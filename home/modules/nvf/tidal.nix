@@ -77,6 +77,50 @@ in
           message.tidal.send_line("hush")
         end
 
+        local function starts_tidal_statement(line)
+          -- Treat unindented identifier-like lines as new Tidal/Haskell
+          -- statements. Continuation lines for patterns commonly start with
+          -- whitespace or operators such as #, $, |+|, or |*|.
+          return line:match("^[%a_]") ~= nil
+        end
+
+        local function send_visual_tidal_blocks()
+          local cursor_line = vim.fn.line(".")
+          local visual_line = vim.fn.line("v")
+          local start_line = math.min(cursor_line, visual_line)
+          local end_line = math.max(cursor_line, visual_line)
+          local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+
+          if #lines == 0 then
+            return
+          end
+
+          require("tidal.core.highlight").apply_highlight(
+            { start_line - 1, 0 },
+            { end_line - 1, #lines[#lines] }
+          )
+
+          local block = {}
+          local function flush_block()
+            if #block > 0 then
+              api.send_multiline(block)
+              block = {}
+            end
+          end
+
+          for _, line in ipairs(lines) do
+            if line:match("^%s*$") then
+              flush_block()
+            else
+              if #block > 0 and starts_tidal_statement(line) then
+                flush_block()
+              end
+              table.insert(block, line)
+            end
+          end
+          flush_block()
+        end
+
         local function map_tidal_keys(event)
           if vim.b[event.buf].user_tidal_keymaps_set then
             return
@@ -89,12 +133,12 @@ in
 
           vim.keymap.set({ "i", "n" }, "<S-CR>", api.send_line, opts("Tidal: send current line"))
           vim.keymap.set({ "i", "n", "x" }, "<M-CR>", api.send_block, opts("Tidal: send current block"))
-          vim.keymap.set("x", "<S-CR>", [[<Esc><Cmd>lua require("tidal").api.send_visual()<CR>gv]], opts("Tidal: send visual selection"))
+          vim.keymap.set("x", "<S-CR>", send_visual_tidal_blocks, opts("Tidal: send visual selection"))
 
           vim.keymap.set("n", "<leader>tl", api.send_line, opts("Tidal: send current line"))
           vim.keymap.set("n", "<leader>tb", api.send_block, opts("Tidal: send current block"))
           vim.keymap.set("n", "<leader>tn", api.send_node, opts("Tidal: send Treesitter node"))
-          vim.keymap.set("x", "<leader>tv", [[<Esc><Cmd>lua require("tidal").api.send_visual()<CR>gv]], opts("Tidal: send visual selection"))
+          vim.keymap.set("x", "<leader>tv", send_visual_tidal_blocks, opts("Tidal: send visual selection"))
           vim.keymap.set("n", "<leader>ts", api.send_silence, opts("Tidal: send d{count} silence"))
           vim.keymap.set("n", "<leader>th", hush_tidal, opts("Tidal: hush all patterns"))
           vim.keymap.set("n", "<leader>to", launch_tidal, opts("Tidal: open REPL"))
