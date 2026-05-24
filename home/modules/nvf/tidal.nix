@@ -1,5 +1,9 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
+  inherit (lib.meta) getExe';
+
+  hlsWrapper = getExe' pkgs.haskellPackages.haskell-language-server "haskell-language-server-wrapper";
+
   # Keep TidalCycles usable outside a project devshell: :TidalLaunch prefers
   # tidal-ghci from PATH, then falls back to this bundled ghci.
   tidalGhc = pkgs.haskellPackages.ghcWithPackages (haskellPackages: [
@@ -17,21 +21,100 @@ in
       };
     };
 
-    luaConfigRC.disable-tidal-hls-autoattach = {
-      after = [ "haskell-tools-nvim" ];
+    luaConfigRC.haskell-tools-nvim = lib.mkForce {
+      after = [ "lsp-servers" ];
       before = [ ];
       data = ''
-        vim.g.haskell_tools = vim.g.haskell_tools or {}
-        vim.g.haskell_tools.hls = vim.g.haskell_tools.hls or {}
-
-        vim.g.haskell_tools.hls.auto_attach = function()
-          local name = vim.api.nvim_buf_get_name(0)
-          return not name:match("%.tidal$")
-        end
+        vim.g.haskell_tools = {
+          -- LSP
+          tools = {
+            hover = {
+              enable = true,
+            },
+          },
+          hls = {
+            ["auto_attach"] = function()
+              local name = vim.api.nvim_buf_get_name(0)
+              return not name:match("%.tidal$")
+            end,
+            ["cmd"] = {
+              "${hlsWrapper}",
+              "--lsp",
+            },
+            ["enable"] = false,
+            ["filetypes"] = {
+              "haskell",
+              "lhaskell",
+            },
+            ["on_attach"] = function(client, bufnr)
+              local ht = require("haskell-tools")
+              local opts = { noremap = true, silent = true, buffer = bufnr }
+              vim.keymap.set('n', '<localleader>cl', vim.lsp.codelens.run, opts)
+              vim.keymap.set('n', '<localleader>hs', ht.hoogle.hoogle_signature, opts)
+              vim.keymap.set('n', '<localleader>ea', ht.lsp.buf_eval_all, opts)
+              vim.keymap.set('n', '<localleader>rr', ht.repl.toggle, opts)
+              vim.keymap.set('n', '<localleader>rf', function()
+                ht.repl.toggle(vim.api.nvim_buf_get_name(0))
+              end, opts)
+              vim.keymap.set('n', '<localleader>rq', ht.repl.quit, opts)
+            end,
+            ["root_dir"] = function(bufnr, on_dir)
+              local fname = vim.api.nvim_buf_get_name(bufnr)
+              on_dir(util.root_pattern('hie.yaml', 'stack.yaml', 'cabal.project', '*.cabal', 'package.yaml')(fname))
+            end,
+            ["settings"] = {
+              ["haskell"] = {
+                ["cabalFormattingProvider"] = "cabal-fmt",
+                ["formattingProvider"] = "ormolu",
+              },
+            },
+          },
+        }
       '';
     };
 
-    extraPlugins.tidal-nvim = {
+    luaConfigRC.tidal-hls-cleanup = {
+      after = [ "haskell-tools-nvim" ];
+      before = [ "tidal-nvim" ];
+      data = ''
+        local function is_tidal_buffer(bufnr)
+          local name = vim.api.nvim_buf_get_name(bufnr)
+          return name:match("%.tidal$") ~= nil
+        end
+
+        local function is_haskell_lsp_client(client)
+          local name = (client.name or ""):lower()
+          return name == "hls"
+            or name:match("haskell") ~= nil
+            or name:match("haskell%-tools") ~= nil
+          end
+
+        local function cleanup_tidal_hls(bufnr)
+          if not is_tidal_buffer(bufnr) then
+            return
+          end
+
+          pcall(vim.lsp.inlay_hint.enable, false, { bufnr = bufnr })
+
+          for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+            if is_haskell_lsp_client(client) then
+              vim.lsp.buf_detach_client(bufnr, client.id)
+            end
+          end
+        end
+
+        local tidal_hls_cleanup = vim.api.nvim_create_augroup("UserTidalHlsCleanup", { clear = true })
+        vim.api.nvim_create_autocmd({ "LspAttach", "BufEnter", "BufWinEnter", "FileType" }, {
+          group = tidal_hls_cleanup,
+          pattern = "*",
+          callback = function(event)
+            cleanup_tidal_hls(event.buf)
+          end,
+        })
+      '';
+    };
+
+    extraPlugins.tidal-nvim-package = {
       package = pkgs.vimUtils.buildVimPlugin {
         pname = "tidal.nvim";
         version = "unstable-2026-05-23";
@@ -42,7 +125,12 @@ in
           hash = "sha256-sbxBIybZdQptiD3zDJtitOcuy5bZSwgf9EPpMlik8Ds=";
         };
       };
-      setup = ''
+    };
+
+    luaConfigRC.tidal-nvim = {
+      after = [ "tidal-hls-cleanup" ];
+      before = [ ];
+      data = ''
         local tidal = require("tidal")
         local tidal_ghci = vim.fn.exepath("tidal-ghci")
 
