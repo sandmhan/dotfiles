@@ -1,5 +1,7 @@
 { pkgs, ... }:
 let
+  # Keep TidalCycles usable outside a project devshell: :TidalLaunch prefers
+  # tidal-ghci from PATH, then falls back to this bundled ghci.
   tidalGhc = pkgs.haskellPackages.ghcWithPackages (haskellPackages: [
     haskellPackages.tidal
   ]);
@@ -28,11 +30,18 @@ in
       };
       setup = ''
         local tidal = require("tidal")
+        local tidal_ghci = vim.fn.exepath("tidal-ghci")
+
+        if tidal_ghci == "" then
+          tidal_ghci = "${tidalGhc}/bin/ghci"
+        end
 
         tidal.setup({
           boot = {
             tidal = {
-              cmd = "${tidalGhc}/bin/ghci",
+              -- Prefer a project/devshell-provided tidal-ghci when available,
+              -- then use the bundled fallback for standalone Tidal sessions.
+              cmd = tidal_ghci,
               args = { "-v0" },
             },
           },
@@ -69,6 +78,11 @@ in
         end
 
         local function map_tidal_keys(event)
+          if vim.b[event.buf].user_tidal_keymaps_set then
+            return
+          end
+          vim.b[event.buf].user_tidal_keymaps_set = true
+
           local opts = function(desc)
             return { buffer = event.buf, desc = desc, silent = true }
           end
@@ -89,10 +103,23 @@ in
           vim.keymap.set("n", "<leader>tr", restart_tidal, opts("Tidal: restart REPL"))
         end
 
+        local tidal_filetype = vim.api.nvim_create_augroup("UserTidalFiletype", { clear = true })
+        vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+          group = tidal_filetype,
+          pattern = "*.tidal",
+          callback = function(event)
+            if vim.bo[event.buf].filetype == "" then
+              vim.bo[event.buf].filetype = "tidal"
+            end
+          end,
+        })
+
         local tidal_keymaps = vim.api.nvim_create_augroup("UserTidalKeymaps", { clear = true })
-        vim.api.nvim_create_autocmd("FileType", {
+        vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile", "BufEnter" }, {
           group = tidal_keymaps,
-          pattern = { "haskell", "tidal" },
+          pattern = "*.tidal",
+          -- Scope live-coding maps to *.tidal buffers by path rather than final
+          -- filetype: tidal.nvim resets these buffers to haskell on enter.
           callback = map_tidal_keys,
         })
       '';
