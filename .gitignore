@@ -29,6 +29,9 @@ age-key.txt
 local.nix
 secrets.nix
 
+# Pi session artifacts
+.pi/subagent-sessions/
+
 # VM images
 *.qcow2
 *.vma
