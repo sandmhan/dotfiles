@@ -9,6 +9,94 @@
   systemSettings,
   ...
 }:
+let
+  gaiaFanCommon = ''
+    set -eu
+
+    script=$(basename "$0")
+
+    find_ec_tool() {
+      if command -v ectool >/dev/null 2>&1; then
+        command -v ectool
+      elif command -v fw-ectool >/dev/null 2>&1; then
+        command -v fw-ectool
+      else
+        echo "error: neither ectool nor fw-ectool is available in PATH" >&2
+        echo "Gaia fan scripts require one of these EC tools." >&2
+        exit 127
+      fi
+    }
+
+    require_root() {
+      if [ "$(id -u)" -ne 0 ]; then
+        echo "error: EC fan access requires root privileges." >&2
+        echo "Run this with sudo/root, e.g. sudo $script ..." >&2
+        exit 1
+      fi
+    }
+
+    tool=$(find_ec_tool)
+    require_root
+  '';
+
+  # Gaia fan control is intentionally manual only: no daemon is installed and
+  # no passwordless sudo/polkit broadening is added. Previous local preflight
+  # confirmed ectool appears to expose the needed commands, but behavior could
+  # not be verified without interactive sudo/root access.
+  gaiaFanStatus = pkgs.writeShellScriptBin "gaia-fan-status" ''
+    ${gaiaFanCommon}
+
+    echo "Gaia fan status (read-only via $tool)"
+    echo
+    echo "Number of fans:"
+    "$tool" pwmgetnumfans
+    echo
+    echo "Fan RPM:"
+    "$tool" pwmgetfanrpm all
+    echo
+    echo "Fan duty:"
+    "$tool" pwmgetduty
+  '';
+
+  gaiaFanAuto = pkgs.writeShellScriptBin "gaia-fan-auto" ''
+    ${gaiaFanCommon}
+
+    "$tool" autofanctrl on
+    echo "Automatic EC fan control has been restored."
+  '';
+
+  gaiaFanDuty = pkgs.writeShellScriptBin "gaia-fan-duty" ''
+    ${gaiaFanCommon}
+
+    usage() {
+      echo "Usage: sudo gaia-fan-duty <30-100>" >&2
+      echo "Restore automatic control with: sudo gaia-fan-auto" >&2
+    }
+
+    if [ "$#" -ne 1 ]; then
+      usage
+      exit 2
+    fi
+
+    percent="$1"
+    case "$percent" in
+      ""|*[!0-9]*)
+        usage
+        exit 2
+        ;;
+    esac
+
+    if [ "$percent" -lt 30 ] || [ "$percent" -gt 100 ]; then
+      usage
+      exit 2
+    fi
+
+    echo "Setting manual fan duty to $percent%."
+    echo "Warning: manual fan duty persists until automatic control is restored."
+    "$tool" fanduty "$percent"
+    echo "Restore automatic control with: sudo gaia-fan-auto"
+  '';
+in
 {
   imports = [
     # Include the results of the hardware scan.
@@ -404,13 +492,19 @@
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    lm_sensors
-    framework-tool
-    fw-ectool
-    #  wget
-  ];
+  environment.systemPackages =
+    (with pkgs; [
+      neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+      lm_sensors
+      framework-tool
+      fw-ectool
+      #  wget
+    ])
+    ++ [
+      gaiaFanStatus
+      gaiaFanAuto
+      gaiaFanDuty
+    ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
