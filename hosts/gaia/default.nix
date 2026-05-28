@@ -61,7 +61,10 @@ let
   gaiaFanAuto = pkgs.writeShellScriptBin "gaia-fan-auto" ''
     ${gaiaFanCommon}
 
-    "$tool" autofanctrl on
+    # Framework/ChromeOS ectool expects autofanctrl with no fan index or
+    # boolean argument. Passing "on" is parsed as a fan index on Gaia and
+    # returns "Bad fan index.".
+    "$tool" autofanctrl
     echo "Automatic EC fan control has been restored."
   '';
 
