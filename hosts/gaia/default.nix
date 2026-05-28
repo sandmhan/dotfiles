@@ -54,9 +54,6 @@
   # Enable BIOS updates
   services.fwupd.enable = true;
 
-  # Enable conservative thermal management.
-  services.thermald.enable = true;
-
   # Disable power-profiles-daemon (conflicts with auto-cpufreq)
   services.power-profiles-daemon.enable = false;
 
