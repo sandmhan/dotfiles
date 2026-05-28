@@ -54,6 +54,9 @@
   # Enable BIOS updates
   services.fwupd.enable = true;
 
+  # Enable conservative thermal management.
+  services.thermald.enable = true;
+
   # Disable power-profiles-daemon (conflicts with auto-cpufreq)
   services.power-profiles-daemon.enable = false;
 
@@ -406,6 +409,9 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    lm_sensors
+    framework-tool
+    fw-ectool
     #  wget
   ];
 
