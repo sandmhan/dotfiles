@@ -43,15 +43,15 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [HOMELAB-022](HOMELAB-022.md) | Generate docs tables from inventory | task | draft | Homelab Phase 5 | None recorded |
 | [HOMELAB-023](HOMELAB-023.md) | Add guarded Proxmox API provisioning | task | draft | Homelab Phase 5 | None recorded |
 | [HOMELAB-024](HOMELAB-024.md) | Add CI-style flake validation | task | draft | Homelab Phase 5 | None recorded |
-| [NVF-001](NVF-001.md) | Adopt NVF enterprise IDE report as canonical plan | chore | open | NVF Phase 0 | None |
-| [NVF-002](NVF-002.md) | Decide default Nix LSP ownership | spike | open | NVF Phase 0 | [NVF-001](NVF-001.md) |
-| [NVF-003](NVF-003.md) | Adopt NVF keymap taxonomy | task | open | NVF Phase 0 | [NVF-001](NVF-001.md) |
-| [NVF-004](NVF-004.md) | Decide Tidal keymap ownership | spike | open | NVF Phase 0 | [NVF-003](NVF-003.md) |
-| [NVF-005](NVF-005.md) | Open initial Neovim IDE operations guide | task | open | NVF Phase 0 | [NVF-001](NVF-001.md) |
-| [NVF-006](NVF-006.md) | Fix duplicate Nix LSP ownership | bug | triaged | NVF Phase 1 | [NVF-002](NVF-002.md) |
-| [NVF-007](NVF-007.md) | Keep languages.nix as shared core language module | task | open | NVF Phase 1 | [NVF-001](NVF-001.md), [NVF-006](NVF-006.md) |
-| [NVF-008](NVF-008.md) | Add missing LSP ergonomics keymaps | task | open | NVF Phase 1 | [NVF-003](NVF-003.md), [NVF-004](NVF-004.md) |
-| [NVF-009](NVF-009.md) | Update README NVF module inventory | chore | open | NVF Phase 1 | [NVF-001](NVF-001.md) |
+| [NVF-001](NVF-001.md) | Adopt NVF enterprise IDE report as canonical plan | chore | done | NVF Phase 0 | None |
+| [NVF-002](NVF-002.md) | Decide default Nix LSP ownership | spike | done | NVF Phase 0 | [NVF-001](NVF-001.md) |
+| [NVF-003](NVF-003.md) | Adopt NVF keymap taxonomy | task | done | NVF Phase 0 | [NVF-001](NVF-001.md) |
+| [NVF-004](NVF-004.md) | Decide Tidal keymap ownership | spike | done | NVF Phase 0 | [NVF-003](NVF-003.md) |
+| [NVF-005](NVF-005.md) | Open initial Neovim IDE operations guide | task | done | NVF Phase 0 | [NVF-001](NVF-001.md) |
+| [NVF-006](NVF-006.md) | Fix duplicate Nix LSP ownership | bug | done | NVF Phase 1 | [NVF-002](NVF-002.md) |
+| [NVF-007](NVF-007.md) | Keep languages.nix as shared core language module | task | done | NVF Phase 1 | [NVF-001](NVF-001.md), [NVF-006](NVF-006.md) |
+| [NVF-008](NVF-008.md) | Add missing LSP ergonomics keymaps | task | done | NVF Phase 1 | [NVF-003](NVF-003.md), [NVF-004](NVF-004.md) |
+| [NVF-009](NVF-009.md) | Update README NVF module inventory | chore | done | NVF Phase 1 | [NVF-001](NVF-001.md) |
 | [NVF-010](NVF-010.md) | Add Python NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
 | [NVF-011](NVF-011.md) | Add JavaScript TypeScript and JSON NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
 | [NVF-012](NVF-012.md) | Add infrastructure NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
