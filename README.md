@@ -223,6 +223,9 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `visuals.nix` | Visual plugins and presentation settings |
 | `lsp.nix` | Global LSP enablement and explicit server ownership |
 | `languages.nix` | Shared/core language configs for Markdown, Nix, Typst, and C/C++ |
+| `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
+| `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with ts_ls, prettierd, eslint_d, jsonls, and JS DAP |
+| `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
 | `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
 | `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |

@@ -10,6 +10,9 @@
     ./visuals.nix
     ./lsp.nix
     ./languages.nix
+    ./languages-python.nix
+    ./languages-web.nix
+    ./languages-infra.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix
