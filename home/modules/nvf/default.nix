@@ -13,6 +13,7 @@
     ./languages-python.nix
     ./languages-web.nix
     ./languages-infra.nix
+    ./testing.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix

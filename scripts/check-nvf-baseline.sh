@@ -76,7 +76,7 @@ assert_neovim_guide_stub() {
 assert_readme_inventory() {
   local module
   for module in \
-    default options keymaps visuals lsp languages completion treesitter utility \
+    default options keymaps visuals lsp languages testing completion treesitter utility \
     finder editing git notes tidal toggles ui
   do
     grep -q "\`${module}.nix\`" README.md || return 1
