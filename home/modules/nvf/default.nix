@@ -14,6 +14,7 @@
     ./languages-web.nix
     ./languages-infra.nix
     ./testing.nix
+    ./hardening.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix

@@ -61,9 +61,9 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-015](NVF-015.md) | Add test keymaps under leader t | task | done | NVF Phase 3 | [NVF-004](NVF-004.md), [NVF-014](NVF-014.md), [NVF-029](NVF-029.md) |
 | [NVF-016](NVF-016.md) | Add debug keymaps under leader d | task | done | NVF Phase 3 | [NVF-014](NVF-014.md), [NVF-029](NVF-029.md) |
 | [NVF-017](NVF-017.md) | Enable initial Python and JavaScript TypeScript test debug adapters | task | done | NVF Phase 3 | [NVF-010](NVF-010.md), [NVF-011](NVF-011.md), [NVF-014](NVF-014.md), [NVF-029](NVF-029.md) |
-| [NVF-018](NVF-018.md) | Add NVF workspace hardening module | task | open | NVF Phase 4 | [NVF-013](NVF-013.md) |
-| [NVF-019](NVF-019.md) | Implement workspace safety controls | task | open | NVF Phase 4 | [NVF-018](NVF-018.md) |
-| [NVF-020](NVF-020.md) | Document performance profiling and diagnostic throttling | chore | open | NVF Phase 4 | [NVF-018](NVF-018.md) |
+| [NVF-018](NVF-018.md) | Add NVF workspace hardening module | task | done | NVF Phase 4 | [NVF-013](NVF-013.md) |
+| [NVF-019](NVF-019.md) | Implement workspace safety controls | task | done | NVF Phase 4 | [NVF-018](NVF-018.md) |
+| [NVF-020](NVF-020.md) | Document performance profiling and diagnostic throttling | chore | done | NVF Phase 4 | [NVF-018](NVF-018.md) |
 | [NVF-021](NVF-021.md) | Add NVF AI bridge module | task | open | NVF Phase 5 | [NVF-019](NVF-019.md) |
 | [NVF-022](NVF-022.md) | Bridge AI actions to Claude Codex and Pi | task | open | NVF Phase 5 | [NVF-021](NVF-021.md) |
 | [NVF-023](NVF-023.md) | Add AI keymaps under leader a | task | open | NVF Phase 5 | [NVF-003](NVF-003.md), [NVF-021](NVF-021.md), [NVF-022](NVF-022.md) |
