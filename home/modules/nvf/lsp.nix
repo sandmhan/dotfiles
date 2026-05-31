@@ -15,7 +15,7 @@
 
           # Nix
           nixd.enable = true;
-          nil_ls.enable = true;
+          nil_ls.enable = false;
 
           # Typst
           tinymist.enable = true;

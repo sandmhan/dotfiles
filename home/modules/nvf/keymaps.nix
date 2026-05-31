@@ -166,6 +166,36 @@
           desc = "LSP code actions";
         }
         {
+          key = "<leader>lh";
+          mode = [ "n" ];
+          action = "<cmd>lua vim.lsp.buf.hover()<cr>";
+          desc = "LSP hover";
+        }
+        {
+          key = "<leader>lR";
+          mode = [ "n" ];
+          action = "<cmd>lua vim.lsp.buf.rename()<cr>";
+          desc = "LSP rename";
+        }
+        {
+          key = "<leader>li";
+          mode = [ "n" ];
+          action = "<cmd>lua vim.lsp.buf.implementation()<cr>";
+          desc = "LSP implementation";
+        }
+        {
+          key = "<leader>lt";
+          mode = [ "n" ];
+          action = "<cmd>lua vim.lsp.buf.type_definition()<cr>";
+          desc = "LSP type definition";
+        }
+        {
+          key = "<leader>lk";
+          mode = [ "n" ];
+          action = "<cmd>lua vim.lsp.buf.signature_help()<cr>";
+          desc = "LSP signature help";
+        }
+        {
           key = "<leader>xx";
           mode = [ "n" ];
           action = "<cmd>FzfLua diagnostics_document<cr>";

@@ -213,19 +213,26 @@ sudo nixos-rebuild switch --flake .#gaia
 
 ## Neovim Configuration (nvf)
 
-The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`:
+The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`. See `docs/neovim-ide.md` for the current IDE decisions, keymap taxonomy, and validation workflow.
 
 | File | Description |
 |------|-------------|
 | `default.nix` | Entry point, imports all modules |
 | `options.nix` | Editor options (clipboard, line numbers, tabs) |
-| `keymaps.nix` | Key mappings and leader key |
-| `visuals.nix` | Visual plugins (devicons, cursorline, bufferline) |
-| `lsp.nix` | LSP servers (clangd, nixd, tinymist, marksman) |
-| `languages.nix` | Language configs (nix, typst, clang with DAP) |
-| `completion.nix` | Autocomplete (blink-cmp, snippets) |
+| `keymaps.nix` | Key mappings, leader key, finder, Git, LSP, and diagnostics shortcuts |
+| `visuals.nix` | Visual plugins and presentation settings |
+| `lsp.nix` | Global LSP enablement and explicit server ownership |
+| `languages.nix` | Shared/core language configs for Markdown, Nix, Typst, and C/C++ |
+| `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
-| `utility.nix` | Utility plugins (mini.files, flash-nvim, whichKey) |
+| `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |
+| `finder.nix` | FZF-based search and navigation |
+| `editing.nix` | Editing helpers such as comments, surround, autopairs, and undo tooling |
+| `git.nix` | Git integrations for signs, status, and conflict tooling |
+| `notes.nix` | TODO/FIXME/NOTE highlighting |
+| `tidal.nix` | Haskell/Tidal language support and live-coding commands |
+| `toggles.nix` | UI/editor toggles |
+| `ui.nix` | Statusline, messages, breadcrumbs, bufferline, and related UI modules |
 
 ---
 
