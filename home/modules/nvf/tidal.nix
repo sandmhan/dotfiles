@@ -156,11 +156,7 @@ in
           return line:match("^[%a_]") ~= nil
         end
 
-        local function send_visual_tidal_blocks()
-          local cursor_line = vim.fn.line(".")
-          local visual_line = vim.fn.line("v")
-          local start_line = math.min(cursor_line, visual_line)
-          local end_line = math.max(cursor_line, visual_line)
+        local function send_tidal_line_range(start_line, end_line)
           local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
 
           if #lines == 0 then
@@ -193,6 +189,19 @@ in
           flush_block()
         end
 
+        local function send_visual_tidal_blocks()
+          local cursor_line = vim.fn.line(".")
+          local visual_line = vim.fn.line("v")
+          local start_line = math.min(cursor_line, visual_line)
+          local end_line = math.max(cursor_line, visual_line)
+
+          send_tidal_line_range(start_line, end_line)
+        end
+
+        local function send_tidal_buffer()
+          send_tidal_line_range(1, vim.api.nvim_buf_line_count(0))
+        end
+
         local function map_tidal_keys(event)
           if vim.b[event.buf].user_tidal_keymaps_set then
             return
@@ -210,6 +219,7 @@ in
           vim.keymap.set("n", "<leader>tl", api.send_line, opts("Tidal: send current line"))
           vim.keymap.set("n", "<leader>tb", api.send_block, opts("Tidal: send current block"))
           vim.keymap.set("n", "<leader>tn", api.send_node, opts("Tidal: send Treesitter node"))
+          vim.keymap.set("n", "<leader>tf", send_tidal_buffer, opts("Tidal: send current file"))
           vim.keymap.set("x", "<leader>tv", send_visual_tidal_blocks, opts("Tidal: send visual selection"))
           vim.keymap.set("n", "<leader>ts", api.send_silence, opts("Tidal: send d{count} silence"))
           vim.keymap.set("n", "<leader>th", hush_tidal, opts("Tidal: hush all patterns"))
