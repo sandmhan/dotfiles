@@ -1,6 +1,6 @@
 ---
 title: NVF Phase 2 Enterprise Language Evidence
-status: draft
+status: accepted
 updated: 2026-05-31
 ---
 
@@ -51,4 +51,34 @@ Confirmed option families before implementation:
 
 ## GREEN validation
 
-Pending implementation.
+Commands:
+
+```bash
+bash scripts/check-nvf-baseline.sh
+bash scripts/check-nvf-phase2.sh
+nixfmt home/modules/nvf/*.nix
+nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.macman.activationPackage
+```
+
+Result: all commands passed on 2026-05-31.
+
+```text
+ok - Nix LSP uses nixd without nil_ls by default
+ok - LSP ergonomics keymaps use exact NVF Lua command actions
+ok - Neovim IDE guide stub records Phase 0 decisions without overclaiming
+ok - README NVF inventory mirrors imported modules and links the IDE guide
+ok - Phase 2 NVF module files exist
+ok - Phase 2 NVF modules are imported immediately after languages.nix
+ok - terminalman enables Python, web, and infrastructure Phase 2 language ownership
+ok - README, operations guide, and evidence index document Phase 2 modules
+ok - nixfmt home/modules/nvf/*.nix
+ok - terminalman dry-run
+ok - sandmhan dry-run
+ok - wslman dry-run
+ok - macman dry-run
+```
+
+The Home Manager evaluations emitted the existing `gtk.gtk4.theme` state-version warning for Linux profiles. It is unrelated to NVF Phase 2 and did not block evaluation. No profiles were skipped.

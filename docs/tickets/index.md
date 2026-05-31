@@ -52,10 +52,10 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-007](NVF-007.md) | Keep languages.nix as shared core language module | task | done | NVF Phase 1 | [NVF-001](NVF-001.md), [NVF-006](NVF-006.md) |
 | [NVF-008](NVF-008.md) | Add missing LSP ergonomics keymaps | task | done | NVF Phase 1 | [NVF-003](NVF-003.md), [NVF-004](NVF-004.md) |
 | [NVF-009](NVF-009.md) | Update README NVF module inventory | chore | done | NVF Phase 1 | [NVF-001](NVF-001.md) |
-| [NVF-010](NVF-010.md) | Add Python NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
-| [NVF-011](NVF-011.md) | Add JavaScript TypeScript and JSON NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
-| [NVF-012](NVF-012.md) | Add infrastructure NVF language module | task | open | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
-| [NVF-013](NVF-013.md) | Import validated enterprise language modules | task | open | NVF Phase 2 | [NVF-010](NVF-010.md), [NVF-011](NVF-011.md), [NVF-012](NVF-012.md) |
+| [NVF-010](NVF-010.md) | Add Python NVF language module | task | done | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
+| [NVF-011](NVF-011.md) | Add JavaScript TypeScript and JSON NVF language module | task | done | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
+| [NVF-012](NVF-012.md) | Add infrastructure NVF language module | task | done | NVF Phase 2 | [NVF-006](NVF-006.md), [NVF-007](NVF-007.md) |
+| [NVF-013](NVF-013.md) | Import validated enterprise language modules | task | done | NVF Phase 2 | [NVF-010](NVF-010.md), [NVF-011](NVF-011.md), [NVF-012](NVF-012.md) |
 | [NVF-014](NVF-014.md) | Validate NVF testing and DAP plugin options | spike | open | NVF Phase 3 | [NVF-013](NVF-013.md) |
 | [NVF-029](NVF-029.md) | Add NVF testing module | task | open | NVF Phase 3 | [NVF-013](NVF-013.md), [NVF-014](NVF-014.md) |
 | [NVF-015](NVF-015.md) | Add test keymaps under leader t | task | open | NVF Phase 3 | [NVF-004](NVF-004.md), [NVF-014](NVF-014.md), [NVF-029](NVF-029.md) |
