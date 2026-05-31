@@ -14,11 +14,6 @@ let
     vim.g.haskell_tools = {
       -- LSP
       hls = {
-        ["auto_attach"] = function()
-          local bufnr = vim.api.nvim_get_current_buf()
-          local name = vim.api.nvim_buf_get_name(bufnr)
-          return not name:match("%.tidal$")
-        end,
         ["cmd"] = {
           "${hlsWrapper}",
           "--lsp",
@@ -43,6 +38,26 @@ let
         },
       },
     }
+
+    -- Global inlay hints can trip haskell-tools on Tidal buffers because HLS
+    -- inlay-hint plugins such as explicit-fields/importLens do not support
+    -- *.tidal files. Keep HLS attached for highlighting/diagnostics, but skip
+    -- enabling hints for Tidal buffers only.
+    if vim.lsp and vim.lsp.inlay_hint and not vim.g.user_tidal_inlay_hint_wrapped then
+      vim.g.user_tidal_inlay_hint_wrapped = true
+      local original_inlay_hint_enable = vim.lsp.inlay_hint.enable
+
+      vim.lsp.inlay_hint.enable = function(enable, filter)
+        local bufnr = filter and filter.bufnr or vim.api.nvim_get_current_buf()
+        local name = vim.api.nvim_buf_get_name(bufnr)
+
+        if enable ~= false and name:match("%.tidal$") then
+          return
+        end
+
+        return original_inlay_hint_enable(enable, filter)
+      end
+    end
   '';
 in
 {
@@ -69,47 +84,6 @@ in
       '';
     };
 
-    luaConfigRC.tidal-hls-cleanup = {
-      after = [ "haskell-tools-nvim" ];
-      before = [ "tidal-nvim" ];
-      data = ''
-        local function is_tidal_buffer(bufnr)
-          local name = vim.api.nvim_buf_get_name(bufnr)
-          return name:match("%.tidal$") ~= nil
-        end
-
-        local function is_haskell_lsp_client(client)
-          local name = (client.name or ""):lower()
-          return name == "hls"
-            or name:match("haskell") ~= nil
-            or name:match("haskell%-tools") ~= nil
-          end
-
-        local function cleanup_tidal_hls(bufnr)
-          if not is_tidal_buffer(bufnr) then
-            return
-          end
-
-          pcall(vim.lsp.inlay_hint.enable, false, { bufnr = bufnr })
-
-          for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
-            if is_haskell_lsp_client(client) then
-              vim.lsp.buf_detach_client(bufnr, client.id)
-            end
-          end
-        end
-
-        local tidal_hls_cleanup = vim.api.nvim_create_augroup("UserTidalHlsCleanup", { clear = true })
-        vim.api.nvim_create_autocmd({ "LspAttach", "BufEnter", "BufWinEnter", "FileType" }, {
-          group = tidal_hls_cleanup,
-          pattern = "*",
-          callback = function(event)
-            cleanup_tidal_hls(event.buf)
-          end,
-        })
-      '';
-    };
-
     extraPlugins.tidal-nvim-package = {
       package = pkgs.vimUtils.buildVimPlugin {
         pname = "tidal.nvim";
@@ -124,7 +98,7 @@ in
     };
 
     luaConfigRC.tidal-nvim = {
-      after = [ "tidal-hls-cleanup" ];
+      after = [ "haskell-tools-nvim" ];
       before = [ ];
       data = ''
         local tidal = require("tidal")
