@@ -72,6 +72,10 @@ if
   && languages.ts.lsp.servers == [ "ts_ls" ]
   && languages.ts.format.type == [ "prettierd" ]
   && languages.ts.extraDiagnostics.types == [ "eslint_d" ]
+  && (lintersByFt.javascript or []) == [ "eslint_d" ]
+  && (lintersByFt.javascriptreact or []) == [ "eslint_d" ]
+  && (lintersByFt.typescript or []) == [ "eslint_d" ]
+  && (lintersByFt.typescriptreact or []) == [ "eslint_d" ]
   && languages.json.enable
   && languages.json.lsp.servers == [ "jsonls" ]
   && languages.json.format.type == [ "jsonfmt" ]
@@ -117,7 +121,7 @@ assert_phase2_docs_updated() {
 
 check 'Phase 2 NVF module files exist' assert_phase2_module_files_exist
 check 'Phase 2 NVF modules are imported immediately after languages.nix' assert_phase2_import_order
-check 'terminalman enables Python, web, and infrastructure Phase 2 language ownership' assert_terminalman_phase2_languages
+check 'terminalman enables Python, web, infrastructure, and effective ESLint linter mappings' assert_terminalman_phase2_languages
 check 'README, operations guide, and evidence index document Phase 2 modules' assert_phase2_docs_updated
 
 if ((failures > 0)); then

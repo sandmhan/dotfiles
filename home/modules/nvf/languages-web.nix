@@ -39,6 +39,13 @@
         };
       };
 
+      # Pinned NVF only derives ESLint mappings for TypeScript filetypes from
+      # languages.ts.extraDiagnostics, so wire JavaScript filetypes explicitly.
+      diagnostics.nvim-lint.linters_by_ft = {
+        javascript = [ "eslint_d" ];
+        javascriptreact = [ "eslint_d" ];
+      };
+
       # JavaScript/TypeScript DAP ownership only. Phase 3 will decide task/test
       # commands and any additional debug keymaps.
       debugger.nvim-dap = {

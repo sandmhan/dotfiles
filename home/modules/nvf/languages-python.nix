@@ -37,13 +37,9 @@
         enable = true;
         linters_by_ft.python = [ "ruff" ];
         linters.ruff = {
+          # Keep upstream nvim-lint Ruff defaults for stdin-filename,
+          # force-exclude, parser, and stdin behavior while pinning the binary.
           cmd = lib.getExe pkgs.ruff;
-          args = [
-            "check"
-            "--output-format=json"
-            "-"
-          ];
-          stdin = true;
         };
       };
     };

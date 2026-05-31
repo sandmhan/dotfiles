@@ -82,3 +82,27 @@ ok - macman dry-run
 ```
 
 The Home Manager evaluations emitted the existing `gtk.gtk4.theme` state-version warning for Linux profiles. It is unrelated to NVF Phase 2 and did not block evaluation. No profiles were skipped.
+
+## Follow-up remediation validation
+
+Reviewer follow-up found that pinned NVF only derived `eslint_d` nvim-lint mappings for TypeScript filetypes. `languages-web.nix` now wires JavaScript filetypes explicitly, and `scripts/check-nvf-phase2.sh` asserts the effective final mappings for `javascript`, `javascriptreact`, `typescript`, and `typescriptreact`.
+
+Commands:
+
+```bash
+bash scripts/check-nvf-phase2.sh
+bash scripts/check-nvf-baseline.sh
+nixfmt --check home/modules/nvf/languages-web.nix home/modules/nvf/languages-python.nix
+repo_root="$(pwd)"
+nix eval --json --no-write-lock-file --impure --expr "let flake = builtins.getFlake \"path:$repo_root\"; linters = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim.diagnostics.nvim-lint.linters_by_ft; in { inherit (linters) javascript javascriptreact typescript typescriptreact; }"
+nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage
+nix build --dry-run --no-write-lock-file .#homeConfigurations.macman.activationPackage
+```
+
+Result: all commands passed on 2026-05-31. The focused mapping eval returned:
+
+```json
+{"javascript":["eslint_d"],"javascriptreact":["eslint_d"],"typescript":["eslint_d"],"typescriptreact":["eslint_d"]}
+```
