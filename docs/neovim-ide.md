@@ -51,7 +51,7 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Tests/debugging | `testing.nix`, language modules | Neotest, DAP UI, debugpy, vscode-js-debug, and project-local pytest/Jest/Vitest commands |
 | Workspace safety | `hardening.nix` | root marker policy, disabled local config/modelines, generated-file guards, gitleaks scan wrapper |
 | Guarded AI | `ai.nix` plus `home/modules/ai-*.nix` | authenticated `claude`, `codex`, or `pi` CLI when used; bridge fails safely if none are on `PATH` |
-| AI companion plugin | `ai-companion.nix` | CodeCompanion.nvim through NVF; an OpenAI-compatible endpoint configured at runtime with `OPENAI_API_KEY`, optional `OPENAI_BASE_URL`, and optional `OPENAI_MODEL` |
+| AI companion plugin | `ai-companion.nix` | CodeCompanion.nvim through NVF; an OpenAI-compatible endpoint configured at runtime with `OPENAI_API_KEY`, optional `OPENAI_BASE_URL` (falls back to `https://api.openai.com`), and optional `OPENAI_MODEL` |
 | Tidal/Haskell | `tidal.nix` | haskell-language-server, haskell-tools, `tidal.nvim`, `tidal-ghci` from the project or bundled fallback |
 
 ## Phase 0 decisions
@@ -117,7 +117,7 @@ NVF-031 adopts CodeCompanion.nvim rather than Avante.nvim for the richer in-edit
 `home/modules/nvf/ai-companion.nix` is gated by `myHome.features.enableNvfAiCompanion`; terminal-derived profiles enable it with `lib.mkDefault true` after validation. Credentials are never committed to Nix. The plugin reads runtime environment variables only:
 
 - `OPENAI_API_KEY` for the OpenAI-compatible API token.
-- `OPENAI_BASE_URL` when using a non-default OpenAI-compatible endpoint such as a secured local llama.cpp server.
+- `OPENAI_BASE_URL` when using a non-default OpenAI-compatible endpoint such as a secured local llama.cpp server; when unset, the adapter falls back to `https://api.openai.com` and appends `/v1/chat/completions`.
 - `OPENAI_MODEL` to override the default model (`gpt-4o-mini`).
 
 Implemented CodeCompanion mappings:
@@ -137,7 +137,7 @@ Use the workflows as distinct paths:
 - Use Codex CLI (`codex exec`) for subscription/OAuth-backed Codex workflows; CodeCompanion does not inherit Codex CLI authentication or sandbox settings.
 - Keep Pi as a separate guarded orchestration path through `home/modules/nvf/ai.nix`; it is not routed through CodeCompanion.
 
-Privacy boundary: CodeCompanion does not inherit the bridge's sensitive-path blocking, secret redaction, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin. The configured prompt library disables default prompt-library display and avoids repository-wide slash commands, autonomous tools, and automatic full-buffer variables.
+Privacy boundary: CodeCompanion does not inherit the bridge's sensitive-path blocking, secret redaction, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin. The configured prompt library hides the default prompt library, configures built-in slash commands (`/file`, `/buffer`, `/symbols`, and related repository/context inserters) as disabled, configures built-in chat tools (`run_command`, file edit/read/search tools, web fetch/search, and related agent groups) as disabled, and keeps automatic full-buffer variables absent. These are CodeCompanion plugin controls, not equivalent to the guarded bridge's pre-send redaction and confirmation policy.
 
 ## Troubleshooting
 

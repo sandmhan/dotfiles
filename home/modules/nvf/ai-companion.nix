@@ -43,20 +43,24 @@ in
 
           adapters = mkLuaInline ''
             {
-              openai_compatible = function()
-                return require("codecompanion.adapters").extend("openai_compatible", {
-                  name = "openai_compatible",
-                  env = {
-                    api_key = "OPENAI_API_KEY",
-                    url = "OPENAI_BASE_URL",
-                  },
-                  schema = {
-                    model = {
-                      default = os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
+              http = {
+                openai_compatible = function()
+                  return require("codecompanion.adapters").extend("openai_compatible", {
+                    name = "openai_compatible",
+                    env = {
+                      api_key = "OPENAI_API_KEY",
+                      url = function()
+                        return os.getenv("OPENAI_BASE_URL") or "https://api.openai.com"
+                      end,
                     },
-                  },
-                })
-              end,
+                    schema = {
+                      model = {
+                        default = os.getenv("OPENAI_MODEL") or "gpt-4o-mini",
+                      },
+                    },
+                  })
+                end,
+              },
             }
           '';
 
@@ -64,8 +68,48 @@ in
             chat = {
               adapter = "openai_compatible";
               variables = mkLuaInline "{}";
-              slash_commands = mkLuaInline "{}";
-              tools = { };
+              slash_commands = mkLuaInline ''
+                {
+                  buffer = { enabled = false },
+                  command = { enabled = false },
+                  compact = { enabled = false },
+                  fetch = { enabled = false },
+                  file = { enabled = false },
+                  help = { enabled = false },
+                  image = { enabled = false },
+                  mcp = { enabled = false },
+                  mode = { enabled = false },
+                  now = { enabled = false },
+                  rules = { enabled = false },
+                  symbols = { enabled = false },
+                  opts = {
+                    acp = { enabled = false },
+                  },
+                }
+              '';
+              tools = mkLuaInline ''
+                {
+                  ask_questions = { enabled = false },
+                  create_file = { enabled = false },
+                  delete_file = { enabled = false },
+                  fetch_webpage = { enabled = false },
+                  file_search = { enabled = false },
+                  get_changed_files = { enabled = false },
+                  get_diagnostics = { enabled = false },
+                  grep_search = { enabled = false },
+                  insert_edit_into_file = { enabled = false },
+                  memory = { enabled = false },
+                  read_file = { enabled = false },
+                  run_command = { enabled = false },
+                  web_search = { enabled = false },
+                  opts = {
+                    auto_submit_errors = false,
+                    auto_submit_success = false,
+                    default_tools = {},
+                    system_prompt = { enabled = false },
+                  },
+                }
+              '';
             };
             inline = {
               adapter = "openai_compatible";

@@ -28,9 +28,11 @@ assert_phase7_ai_companion_module_exists() {
     && grep -q 'OPENAI_API_KEY' home/modules/nvf/ai-companion.nix \
     && grep -q 'OPENAI_BASE_URL' home/modules/nvf/ai-companion.nix \
     && grep -q 'OPENAI_MODEL' home/modules/nvf/ai-companion.nix \
+    && grep -q 'https://api.openai.com' home/modules/nvf/ai-companion.nix \
     && grep -q 'show_default_prompt_library = false' home/modules/nvf/ai-companion.nix \
-    && grep -q 'slash_commands = mkLuaInline "{}"' home/modules/nvf/ai-companion.nix \
-    && grep -q 'tools = { }' home/modules/nvf/ai-companion.nix
+    && grep -q 'http = {' home/modules/nvf/ai-companion.nix \
+    && grep -q 'buffer = { enabled = false }' home/modules/nvf/ai-companion.nix \
+    && grep -q 'run_command = { enabled = false }' home/modules/nvf/ai-companion.nix
 }
 
 assert_phase7_import_inventory_sync() {
@@ -146,10 +148,85 @@ assert_phase7_ticket_status_done() {
       | grep -F '| done | NVF Phase 7 |' >/dev/null
 }
 
+assert_phase7_runtime_codecompanion_config() {
+  local tmpdir nvim_bin runtime_lua fallback_lua
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "${tmpdir:-}"' RETURN
+
+  nix build --no-write-lock-file --impure --expr \
+    "(builtins.getFlake \"path:$repo_root\").homeConfigurations.terminalman.config.programs.nvf.finalPackage" \
+    -o "$tmpdir/nvim" >/dev/null
+  nvim_bin="$tmpdir/nvim/bin/nvim"
+  runtime_lua="$tmpdir/codecompanion-runtime.lua"
+  fallback_lua="$tmpdir/codecompanion-fallback.lua"
+
+  cat >"$runtime_lua" <<'LUA'
+local config = require('codecompanion.config').config
+assert(config.adapters.openai_compatible == nil, 'adapter must not be configured at deprecated top-level adapters.openai_compatible')
+assert(type(config.adapters.http.openai_compatible) == 'function', 'http.openai_compatible adapter override missing')
+assert(config.interactions.chat.adapter == 'openai_compatible', 'chat interaction is not using openai_compatible')
+assert(config.interactions.inline.adapter == 'openai_compatible', 'inline interaction is not using openai_compatible')
+
+local adapter = require('codecompanion.adapters').resolve(config.interactions.chat.adapter)
+assert(adapter.name == 'openai_compatible', 'resolved adapter name mismatch: ' .. vim.inspect(adapter.name))
+assert(adapter.type == 'http', 'resolved adapter type mismatch: ' .. vim.inspect(adapter.type))
+assert(adapter.model and adapter.model.name == 'phase7-runtime-model', 'OPENAI_MODEL was not applied: ' .. vim.inspect(adapter.model))
+
+local adapter_utils = require('codecompanion.utils.adapters')
+adapter_utils.get_env_vars(adapter, { timeout = 1000 })
+assert(adapter.env_replaced.api_key == 'phase7-runtime-key', 'OPENAI_API_KEY was not resolved')
+assert(adapter.env_replaced.url == 'https://phase7.example.invalid/openai', 'OPENAI_BASE_URL was not resolved: ' .. vim.inspect(adapter.env_replaced.url))
+assert(adapter_utils.set_env_vars(adapter, adapter.url) == 'https://phase7.example.invalid/openai/v1/chat/completions', 'resolved request URL mismatch')
+
+local slash_filter = require('codecompanion.interactions.chat.slash_commands.filter')
+local slash = slash_filter.filter_enabled_slash_commands(config.interactions.chat.slash_commands, { adapter = adapter })
+for _, name in ipairs({ 'buffer', 'command', 'compact', 'fetch', 'file', 'help', 'image', 'mcp', 'mode', 'now', 'rules', 'symbols' }) do
+  assert(config.interactions.chat.slash_commands[name].enabled == false, 'slash command not configured disabled: ' .. name)
+  assert(slash[name] == nil, 'slash command still enabled after filtering: ' .. name)
+end
+
+local tool_filter = require('codecompanion.interactions.chat.tools.filter')
+local tools = tool_filter.filter_enabled_tools(config.interactions.chat.tools, { adapter = adapter })
+for _, name in ipairs({ 'ask_questions', 'create_file', 'delete_file', 'fetch_webpage', 'file_search', 'get_changed_files', 'get_diagnostics', 'grep_search', 'insert_edit_into_file', 'memory', 'read_file', 'run_command', 'web_search' }) do
+  assert(config.interactions.chat.tools[name].enabled == false, 'tool not configured disabled: ' .. name)
+  assert(tools[name] == nil, 'tool still enabled after filtering: ' .. name)
+end
+assert(vim.tbl_isempty(tools.groups or {}), 'tool groups should be empty after filtering: ' .. vim.inspect(tools.groups))
+assert(config.interactions.chat.tools.opts.auto_submit_errors == false, 'tool auto_submit_errors should be disabled')
+assert(config.interactions.chat.tools.opts.auto_submit_success == false, 'tool auto_submit_success should be disabled')
+assert(config.interactions.chat.tools.opts.system_prompt.enabled == false, 'tool system prompt should be disabled')
+LUA
+
+  cat >"$fallback_lua" <<'LUA'
+local config = require('codecompanion.config').config
+local adapter = require('codecompanion.adapters').resolve(config.interactions.chat.adapter)
+local adapter_utils = require('codecompanion.utils.adapters')
+adapter_utils.get_env_vars(adapter, { timeout = 1000 })
+assert(adapter.env_replaced.url == 'https://api.openai.com', 'OPENAI_BASE_URL fallback mismatch: ' .. vim.inspect(adapter.env_replaced.url))
+assert(adapter_utils.set_env_vars(adapter, adapter.url) == 'https://api.openai.com/v1/chat/completions', 'fallback request URL mismatch')
+LUA
+
+  env \
+    OPENAI_API_KEY='phase7-runtime-key' \
+    OPENAI_BASE_URL='https://phase7.example.invalid/openai' \
+    OPENAI_MODEL='phase7-runtime-model' \
+    "$nvim_bin" --headless -c "luafile $runtime_lua" -c 'qa!'
+
+  env \
+    -u OPENAI_BASE_URL \
+    OPENAI_API_KEY='phase7-runtime-key' \
+    OPENAI_MODEL='phase7-runtime-model' \
+    "$nvim_bin" --headless -c "luafile $fallback_lua" -c 'qa!'
+
+  rm -rf "$tmpdir"
+  trap - RETURN
+}
+
 check 'Phase 7 AI companion module exists and avoids committed credentials/repo slash tools' assert_phase7_ai_companion_module_exists
 check 'Phase 7 default.nix import and README inventory are synchronized' assert_phase7_import_inventory_sync
 check 'terminal profile enables NVF AI companion feature flag' assert_phase7_feature_flag_enabled_for_terminal_profile
 check 'terminalman enables CodeCompanion config, selected-code keymaps, and guarded bridge keys' assert_phase7_terminalman_codecompanion_config
+check 'built terminalman NVF package resolves CodeCompanion adapter and disabled defaults at runtime' assert_phase7_runtime_codecompanion_config
 check 'operations guide documents CodeCompanion decision, privacy, Codex CLI, and Pi boundaries' assert_phase7_docs_cover_boundaries
 check 'Phase 7 evidence file is indexed and records the plugin decision' assert_phase7_evidence_documented
 check 'NVF-031 ticket files and index consistently mark completed work done' assert_phase7_ticket_status_done
