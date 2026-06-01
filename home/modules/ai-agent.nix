@@ -38,8 +38,8 @@ in
     pkgs.curl
   ];
 
-  # Override Claude Code settings for autonomous mode
-  programs.claude-code.settings = lib.mkForce {
+  # Override Claude Code bootstrap settings for autonomous mode
+  myHome.ai.claude.settings = lib.mkForce {
     permissions = {
       allow = [
         # Git operations
@@ -123,23 +123,25 @@ in
     };
   };
 
-  # Override Codex config for autonomous mode
+  # Override Codex config bootstrap for autonomous mode
+  myHome.ai.codex.configToml = lib.mkForce ''
+    model = "gpt-5-codex"
+    model_reasoning_effort = "medium"
+    approval_policy = "never"
+    sandbox_mode = "danger-full-access"
+
+    [features]
+    web_search = true
+    memories = true
+    multi_agent = true
+
+    [agents]
+    max_threads = 4
+    max_depth = 2
+  '';
+
   # Agent workspace directories
   home.file = {
-    ".codex/config.toml".text = lib.mkForce ''
-      model = "o3"
-      approval_policy = "never"
-      sandbox_mode = "danger-full-access"
-
-      [features]
-      web_search = true
-      memories = true
-      multi_agent = true
-
-      [agents]
-      max_threads = 4
-      max_depth = 2
-    '';
     "workspace/.gitkeep".text = "";
     "workspace/homelab/.gitkeep".text = "";
     "workspace/testing/.gitkeep".text = "";

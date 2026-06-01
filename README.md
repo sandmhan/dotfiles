@@ -247,24 +247,27 @@ When `home/modules/nvf/default.nix` imports change, update this inventory in the
 
 ## Claude Code Configuration
 
-Claude Code is configured declaratively from `home/modules/ai-claude.nix` using shared content from `home/modules/ai-skills.nix`. Configuration includes:
+Claude Code is configured declaratively from `home/modules/ai-claude.nix` using shared content from `home/modules/ai-skills.nix`. Home Manager activation bootstraps writable regular files into Claude's runtime paths instead of leaving read-only Nix-store symlinks:
 
-- **Settings**: Permissions, model selection, theme
-- **Skills**: Custom guidance for specific tasks (e.g., the `nix-flake` skill for Nix development)
-- **Rules**: Project conventions (e.g., `nix-conventions.md`, `homelab.md`)
+- **Settings**: `~/.claude/settings.json`
+- **Skills**: `~/.claude/skills/<name>/`
+- **Rules**: `~/.claude/rules/<name>.md`
+- **Canonical export**: provider-agnostic copies under `~/.local/share/ai/`
 
-Skills and rules are stored under `home/modules/ai/`. Home Manager maps them into Claude's config directly and also exports a canonical copy to `~/.local/share/ai/`. The NVF AI bridge in `home/modules/nvf/ai.nix` can invoke the Claude, Codex, and Pi CLIs only after scoped context redaction and explicit confirmation.
+Activation replaces legacy Home Manager symlinks with regular files or directories. Existing regular files are preserved and made user-writable so Claude can update them at runtime. Because preserved files are mutable, later Nix default changes are not forced over local edits; remove the specific file or directory and run Home Manager again to re-bootstrap the current declarative default.
+
+The NVF AI bridge in `home/modules/nvf/ai.nix` can invoke the Claude, Codex, and Pi CLIs only after scoped context redaction and explicit confirmation.
 
 ## Codex Configuration
 
-Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes the same shared skill/rule registry as Claude.
+Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes the same shared skill/rule registry as Claude. Home Manager activation bootstraps writable regular files into Codex's runtime paths:
 
-- **Shared source**: `home/modules/ai-skills.nix` defines the provider-agnostic `myHome.ai.skills` and `myHome.ai.rules` sets
-- **Canonical export**: Home Manager also writes a tool-agnostic cache to `~/.local/share/ai/`
-- **Codex runtime path**: Codex reads skills from `~/.codex/skills/`
-- **Important behavior**: Codex only picked up regular files reliably, so Home Manager materializes real files into `~/.codex/skills/` during activation instead of leaving Nix-store symlinks in place
+- **Config**: `~/.codex/config.toml`
+- **Rules**: `~/.codex/AGENTS.md`
+- **Skills**: `~/.codex/skills/<name>/`
+- **Default model**: `gpt-5-codex` with `model_reasoning_effort = "medium"` for ChatGPT account compatibility
 
-This keeps the source of truth declarative while matching Codex's runtime discovery behavior. The NVF AI bridge reuses the existing `codex` CLI and keeps sandboxing/approval behavior owned by this module instead of configuring a separate AI stack.
+Activation replaces legacy Home Manager symlinks, preserves existing regular files, and copies only missing skill directory entries. Remove or manually refresh existing mutable files when you want a later Nix default to take effect. This keeps source content declarative while allowing Codex to read and modify regular runtime files.
 
 ---
 

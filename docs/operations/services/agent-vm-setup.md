@@ -31,9 +31,9 @@ ssh agent@10.0.0.5 'hostname && uptime'
 ./scripts/deploy-agent-vm.sh ssh
 ```
 
-### 3. Claude Code Ready to Use
+### 3. Claude Code and Codex Ready to Use
 
-Claude Code is pre-installed and configured with autonomous permissions. Simply SSH in and start working:
+Claude Code and Codex are pre-installed. Claude runs with autonomous permissions, and Codex uses the agent profile's autonomous approval and sandbox settings. Simply SSH in and start working:
 
 ```bash
 # Connect to the VM
@@ -42,10 +42,16 @@ Claude Code is pre-installed and configured with autonomous permissions. Simply 
 # Start Claude Code in autonomous mode
 claude-workspace
 
+# Start Codex in the same workspace layout
+codex-workspace
+
 # Or use specific workspace shortcuts
-claude-homelab     # Start in homelab workspace
-claude-testing     # Start in testing workspace  
-claude-deploy      # Start in deployment workspace
+claude-homelab     # Start Claude in homelab workspace
+claude-testing     # Start Claude in testing workspace
+claude-deploy      # Start Claude in deployment workspace
+codex-homelab      # Start Codex in homelab workspace
+codex-testing      # Start Codex in testing workspace
+codex-deploy       # Start Codex in deployment workspace
 ```
 
 ## Configuration
@@ -85,7 +91,7 @@ export AGENT_DISK_SIZE=40                 # Disk size in GB
 
 ### Development Environment
 
-- **Claude Code**: Pre-installed with autonomous permissions and agent-specific skills
+- **Claude Code and Codex**: Pre-installed with autonomous permissions, writable runtime config files, and agent-specific skills
 - **Tmux**: Pre-configured with sessionizer and session resurrection
 - **Development tools**: Git, Nix toolchain, container tools, network debugging
 - **Terminal optimization**: Modern CLI tools (bat, eza, ripgrep, fzf)
@@ -169,6 +175,19 @@ mkcd new-project      # Create and enter directory
 
 ## AI Tool Configuration
 
+### Mutable Claude and Codex Runtime Files
+
+Claude and Codex defaults come from Home Manager modules, but activation materializes them as writable regular files so the tools can update local state at runtime.
+
+| Tool | Runtime files | Source module |
+| --- | --- | --- |
+| Claude Code | `~/.claude/settings.json`, `~/.claude/rules/`, `~/.claude/skills/` | `home/modules/ai-claude.nix` |
+| Codex | `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/skills/` | `home/modules/ai-codex.nix` |
+
+Activation replaces legacy read-only Nix-store symlinks with regular files or directories. Existing regular files are preserved and made user-writable, so later Nix default changes do not overwrite local edits. To reapply a Nix default, remove the specific mutable file or skill directory and run Home Manager activation again.
+
+Codex defaults use `model = "gpt-5-codex"` and `model_reasoning_effort = "medium"` for ChatGPT account compatibility. The `agent-sandbox` profile keeps those model settings and overrides approval/sandbox settings for autonomous VM operation in `home/modules/ai-agent.nix`.
+
 ### Agent-Specific Skills
 
 The agent VM comes with specialized skills for infrastructure development:
@@ -181,7 +200,7 @@ The agent VM comes with specialized skills for infrastructure development:
 - **vm-deployment**: Automated VM provisioning
 - **container-management**: OCI service management
 
-These skills are defined once in `home/modules/ai/` and exposed through the shared `myHome.ai.skills` registry. Claude consumes them directly, while Codex receives a materialized copy under `~/.codex/skills/` at Home Manager activation time. The materialization step is intentional because Codex indexes regular files there more reliably than Nix-store symlinks.
+These skills are defined once in `home/modules/ai/` and exposed through the shared `myHome.ai.skills` registry. Home Manager activation materializes them into both Claude and Codex runtime skill directories as writable regular files, while also exporting provider-agnostic copies under `~/.local/share/ai/`.
 
 ### Recommended Prompts
 
