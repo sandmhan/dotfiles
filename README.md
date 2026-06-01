@@ -229,6 +229,7 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `testing.nix` | Neotest adapters, DAP UI, and shared test/debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
 | `ai.nix` | Guarded AI bridge keymaps and commands for Claude Code, Codex CLI, and Pi with confirmation, scoped context, and redaction |
+| `ai-companion.nix` | CodeCompanion.nvim OpenAI-compatible chat, selected-code edit/review/test prompts, and plugin keymaps behind `enableNvfAiCompanion` |
 | `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
 | `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |

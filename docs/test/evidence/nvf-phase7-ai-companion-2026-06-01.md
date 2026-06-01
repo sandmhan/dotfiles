@@ -1,0 +1,75 @@
+---
+title: NVF Phase 7 AI Companion Evidence
+status: accepted
+updated: 2026-06-01
+---
+
+# NVF Phase 7 AI Companion Evidence
+
+## Decision
+
+Chosen tool: CodeCompanion.nvim.
+
+Avante.nvim was not adopted for this production-safe rollout. NVF packages Avante.nvim and exposes `vim.assistant.avante-nvim`, so it is feasible, but its Cursor-like workflow, heavier Rust-backed package surface, auto-suggestion/auto-keymap behavior, and diff/application ergonomics are a worse fit for this repository's guardrail-first policy. CodeCompanion.nvim is also NVF-supported and provides the needed chat, selected-code inline edit, action palette, OpenAI-compatible adapter, prompt library, and diff display while preserving `home/modules/nvf/ai.nix` as the guarded Claude/Codex/Pi bridge.
+
+## Implemented behavior
+
+- Added `myHome.features.enableNvfAiCompanion` and enabled it by default in the terminal profile.
+- Added `home/modules/nvf/ai-companion.nix` with CodeCompanion.nvim behind the feature flag.
+- Configured a runtime OpenAI-compatible adapter using `OPENAI_API_KEY`, optional `OPENAI_BASE_URL`, and optional `OPENAI_MODEL`; no credentials are committed.
+- Disabled default prompt-library display, repository-wide slash command insertion, chat variables, and autonomous tools.
+- Added curated selected-code prompt-library entries for review, edit, tests, and explanation.
+- Preserved existing guarded AI bridge keymaps and commands in `home/modules/nvf/ai.nix`.
+
+## Keymaps and commands
+
+Guarded bridge remains unchanged:
+
+- `<leader>aa` / visual `<leader>aa` → `:NvfAiAsk`
+- `<leader>ar` → `:NvfAiReviewDiff`
+- `<leader>at` / visual `<leader>at` → `:NvfAiTests`
+- `<leader>ad` → `:NvfAiDiagnostic`
+- `<leader>as` → `:NvfAiSkills`
+
+CodeCompanion plugin path:
+
+- `<leader>ac` → `:CodeCompanionChat`
+- `<leader>aA` → `:CodeCompanionActions`
+- Visual `<leader>ae` → selected-code edit prompt through `:CodeCompanion`
+- Visual `<leader>aR` → selected-code review prompt through `:CodeCompanion`
+- Visual `<leader>aT` → selected-code test-generation prompt through `:CodeCompanion`
+
+## Validation results
+
+Validation was run from `/home/sandmhan/dotfiles` on 2026-06-01.
+
+| Command | Result | Notes |
+|---|---|---|
+| `bash scripts/check-nvf-baseline.sh` | pass | Re-run after staging new files so the flake source included `ai-companion.nix` |
+| `bash scripts/check-nvf-phase2.sh` | pass | Existing language assertions unchanged |
+| `bash scripts/check-nvf-phase3.sh` | pass | Existing testing/DAP assertions unchanged |
+| `bash scripts/check-nvf-phase4.sh` | pass | Existing hardening assertions unchanged |
+| `bash scripts/check-nvf-phase5.sh` | pass | Guarded AI bridge regression checks still pass; one transient Nix eval-cache SQLite busy warning was ignored by Nix |
+| `bash scripts/check-nvf-phase6.sh` | pass | README import inventory remains synchronized with `default.nix` |
+| `bash scripts/check-nvf-phase7.sh` | pass | New CodeCompanion config, keymap, docs, evidence, and ticket assertions pass |
+| `bash -n scripts/check-nvf-phase7.sh` | pass | Script syntax OK |
+| `nix run --no-write-lock-file nixpkgs#shellcheck -- scripts/check-nvf-phase7.sh` | pass | Fixed SC2016 findings by using fixed-string/double-quoted grep patterns |
+| `nixfmt --check home/options.nix home/profiles/terminal.nix home/modules/nvf/*.nix` | pass | Nix formatting OK |
+| `git diff --check` | pass | No whitespace errors |
+| `nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage` | pass | Evaluates/build-plans CodeCompanion for Linux headless profile |
+| `nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage` | pass | Evaluates/build-plans CodeCompanion for Linux desktop profile |
+| `nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage` | pass | Evaluates/build-plans CodeCompanion for WSL profile |
+| `nix build --dry-run --no-write-lock-file .#homeConfigurations.macman.activationPackage` | pass | Cross-system dry-run evaluated from Linux and produced a build plan |
+| `nix build --no-write-lock-file --impure --expr '(builtins.getFlake "path:/home/sandmhan/dotfiles").homeConfigurations.terminalman.config.programs.nvf.finalPackage' -o /tmp/nvf-phase7-nvim` | pass | Built the terminalman NVF package for runtime smoke checks without activating Home Manager |
+| `/tmp/nvf-phase7-nvim/bin/nvim --headless "+checkhealth" "+qa"` | pass | Build-local NVF package completed checkhealth |
+| `/tmp/nvf-phase7-nvim/bin/nvim --headless -c 'if exists(":CodeCompanionChat") != 2 \| cquit \| endif' -c 'qa!'` | pass | CodeCompanion command registered in the built package |
+| `/tmp/nvf-phase7-nvim/bin/nvim --headless -c 'if exists(":NvfAiAsk") != 2 \| cquit \| endif' -c 'qa!'` | pass | Guarded bridge command still registered in the built package |
+
+A control check against the currently activated `nvim` also completed `checkhealth` and still exposed `:NvfAiAsk`, but `:CodeCompanionChat` was unavailable before activation. The build-local package above is the runtime evidence for this change without switching the user's profile.
+
+## Limitations
+
+- CodeCompanion does not inherit the bridge's redaction, sensitive-path blocking, confirmation summary, or full-buffer-selection guardrails.
+- Codex subscription/OAuth remains a Codex CLI concern; the plugin uses OpenAI-compatible API credentials or endpoint configuration from the runtime environment.
+- Local OpenAI-compatible endpoints should be secured before use.
+- Runtime checks used a build-local NVF package instead of activating Home Manager, so profile activation behavior was not tested.
