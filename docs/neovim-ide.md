@@ -125,7 +125,7 @@ Implemented CodeCompanion mappings:
 | Key | Command | Scope |
 |---|---|---|
 | `<leader>ac` | `:CodeCompanionChat` | Plugin chat using the configured OpenAI-compatible adapter |
-| `<leader>aA` | `:CodeCompanionActions` | Action palette with repository-curated selected-code prompts, built-in prompt-library entries hidden, and preset rules hidden |
+| Normal/visual `<leader>aA` | `:CodeCompanionActions` | Action palette with repository-curated selected-code prompts; CodeCompanion preset actions, preset prompts, and preset rules hidden |
 | Visual `<leader>ae` | `:'<,'>CodeCompanion ...` | Edit only the selected range and propose a minimal diff |
 | Visual `<leader>aR` | `:'<,'>CodeCompanion ...` | Review only the selected range for correctness, safety, tests, and docs drift |
 | Visual `<leader>aT` | `:'<,'>CodeCompanion ...` | Generate tests for only the selected range and ask for missing runner details |
@@ -137,7 +137,7 @@ Use the workflows as distinct paths:
 - Use Codex CLI (`codex exec`) for subscription/OAuth-backed Codex workflows; CodeCompanion does not inherit Codex CLI authentication or sandbox settings.
 - Keep Pi as a separate guarded orchestration path through `home/modules/nvf/ai.nix`; it is not routed through CodeCompanion.
 
-Privacy boundary: CodeCompanion does not inherit the bridge's sensitive-path blocking, secret redaction, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin. The configured plugin controls hide built-in prompt-library entries, hide preset rules, disable rules chat autoload so files such as `AGENTS.md`, `CLAUDE.md`, and `~/.claude/CLAUDE.md` are not automatically attached to chat or inline interactions, configure built-in slash commands (`/file`, `/buffer`, `/symbols`, and related repository/context inserters) as disabled, configure built-in chat tools (`run_command`, file edit/read/search tools, web fetch/search, and related agent groups) as disabled, and keep automatic full-buffer variables absent. These controls reduce CodeCompanion's automatic context/tool surface, but they are not equivalent to the guarded bridge's pre-send redaction and confirmation policy.
+Privacy boundary: CodeCompanion does not inherit the bridge's sensitive-path blocking, secret redaction, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin. The configured plugin controls hide CodeCompanion preset actions/prompts/rules, disable rules chat autoload so files such as `AGENTS.md`, `CLAUDE.md`, and `~/.claude/CLAUDE.md` are not automatically attached to chat or inline interactions, clear shared and inline `editor_context` providers and nil the `#` editor-context trigger so `#buffer`, `#buffers`, `#diff`, `#diagnostics`, `#terminal`, and related providers are unavailable, configure built-in slash commands (`/file`, `/buffer`, `/symbols`, and related repository/context inserters) as disabled, configure built-in chat tools (`run_command`, file edit/read/search tools, web fetch/search, and related agent groups) as disabled, and keep automatic full-buffer variables absent. These controls reduce CodeCompanion's automatic context/tool surface, but they are not equivalent to the guarded bridge's pre-send redaction and confirmation policy.
 
 ## Troubleshooting
 

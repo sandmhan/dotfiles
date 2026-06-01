@@ -17,6 +17,7 @@ in
             log_level = "ERROR";
             language = "English";
             send_code = true;
+            triggers.editor_context = mkLuaInline "nil";
           };
 
           display = {
@@ -36,10 +37,9 @@ in
             };
 
             action_palette.opts = {
-              show_preset_actions = true;
-              show_preset_prompts = true;
+              show_preset_actions = false;
+              show_preset_prompts = false;
               show_preset_rules = false;
-              show_prompt_library_builtins = false;
             };
           };
 
@@ -53,6 +53,23 @@ in
               show_presets = false;
             };
           };
+
+          extensions.nvf_hardening.callback = mkLuaInline ''
+            function()
+              return {
+                setup = function()
+                  local config = require("codecompanion.config").config
+                  config.interactions.shared.editor_context = {}
+                  config.interactions.inline.editor_context = {}
+                  config.opts.triggers.editor_context = nil
+                  require("codecompanion.triggers").mappings.editor_context = nil
+                  require("codecompanion.providers.completion").editor_context = function()
+                    return {}
+                  end
+                end,
+              }
+            end
+          '';
 
           adapters = mkLuaInline ''
             {
@@ -222,6 +239,12 @@ in
           mode = [ "n" ];
           action = "<cmd>CodeCompanionActions<cr>";
           desc = "AI CodeCompanion actions and curated prompts";
+        }
+        {
+          key = "<leader>aA";
+          mode = [ "x" ];
+          action = ":'<,'>CodeCompanionActions<cr>";
+          desc = "AI CodeCompanion actions for selected code";
         }
         {
           key = "<leader>ae";

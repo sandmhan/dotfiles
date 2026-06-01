@@ -29,7 +29,10 @@ assert_phase7_ai_companion_module_exists() {
     && grep -q 'OPENAI_BASE_URL' home/modules/nvf/ai-companion.nix \
     && grep -q 'OPENAI_MODEL' home/modules/nvf/ai-companion.nix \
     && grep -q 'https://api.openai.com' home/modules/nvf/ai-companion.nix \
-    && grep -q 'show_prompt_library_builtins = false' home/modules/nvf/ai-companion.nix \
+    && grep -q 'show_preset_actions = false' home/modules/nvf/ai-companion.nix \
+    && grep -q 'show_preset_prompts = false' home/modules/nvf/ai-companion.nix \
+    && grep -q 'triggers.editor_context = mkLuaInline "nil"' home/modules/nvf/ai-companion.nix \
+    && grep -q 'nvf_hardening' home/modules/nvf/ai-companion.nix \
     && grep -q 'autoload = false' home/modules/nvf/ai-companion.nix \
     && grep -q 'http = {' home/modules/nvf/ai-companion.nix \
     && grep -q 'buffer = { enabled = false }' home/modules/nvf/ai-companion.nix \
@@ -73,6 +76,14 @@ let
         && hasMode mode mapping.mode
         && builtins.length (builtins.split "CodeCompanion" mapping.desc) > 1)
       keymaps;
+  hasMappingPrefix = key: commandPrefix: mode:
+    builtins.any
+      (mapping:
+        mapping.key == key
+        && hasMode mode mapping.mode
+        && builtins.length (builtins.split commandPrefix mapping.action) > 1
+        && builtins.length (builtins.split "CodeCompanion" mapping.desc) > 1)
+      keymaps;
   hasVisualPrefix = key: text:
     builtins.any
       (mapping:
@@ -100,8 +111,11 @@ if
   && companion.setupOpts.display.diff.enabled
   && companion.setupOpts.display.diff.provider == "inline"
   && companion.setupOpts.display.diff.layout == "vertical"
-  && companion.setupOpts.display.action_palette.opts.show_prompt_library_builtins == false
+  && companion.setupOpts.display.action_palette.opts.show_preset_actions == false
+  && companion.setupOpts.display.action_palette.opts.show_preset_prompts == false
   && companion.setupOpts.display.action_palette.opts.show_preset_rules == false
+  && !(builtins.hasAttr "show_prompt_library_builtins" companion.setupOpts.display.action_palette.opts)
+  && builtins.hasAttr "nvf_hardening" companion.setupOpts.extensions
   && companion.setupOpts.rules.opts.chat.enabled == false
   && companion.setupOpts.rules.opts.chat.autoload == false
   && companion.setupOpts.rules.opts.show_presets == false
@@ -113,6 +127,7 @@ if
   && builtins.hasAttr "Explain selected code" companion.setupOpts.prompt_library
   && hasMapping "<leader>ac" "<cmd>CodeCompanionChat<cr>" "n"
   && hasMapping "<leader>aA" "<cmd>CodeCompanionActions<cr>" "n"
+  && hasMappingPrefix "<leader>aA" "CodeCompanionActions" "x"
   && hasVisualPrefix "<leader>ae" "CodeCompanion Edit the selected code"
   && hasVisualPrefix "<leader>aR" "CodeCompanion Review the selected code"
   && hasVisualPrefix "<leader>aT" "CodeCompanion Generate tests for the selected code"
@@ -171,8 +186,10 @@ assert(config.adapters.openai_compatible == nil, 'adapter must not be configured
 assert(type(config.adapters.http.openai_compatible) == 'function', 'http.openai_compatible adapter override missing')
 assert(config.interactions.chat.adapter == 'openai_compatible', 'chat interaction is not using openai_compatible')
 assert(config.interactions.inline.adapter == 'openai_compatible', 'inline interaction is not using openai_compatible')
-assert(config.display.action_palette.opts.show_prompt_library_builtins == false, 'built-in prompt library should be hidden')
+assert(config.display.action_palette.opts.show_preset_actions == false, 'preset actions should be hidden from action palette')
+assert(config.display.action_palette.opts.show_preset_prompts == false, 'preset prompts should be hidden from action palette')
 assert(config.display.action_palette.opts.show_preset_rules == false, 'preset rules should be hidden from action palette')
+assert(config.display.action_palette.opts.show_prompt_library_builtins ~= false, 'curated prompt library entries must not be hidden')
 
 local chat_rules = config.rules and config.rules.opts and config.rules.opts.chat or {}
 assert(chat_rules.enabled == false, 'rules chat autoload must be disabled via enabled=false')
@@ -184,6 +201,29 @@ for _, prompt in pairs(config.prompt_library or {}) do
   if type(prompt) == 'table' and prompt.opts and prompt.opts.short_name then
     assert(prompt.rules == 'none', 'curated prompt should explicitly opt out of rules: ' .. vim.inspect(prompt.opts.short_name))
   end
+end
+
+assert(vim.tbl_isempty(config.interactions.shared.editor_context), 'shared editor_context providers should be empty after NVF hardening: ' .. vim.inspect(config.interactions.shared.editor_context))
+assert(vim.tbl_isempty(config.interactions.inline.editor_context), 'inline editor_context providers should be empty after NVF hardening: ' .. vim.inspect(config.interactions.inline.editor_context))
+assert(config.opts.triggers.editor_context == nil, 'editor_context trigger should be nil after NVF hardening: ' .. vim.inspect(config.opts.triggers.editor_context))
+assert(require('codecompanion.triggers').mappings.editor_context == nil, 'editor_context trigger mapping should be nil after NVF hardening')
+assert(vim.tbl_isempty(require('codecompanion.providers.completion').editor_context('chat')), 'editor_context completions should be empty')
+assert(vim.tbl_isempty(require('codecompanion.interactions.shared.editor_context').new('chat').editor_context), 'chat editor_context parser should have no providers')
+assert(vim.tbl_isempty(require('codecompanion.interactions.shared.editor_context').new('cli').editor_context), 'cli editor_context parser should have no providers')
+
+local action_context = { mode = 'v' }
+local actions = require('codecompanion.actions')
+actions.refresh_cache(action_context)
+local action_items = actions.set_items(action_context)
+local action_names = {}
+for _, item in ipairs(action_items) do
+  action_names[item.name] = true
+end
+for _, name in ipairs({ 'Review selected code', 'Edit selected code', 'Generate tests for selected code', 'Explain selected code' }) do
+  assert(action_names[name], 'curated prompt missing from visual action palette: ' .. name .. '; got ' .. vim.inspect(vim.tbl_keys(action_names)))
+end
+for _, name in ipairs({ 'Chat', 'Code workflow', 'Commit message', 'Explain code', 'Inline prompt', 'Upgrade Tools' }) do
+  assert(action_names[name] == nil, 'unwanted built-in action/prompt visible in action palette: ' .. name)
 end
 
 local adapter = require('codecompanion.adapters').resolve(config.interactions.chat.adapter)

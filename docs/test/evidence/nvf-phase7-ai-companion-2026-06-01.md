@@ -17,7 +17,8 @@ Avante.nvim was not adopted for this production-safe rollout. NVF packages Avant
 - Added `myHome.features.enableNvfAiCompanion` and enabled it by default in the terminal profile.
 - Added `home/modules/nvf/ai-companion.nix` with CodeCompanion.nvim behind the feature flag.
 - Configured the active CodeCompanion HTTP `openai_compatible` adapter path using `OPENAI_API_KEY`, optional `OPENAI_BASE_URL` (fallback `https://api.openai.com`), and optional `OPENAI_MODEL`; no credentials are committed.
-- Hid CodeCompanion built-in prompt-library entries with the installed `display.action_palette.opts.show_prompt_library_builtins` option, hid preset rules, disabled rules chat autoload so `AGENTS.md`/`CLAUDE.md`/similar rule files are not attached automatically, configured CodeCompanion built-in slash commands (`/file`, `/buffer`, `/symbols`, and related commands) and built-in chat tools (`run_command`, file edit/read/search tools, web fetch/search, and related agent groups) as disabled, and kept chat variables empty.
+- Hid CodeCompanion preset actions, preset prompts, and preset rules while keeping repository-curated prompt-library entries visible in the action palette.
+- Disabled rules chat autoload so `AGENTS.md`/`CLAUDE.md`/similar rule files are not attached automatically, cleared shared and inline `editor_context` providers, nilled the `#` editor-context trigger, configured CodeCompanion built-in slash commands (`/file`, `/buffer`, `/symbols`, and related commands) and built-in chat tools (`run_command`, file edit/read/search tools, web fetch/search, and related agent groups) as disabled, and kept chat variables empty.
 - Added curated selected-code prompt-library entries for review, edit, tests, and explanation.
 - Preserved existing guarded AI bridge keymaps and commands in `home/modules/nvf/ai.nix`.
 
@@ -34,14 +35,14 @@ Guarded bridge remains unchanged:
 CodeCompanion plugin path:
 
 - `<leader>ac` → `:CodeCompanionChat`
-- `<leader>aA` → `:CodeCompanionActions`
+- Normal/visual `<leader>aA` → `:CodeCompanionActions`
 - Visual `<leader>ae` → selected-code edit prompt through `:CodeCompanion`
 - Visual `<leader>aR` → selected-code review prompt through `:CodeCompanion`
 - Visual `<leader>aT` → selected-code test-generation prompt through `:CodeCompanion`
 
 ## Validation results
 
-Validation was run from `/home/sandmhan/dotfiles` on 2026-06-01. This table is cumulative for NVF-031. The second rules-autoload revision re-ran all phase scripts, Phase 7 shell syntax and ShellCheck, Nix formatting, whitespace checks, and Home Manager dry-runs for affected profiles; the build-local `checkhealth` and command-existence smoke checks remain from the earlier same-day runtime pass, while the updated Phase 7 script now performs the built-package runtime assertions for rules autoload and prompt-library options.
+Validation was run from `/home/sandmhan/dotfiles` on 2026-06-01. This table is cumulative for NVF-031. The third hardening revision re-ran all phase scripts, Phase 7 shell syntax and ShellCheck, Nix formatting, whitespace checks, and Home Manager dry-runs for affected profiles; the build-local `checkhealth` and command-existence smoke checks remain from the earlier same-day runtime pass, while the updated Phase 7 script now performs built-package runtime assertions for action-palette prompt visibility, hidden built-in presets, disabled editor-context trigger/providers, rules autoload, adapter resolution, and disabled slash commands/tools.
 
 | Command | Result | Notes |
 |---|---|---|
@@ -51,7 +52,7 @@ Validation was run from `/home/sandmhan/dotfiles` on 2026-06-01. This table is c
 | `bash scripts/check-nvf-phase4.sh` | pass | Existing hardening assertions unchanged |
 | `bash scripts/check-nvf-phase5.sh` | pass | Guarded AI bridge regression checks still pass; one transient Nix eval-cache SQLite busy warning was ignored by Nix |
 | `bash scripts/check-nvf-phase6.sh` | pass | README import inventory remains synchronized with `default.nix` |
-| `bash scripts/check-nvf-phase7.sh` | pass | Revised script builds the terminalman NVF package and inspects resolved runtime CodeCompanion config: active `adapters.http.openai_compatible`, env-driven URL/model/key resolution, `OPENAI_BASE_URL` fallback, supported built-in prompt-library hiding, disabled rules chat autoload/default rule callback injection, and disabled slash commands/tools after CodeCompanion filtering |
+| `bash scripts/check-nvf-phase7.sh` | pass | Revised script builds the terminalman NVF package and inspects resolved runtime CodeCompanion config: active `adapters.http.openai_compatible`, env-driven URL/model/key resolution, `OPENAI_BASE_URL` fallback, curated visual action-palette prompts present, unwanted built-in preset actions/prompts absent, shared/inline editor-context providers empty with the `#` trigger nilled, disabled rules chat autoload/default rule callback injection, and disabled slash commands/tools after CodeCompanion filtering |
 | `bash -n scripts/check-nvf-phase7.sh` | pass | Script syntax OK |
 | `nix run --no-write-lock-file nixpkgs#shellcheck -- scripts/check-nvf-phase7.sh` | pass | Fixed SC2016 findings by using fixed-string/double-quoted grep patterns |
 | `nixfmt --check home/options.nix home/profiles/terminal.nix home/modules/nvf/*.nix` | pass | Nix formatting OK |
@@ -64,14 +65,14 @@ Validation was run from `/home/sandmhan/dotfiles` on 2026-06-01. This table is c
 | `/tmp/nvf-phase7-nvim/bin/nvim --headless "+checkhealth" "+qa"` | pass | Build-local NVF package completed checkhealth |
 | `/tmp/nvf-phase7-nvim/bin/nvim --headless -c 'if exists(":CodeCompanionChat") != 2 \| cquit \| endif' -c 'qa!'` | pass | CodeCompanion command registered in the built package |
 | `/tmp/nvf-phase7-nvim/bin/nvim --headless -c 'if exists(":NvfAiAsk") != 2 \| cquit \| endif' -c 'qa!'` | pass | Guarded bridge command still registered in the built package |
-| `OPENAI_API_KEY=phase7-runtime-key OPENAI_BASE_URL=https://phase7.example.invalid/openai OPENAI_MODEL=phase7-runtime-model /tmp/nvf-phase7-nvim/bin/nvim --headless ...` | pass | Runtime inspection confirmed CodeCompanion resolves the active HTTP `openai_compatible` adapter with the env-provided key, base URL, and model; hides built-in prompt-library entries; disables rules chat autoload/default callback injection; and filters built-in slash commands/tools disabled |
+| `OPENAI_API_KEY=phase7-runtime-key OPENAI_BASE_URL=https://phase7.example.invalid/openai OPENAI_MODEL=phase7-runtime-model /tmp/nvf-phase7-nvim/bin/nvim --headless ...` | pass | Runtime inspection confirmed CodeCompanion resolves the active HTTP `openai_compatible` adapter with the env-provided key, base URL, and model; shows curated visual action-palette prompts while hiding built-in presets; clears editor-context providers and nils the `#` trigger; disables rules chat autoload/default callback injection; and filters built-in slash commands/tools disabled |
 | `env -u OPENAI_BASE_URL OPENAI_API_KEY=phase7-runtime-key OPENAI_MODEL=phase7-runtime-model /tmp/nvf-phase7-nvim/bin/nvim --headless ...` | pass | Runtime inspection confirmed the documented `https://api.openai.com` base URL fallback |
 
 A control check against the currently activated `nvim` also completed `checkhealth` and still exposed `:NvfAiAsk`, but `:CodeCompanionChat` was unavailable before activation. The build-local package above is the runtime evidence for this change without switching the user's profile.
 
 ## Limitations
 
-- CodeCompanion does not inherit the bridge's redaction, sensitive-path blocking, confirmation summary, or full-buffer-selection guardrails; disabled rules autoload plus disabled slash commands/tools reduce plugin context/tool surface but are not a substitute for the guarded bridge.
+- CodeCompanion does not inherit the bridge's redaction, sensitive-path blocking, confirmation summary, or full-buffer-selection guardrails; hidden presets, disabled editor-context providers, disabled rules autoload, and disabled slash commands/tools reduce plugin context/tool surface but are not a substitute for the guarded bridge.
 - Codex subscription/OAuth remains a Codex CLI concern; the plugin uses OpenAI-compatible API credentials or endpoint configuration from the runtime environment.
 - Local OpenAI-compatible endpoints should be secured before use.
 - Runtime checks used a build-local NVF package instead of activating Home Manager, so profile activation behavior was not tested.
