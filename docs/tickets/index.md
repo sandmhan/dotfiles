@@ -64,10 +64,10 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-018](NVF-018.md) | Add NVF workspace hardening module | task | done | NVF Phase 4 | [NVF-013](NVF-013.md) |
 | [NVF-019](NVF-019.md) | Implement workspace safety controls | task | done | NVF Phase 4 | [NVF-018](NVF-018.md) |
 | [NVF-020](NVF-020.md) | Document performance profiling and diagnostic throttling | chore | done | NVF Phase 4 | [NVF-018](NVF-018.md) |
-| [NVF-021](NVF-021.md) | Add NVF AI bridge module | task | open | NVF Phase 5 | [NVF-019](NVF-019.md) |
-| [NVF-022](NVF-022.md) | Bridge AI actions to Claude Codex and Pi | task | open | NVF Phase 5 | [NVF-021](NVF-021.md) |
-| [NVF-023](NVF-023.md) | Add AI keymaps under leader a | task | open | NVF Phase 5 | [NVF-003](NVF-003.md), [NVF-021](NVF-021.md), [NVF-022](NVF-022.md) |
-| [NVF-024](NVF-024.md) | Enforce AI confirmation and redaction guardrails | task | open | NVF Phase 5 | [NVF-019](NVF-019.md), [NVF-021](NVF-021.md) |
+| [NVF-021](NVF-021.md) | Add NVF AI bridge module | task | done | NVF Phase 5 | [NVF-019](NVF-019.md) |
+| [NVF-022](NVF-022.md) | Bridge AI actions to Claude Codex and Pi | task | done | NVF Phase 5 | [NVF-021](NVF-021.md) |
+| [NVF-023](NVF-023.md) | Add AI keymaps under leader a | task | done | NVF Phase 5 | [NVF-003](NVF-003.md), [NVF-021](NVF-021.md), [NVF-022](NVF-022.md) |
+| [NVF-024](NVF-024.md) | Enforce AI confirmation and redaction guardrails | task | done | NVF Phase 5 | [NVF-019](NVF-019.md), [NVF-021](NVF-021.md) |
 | [NVF-025](NVF-025.md) | Publish Neovim IDE operations guide | task | open | NVF Phase 6 | [NVF-005](NVF-005.md), [NVF-013](NVF-013.md), [NVF-017](NVF-017.md), [NVF-019](NVF-019.md), [NVF-024](NVF-024.md) |
 | [NVF-026](NVF-026.md) | Keep README synchronized with NVF imports | chore | open | NVF Phase 6 | [NVF-009](NVF-009.md), [NVF-013](NVF-013.md) |
 | [NVF-027](NVF-027.md) | Add editor validation evidence expectations | chore | open | NVF Phase 6 | [NVF-001](NVF-001.md) |

@@ -15,6 +15,7 @@
     ./languages-infra.nix
     ./testing.nix
     ./hardening.nix
+    ./ai.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix

@@ -228,6 +228,7 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
 | `testing.nix` | Neotest adapters, DAP UI, and shared test/debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
+| `ai.nix` | Guarded AI bridge keymaps and commands for Claude Code, Codex CLI, and Pi with confirmation, scoped context, and redaction |
 | `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
 | `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |
@@ -249,7 +250,7 @@ Claude Code is configured declaratively from `home/modules/ai-claude.nix` using 
 - **Skills**: Custom guidance for specific tasks (e.g., the `nix-flake` skill for Nix development)
 - **Rules**: Project conventions (e.g., `nix-conventions.md`, `homelab.md`)
 
-Skills and rules are stored under `home/modules/ai/`. Home Manager maps them into Claude's config directly and also exports a canonical copy to `~/.local/share/ai/`.
+Skills and rules are stored under `home/modules/ai/`. Home Manager maps them into Claude's config directly and also exports a canonical copy to `~/.local/share/ai/`. The NVF AI bridge in `home/modules/nvf/ai.nix` can invoke the Claude, Codex, and Pi CLIs only after scoped context redaction and explicit confirmation.
 
 ## Codex Configuration
 
@@ -260,7 +261,7 @@ Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes 
 - **Codex runtime path**: Codex reads skills from `~/.codex/skills/`
 - **Important behavior**: Codex only picked up regular files reliably, so Home Manager materializes real files into `~/.codex/skills/` during activation instead of leaving Nix-store symlinks in place
 
-This keeps the source of truth declarative while matching Codex's runtime discovery behavior.
+This keeps the source of truth declarative while matching Codex's runtime discovery behavior. The NVF AI bridge reuses the existing `codex` CLI and keeps sandboxing/approval behavior owned by this module instead of configuring a separate AI stack.
 
 ---
 

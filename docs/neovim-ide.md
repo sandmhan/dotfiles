@@ -24,6 +24,7 @@ Supported editor language coverage today is intentionally limited to the modules
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
 - Neotest Python, Jest, and Vitest adapters plus DAP UI and shared test/debug keymaps from `home/modules/nvf/testing.nix`.
 - Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, and an on-demand gitleaks secret scan task.
+- Guarded AI bridge workflows from `home/modules/nvf/ai.nix` for Claude Code, Codex CLI, and Pi provider entry points, with explicit confirmation, scoped context, size limits, sensitive-path blocking, and secret-like redaction before provider invocation.
 - Haskell/Tidal live-coding support from `home/modules/nvf/tidal.nix`.
 
 ## Phase 0 decisions
@@ -47,7 +48,7 @@ Supported editor language coverage today is intentionally limited to the modules
 | `<leader>r` | Planned refactoring actions |
 | `<leader>t` | Tests/tasks via Neotest (`tn`, `tf`, `ta`, `tr`, `to`, `ts`, `tw`, `tD`) plus explicit workspace tasks (`tS` for secret scan) |
 | `<leader>d` | Debugging via NVF DAP defaults plus supplemental pause, conditional breakpoint, clear, and scopes actions |
-| `<leader>a` | Planned AI actions |
+| `<leader>a` | Guarded AI actions: ask, review diff, generate/improve tests, explain diagnostics, and pick shared skill/prompt |
 | `<leader>u` | UI toggles |
 | `<localleader>` | Language-local actions when global namespaces would collide |
 
@@ -60,6 +61,27 @@ Supported editor language coverage today is intentionally limited to the modules
 - Large/generated-file guards apply to files above 1 MiB, buffers above 20,000 lines, and dependency/generated paths such as `.git`, `node_modules`, `dist`, `build`, `target`, `.terraform`, `.next`, coverage output, lock files, minified JavaScript, and generated paths. Guarded buffers disable diagnostics, stop Treesitter when possible, and detach LSP clients to reduce monorepo and generated-file churn.
 - Secret scanning is an explicit task only. `:NvfScanSecrets` and `<leader>tS` run `gitleaks detect --no-git --redact --source <workspace-root>` using the Nix-provided wrapper package. Pass a directory to scan a different root. Findings open in the quickfix list.
 - Diagnostic throttling is intentionally conservative: diagnostics do not update in insert mode, severity sorting is enabled, and guarded buffers disable diagnostics entirely.
+
+## AI bridge
+
+`home/modules/nvf/ai.nix` is a thin editor bridge to the existing Home Manager AI tooling rather than a new provider stack. It looks for provider CLIs with `vim.fn.exepath` in this order: Claude Code (`claude`), Codex CLI (`codex`), and Pi (`pi`). If no backing CLI is available, the action fails safely and sends nothing.
+
+Implemented mappings and commands:
+
+| Key | Command | Scope |
+|---|---|---|
+| `<leader>aa` | `:NvfAiAsk` | Typed small prompt, or selected text in visual mode |
+| `<leader>ar` | `:NvfAiReviewDiff` | Current `git diff --no-ext-diff` from the workspace root |
+| `<leader>at` | `:NvfAiTests` | Typed test prompt, or selected code in visual mode |
+| `<leader>ad` | `:NvfAiDiagnostic` | Current diagnostic under the cursor plus the current line |
+| `<leader>as` | `:NvfAiSkills` | Shared skills/rules discovered from `AI_SKILLS_DIR` or `~/.local/share/ai` |
+
+Guardrails are enforced before any provider invocation:
+
+- Context is scoped to selected text, typed prompts, the current diagnostic, the current git diff, or an explicitly selected shared skill/rule; full buffers are not collected automatically, and full-buffer visual selections are blocked.
+- Sensitive paths such as `secrets/`, `.env`, private-key material, SOPS YAML markers, and key files are blocked. Secret-like values such as passwords, tokens, quoted or unquoted API keys, bearer tokens, and common cloud/source-control token patterns are redacted before confirmation.
+- The confirmation prompt shows the destination provider, action, exact scope, workspace root, context size, and redaction count. Cancelling the prompt stops before `vim.system` runs.
+- Provider commands are built as argv lists and run with `vim.system` from the detected workspace root. Claude and Codex keep stdin-based prompts; Pi uses its non-interactive `pi -p <prompt>` argv form. The bridge does not enable autonomous or dangerous provider modes; sandboxing and approvals remain owned by `home/modules/ai-claude.nix`, `home/modules/ai-codex.nix`, and `home/modules/ai-pi.nix`.
 
 ## Health checks and profiling
 
@@ -84,6 +106,7 @@ bash scripts/check-nvf-baseline.sh
 bash scripts/check-nvf-phase2.sh
 bash scripts/check-nvf-phase3.sh
 bash scripts/check-nvf-phase4.sh
+bash scripts/check-nvf-phase5.sh
 nixfmt home/modules/nvf/*.nix
 nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage
 nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
@@ -102,4 +125,4 @@ Neotest keymaps are convenience wrappers for interactive local feedback; project
 
 ## Planned, not yet implemented
 
-Later phases will fill in Rust, Go, Lua, SQL, and AI bridge workflows. This guide does not claim those behaviors are available until their implementation tickets land.
+Later phases will fill in Rust, Go, Lua, and SQL workflows. This guide does not claim those behaviors are available until their implementation tickets land.
