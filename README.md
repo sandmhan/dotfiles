@@ -240,6 +240,8 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `toggles.nix` | UI/editor toggles |
 | `ui.nix` | Statusline, messages, breadcrumbs, bufferline, and related UI modules |
 
+When `home/modules/nvf/default.nix` imports change, update this inventory in the same patch and run `bash scripts/check-nvf-phase6.sh`. PR validation should call out README drift explicitly; stale or extra inventory rows should not be deferred to a later documentation cleanup.
+
 ---
 
 ## Claude Code Configuration

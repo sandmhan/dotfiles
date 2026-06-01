@@ -31,9 +31,11 @@ Name hosts and modules by responsibility: `hosts/<machine>/default.nix`, `system
 
 There is no separate unit test suite; evaluation is the primary safety check. Run `nix build --dry-run` for any affected host or profile before opening a PR. For Home Manager changes, also run the relevant `make <profile>` target locally when safe.
 
+Editor/NVF behavior changes must include validation evidence in the PR body or under `docs/test/evidence/`: the phase check scripts run, Home Manager dry-runs for affected profiles, and runtime `nvim --headless "+checkhealth" "+qa"` or scoped `checkhealth` output when plugin, LSP, Treesitter, DAP, AI bridge, or startup behavior changes. If validation is skipped, state the reason and list the affected profiles explicitly.
+
 ## Commit & Pull Request Guidelines
 
-Follow the existing Conventional Commit style visible in history: `feat:`, `fix:`, and `docs:`. Keep commits scoped to one logical change. PRs should include the target host or profile, a short risk summary, validation commands run, and screenshots only for UI-facing changes such as Waybar or theming updates.
+Follow the existing Conventional Commit style visible in history: `feat:`, `fix:`, and `docs:`. Keep commits scoped to one logical change. PRs should include the target host or profile, a short risk summary, validation commands run, and screenshots only for UI-facing changes such as Waybar or theming updates. For NVF import changes, confirm `README.md` and `docs/neovim-ide.md` stayed synchronized with `home/modules/nvf/default.nix`.
 
 ## Security & Configuration Tips
 

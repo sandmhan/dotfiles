@@ -1,7 +1,7 @@
 ---
 title: Tickets
 status: accepted
-updated: 2026-05-31
+updated: 2026-06-01
 ---
 
 # Tickets
@@ -68,10 +68,10 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-022](NVF-022.md) | Bridge AI actions to Claude Codex and Pi | task | done | NVF Phase 5 | [NVF-021](NVF-021.md) |
 | [NVF-023](NVF-023.md) | Add AI keymaps under leader a | task | done | NVF Phase 5 | [NVF-003](NVF-003.md), [NVF-021](NVF-021.md), [NVF-022](NVF-022.md) |
 | [NVF-024](NVF-024.md) | Enforce AI confirmation and redaction guardrails | task | done | NVF Phase 5 | [NVF-019](NVF-019.md), [NVF-021](NVF-021.md) |
-| [NVF-025](NVF-025.md) | Publish Neovim IDE operations guide | task | open | NVF Phase 6 | [NVF-005](NVF-005.md), [NVF-013](NVF-013.md), [NVF-017](NVF-017.md), [NVF-019](NVF-019.md), [NVF-024](NVF-024.md) |
-| [NVF-026](NVF-026.md) | Keep README synchronized with NVF imports | chore | open | NVF Phase 6 | [NVF-009](NVF-009.md), [NVF-013](NVF-013.md) |
-| [NVF-027](NVF-027.md) | Add editor validation evidence expectations | chore | open | NVF Phase 6 | [NVF-001](NVF-001.md) |
-| [NVF-028](NVF-028.md) | Review pinned plugins and language tool versions periodically | chore | open | NVF Phase 6 | [NVF-013](NVF-013.md) |
+| [NVF-025](NVF-025.md) | Publish Neovim IDE operations guide | task | done | NVF Phase 6 | [NVF-005](NVF-005.md), [NVF-013](NVF-013.md), [NVF-017](NVF-017.md), [NVF-019](NVF-019.md), [NVF-024](NVF-024.md) |
+| [NVF-026](NVF-026.md) | Keep README synchronized with NVF imports | chore | done | NVF Phase 6 | [NVF-009](NVF-009.md), [NVF-013](NVF-013.md) |
+| [NVF-027](NVF-027.md) | Add editor validation evidence expectations | chore | done | NVF Phase 6 | [NVF-001](NVF-001.md) |
+| [NVF-028](NVF-028.md) | Review pinned plugins and language tool versions periodically | chore | done | NVF Phase 6 | [NVF-013](NVF-013.md) |
 
 ## Homelab Phase 0
 - [HOMELAB-001](HOMELAB-001.md) — Dry-run current NixOS outputs
