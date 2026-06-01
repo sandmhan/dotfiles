@@ -13,7 +13,7 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | Prefix | Next ID |
 | --- | ---: |
 | HOMELAB | 025 |
-| NVF | 030 |
+| NVF | 031 |
 
 ## Active Tickets
 
@@ -72,6 +72,7 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-026](NVF-026.md) | Keep README synchronized with NVF imports | chore | done | NVF Phase 6 | [NVF-009](NVF-009.md), [NVF-013](NVF-013.md) |
 | [NVF-027](NVF-027.md) | Add editor validation evidence expectations | chore | done | NVF Phase 6 | [NVF-001](NVF-001.md) |
 | [NVF-028](NVF-028.md) | Review pinned plugins and language tool versions periodically | chore | done | NVF Phase 6 | [NVF-013](NVF-013.md) |
+| [NVF-030](NVF-030.md) | Extract NVF configuration as reusable flake input | task | open | NVF Phase 7 | [NVF-026](NVF-026.md), [NVF-027](NVF-027.md) |
 
 ## Homelab Phase 0
 - [HOMELAB-001](HOMELAB-001.md) — Dry-run current NixOS outputs
@@ -151,3 +152,6 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 - [NVF-026](NVF-026.md) — Keep README synchronized with NVF imports
 - [NVF-027](NVF-027.md) — Add editor validation evidence expectations
 - [NVF-028](NVF-028.md) — Review pinned plugins and language tool versions periodically
+
+## NVF Phase 7
+- [NVF-030](NVF-030.md) — Extract NVF configuration as reusable flake input
