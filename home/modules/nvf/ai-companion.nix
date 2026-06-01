@@ -233,25 +233,25 @@ in
         {
           key = "<leader>aA";
           mode = [ "x" ];
-          action = ":'<,'>CodeCompanionActions<cr>";
+          action = ":CodeCompanionActions<cr>";
           desc = "AI CodeCompanion actions for selected code";
         }
         {
           key = "<leader>ae";
           mode = [ "x" ];
-          action = ":'<,'>CodeCompanion Edit the selected code. Propose a minimal diff and explain assumptions.<cr>";
+          action = ":CodeCompanion Edit the selected code. Propose a minimal diff and explain assumptions.<cr>";
           desc = "AI CodeCompanion edit selected code";
         }
         {
           key = "<leader>aR";
           mode = [ "x" ];
-          action = ":'<,'>CodeCompanion Review the selected code for correctness, safety, tests, and docs drift. Do not infer unseen repository context.<cr>";
+          action = ":CodeCompanion Review the selected code for correctness, safety, tests, and docs drift. Do not infer unseen repository context.<cr>";
           desc = "AI CodeCompanion review selected code";
         }
         {
           key = "<leader>aT";
           mode = [ "x" ];
-          action = ":'<,'>CodeCompanion Generate tests for the selected code. Ask for missing runner details instead of assuming them.<cr>";
+          action = ":CodeCompanion Generate tests for the selected code. Ask for missing runner details instead of assuming them.<cr>";
           desc = "AI CodeCompanion tests for selected code";
         }
       ];

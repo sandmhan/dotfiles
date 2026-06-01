@@ -125,10 +125,10 @@ Implemented CodeCompanion mappings:
 | Key | Command | Scope |
 |---|---|---|
 | `<leader>ac` | `:CodeCompanionChat` | Plugin chat using the configured OpenAI-compatible adapter |
-| Visual `<leader>aA` | `:'<,'>CodeCompanionActions` | Action palette with repository-curated selected-code prompts and selected-range insertion; CodeCompanion preset actions, preset prompts, and preset rules hidden |
-| Visual `<leader>ae` | `:'<,'>CodeCompanion ...` | Edit only the selected range and propose a minimal diff |
-| Visual `<leader>aR` | `:'<,'>CodeCompanion ...` | Review only the selected range for correctness, safety, tests, and docs drift |
-| Visual `<leader>aT` | `:'<,'>CodeCompanion ...` | Generate tests for only the selected range and ask for missing runner details |
+| Visual `<leader>aA` | `:CodeCompanionActions` | Action palette with Neovim's visual range applied automatically, repository-curated selected-code prompts, and selected-range insertion; CodeCompanion preset actions, preset prompts, and preset rules hidden |
+| Visual `<leader>ae` | `:CodeCompanion ...` | Edit only the selected range via Neovim's automatic visual range and propose a minimal diff |
+| Visual `<leader>aR` | `:CodeCompanion ...` | Review only the selected range via Neovim's automatic visual range for correctness, safety, tests, and docs drift |
+| Visual `<leader>aT` | `:CodeCompanion ...` | Generate tests for only the selected range via Neovim's automatic visual range and ask for missing runner details |
 
 Use the workflows as distinct paths:
 

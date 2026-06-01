@@ -32,6 +32,7 @@ assert_phase7_ai_companion_module_exists() {
     && grep -q 'show_preset_actions = false' home/modules/nvf/ai-companion.nix \
     && grep -q 'show_preset_prompts = false' home/modules/nvf/ai-companion.nix \
     && ! grep -q 'stop_context_insertion = true' home/modules/nvf/ai-companion.nix \
+    && ! grep -q "action = \":'<,'>CodeCompanion" home/modules/nvf/ai-companion.nix \
     && grep -q 'triggers.editor_context = mkLuaInline "nil"' home/modules/nvf/ai-companion.nix \
     && grep -q 'nvf_hardening' home/modules/nvf/ai-companion.nix \
     && grep -q 'autoload = false' home/modules/nvf/ai-companion.nix \
@@ -112,6 +113,13 @@ let
         && hasMode "n" mapping.mode
         && builtins.length (builtins.split "CodeCompanionActions" mapping.action) > 1)
       keymaps);
+  noDuplicatedVisualRangeRhs =
+    !(builtins.any
+      (mapping:
+        hasMode "x" mapping.mode
+        && builtins.length (builtins.split "CodeCompanion" mapping.action) > 1
+        && ((builtins.match ".*:'<,'>.*" mapping.action) != null))
+      keymaps);
 in
 if
   companion.enable
@@ -139,6 +147,7 @@ if
   && !(builtins.hasAttr "stop_context_insertion" companion.setupOpts.prompt_library."Explain selected code".opts)
   && hasMapping "<leader>ac" "<cmd>CodeCompanionChat<cr>" "n"
   && noNormalActionPaletteMapping
+  && noDuplicatedVisualRangeRhs
   && hasMappingPrefix "<leader>aA" "CodeCompanionActions" "x"
   && hasVisualPrefix "<leader>ae" "CodeCompanion Edit the selected code"
   && hasVisualPrefix "<leader>aR" "CodeCompanion Review the selected code"
@@ -220,6 +229,14 @@ assert(vim.tbl_isempty(config.interactions.shared.editor_context), 'shared edito
 assert(vim.tbl_isempty(config.interactions.inline.editor_context), 'inline editor_context providers should be empty after NVF hardening: ' .. vim.inspect(config.interactions.inline.editor_context))
 assert(config.opts.triggers.editor_context == nil, 'editor_context trigger should be nil after NVF hardening: ' .. vim.inspect(config.opts.triggers.editor_context))
 assert(require('codecompanion.triggers').mappings.editor_context == nil, 'editor_context trigger mapping should be nil after NVF hardening')
+for _, lhs in ipairs({ '<leader>aA', '<leader>ae', '<leader>aR', '<leader>aT' }) do
+  local mapping = vim.fn.maparg(lhs, 'x', false, true)
+  if vim.tbl_isempty(mapping) then
+    mapping = vim.fn.maparg(vim.api.nvim_replace_termcodes(lhs, true, true, true), 'x', false, true)
+  end
+  assert(type(mapping) == 'table' and mapping.rhs and mapping.rhs:find('CodeCompanion', 1, true), 'visual CodeCompanion mapping missing for ' .. lhs .. ': ' .. vim.inspect(mapping))
+  assert(not mapping.rhs:find(":'<,'>CodeCompanion", 1, true), 'visual CodeCompanion mapping must rely on automatic range or safe <C-U> form: ' .. lhs .. ' -> ' .. mapping.rhs)
+end
 assert(vim.tbl_isempty(require('codecompanion.providers.completion').editor_context('chat')), 'editor_context completions should be empty')
 assert(vim.tbl_isempty(require('codecompanion.interactions.shared.editor_context').new('chat').editor_context), 'chat editor_context parser should have no providers')
 assert(vim.tbl_isempty(require('codecompanion.interactions.shared.editor_context').new('cli').editor_context), 'cli editor_context parser should have no providers')
