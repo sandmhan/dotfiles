@@ -125,7 +125,7 @@ Implemented CodeCompanion mappings:
 | Key | Command | Scope |
 |---|---|---|
 | `<leader>ac` | `:CodeCompanionChat` | Plugin chat using the configured OpenAI-compatible adapter |
-| Normal/visual `<leader>aA` | `:CodeCompanionActions` | Action palette with repository-curated selected-code prompts; CodeCompanion preset actions, preset prompts, and preset rules hidden |
+| Visual `<leader>aA` | `:'<,'>CodeCompanionActions` | Action palette with repository-curated selected-code prompts and selected-range insertion; CodeCompanion preset actions, preset prompts, and preset rules hidden |
 | Visual `<leader>ae` | `:'<,'>CodeCompanion ...` | Edit only the selected range and propose a minimal diff |
 | Visual `<leader>aR` | `:'<,'>CodeCompanion ...` | Review only the selected range for correctness, safety, tests, and docs drift |
 | Visual `<leader>aT` | `:'<,'>CodeCompanion ...` | Generate tests for only the selected range and ask for missing runner details |
@@ -133,7 +133,7 @@ Implemented CodeCompanion mappings:
 Use the workflows as distinct paths:
 
 - Use the guarded bridge for sensitive material, redaction-dependent prompts, Claude/Codex/Pi CLI workflows, current diff review with confirmation, and Pi orchestration/TUI tasks.
-- Use CodeCompanion for explicit interactive chat, selected-code review, selected-code edits, and OpenAI-compatible API or local endpoint experiments when the selected context is safe to send.
+- Use CodeCompanion for explicit interactive chat, selected-code review, selected-code edits, and OpenAI-compatible API or local endpoint experiments when the selected context is safe to send. The curated action palette is visual-mode only; normal-mode `<leader>aA` is intentionally unmapped so it cannot open an empty palette while built-in presets are hidden.
 - Use Codex CLI (`codex exec`) for subscription/OAuth-backed Codex workflows; CodeCompanion does not inherit Codex CLI authentication or sandbox settings.
 - Keep Pi as a separate guarded orchestration path through `home/modules/nvf/ai.nix`; it is not routed through CodeCompanion.
 

@@ -155,7 +155,6 @@ in
                 modes = [ "v" ];
                 short_name = "review_selected";
                 auto_submit = true;
-                stop_context_insertion = true;
               };
               rules = "none";
               prompts = [
@@ -174,7 +173,6 @@ in
                 modes = [ "v" ];
                 short_name = "edit_selected";
                 auto_submit = true;
-                stop_context_insertion = true;
               };
               rules = "none";
               prompts = [
@@ -193,7 +191,6 @@ in
                 modes = [ "v" ];
                 short_name = "tests_selected";
                 auto_submit = true;
-                stop_context_insertion = true;
               };
               rules = "none";
               prompts = [
@@ -212,7 +209,6 @@ in
                 modes = [ "v" ];
                 short_name = "explain_selected";
                 auto_submit = true;
-                stop_context_insertion = true;
               };
               rules = "none";
               prompts = [
@@ -233,12 +229,6 @@ in
           mode = [ "n" ];
           action = "<cmd>CodeCompanionChat<cr>";
           desc = "AI CodeCompanion chat (OpenAI-compatible plugin)";
-        }
-        {
-          key = "<leader>aA";
-          mode = [ "n" ];
-          action = "<cmd>CodeCompanionActions<cr>";
-          desc = "AI CodeCompanion actions and curated prompts";
         }
         {
           key = "<leader>aA";

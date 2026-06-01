@@ -31,6 +31,7 @@ assert_phase7_ai_companion_module_exists() {
     && grep -q 'https://api.openai.com' home/modules/nvf/ai-companion.nix \
     && grep -q 'show_preset_actions = false' home/modules/nvf/ai-companion.nix \
     && grep -q 'show_preset_prompts = false' home/modules/nvf/ai-companion.nix \
+    && ! grep -q 'stop_context_insertion = true' home/modules/nvf/ai-companion.nix \
     && grep -q 'triggers.editor_context = mkLuaInline "nil"' home/modules/nvf/ai-companion.nix \
     && grep -q 'nvf_hardening' home/modules/nvf/ai-companion.nix \
     && grep -q 'autoload = false' home/modules/nvf/ai-companion.nix \
@@ -104,6 +105,13 @@ let
         builtins.elem mapping.key [ "<leader>aa" "<leader>ar" "<leader>at" "<leader>ad" "<leader>as" ]
         && builtins.length (builtins.split "CodeCompanion" mapping.action) > 1)
       keymaps);
+  noNormalActionPaletteMapping =
+    !(builtins.any
+      (mapping:
+        mapping.key == "<leader>aA"
+        && hasMode "n" mapping.mode
+        && builtins.length (builtins.split "CodeCompanionActions" mapping.action) > 1)
+      keymaps);
 in
 if
   companion.enable
@@ -125,8 +133,12 @@ if
   && builtins.hasAttr "Edit selected code" companion.setupOpts.prompt_library
   && builtins.hasAttr "Generate tests for selected code" companion.setupOpts.prompt_library
   && builtins.hasAttr "Explain selected code" companion.setupOpts.prompt_library
+  && !(builtins.hasAttr "stop_context_insertion" companion.setupOpts.prompt_library."Review selected code".opts)
+  && !(builtins.hasAttr "stop_context_insertion" companion.setupOpts.prompt_library."Edit selected code".opts)
+  && !(builtins.hasAttr "stop_context_insertion" companion.setupOpts.prompt_library."Generate tests for selected code".opts)
+  && !(builtins.hasAttr "stop_context_insertion" companion.setupOpts.prompt_library."Explain selected code".opts)
   && hasMapping "<leader>ac" "<cmd>CodeCompanionChat<cr>" "n"
-  && hasMapping "<leader>aA" "<cmd>CodeCompanionActions<cr>" "n"
+  && noNormalActionPaletteMapping
   && hasMappingPrefix "<leader>aA" "CodeCompanionActions" "x"
   && hasVisualPrefix "<leader>ae" "CodeCompanion Edit the selected code"
   && hasVisualPrefix "<leader>aR" "CodeCompanion Review the selected code"
@@ -152,6 +164,7 @@ assert_phase7_docs_cover_boundaries() {
     && grep -q 'Credentials are never committed to Nix' docs/neovim-ide.md \
     && grep -q 'Privacy boundary: CodeCompanion does not inherit' docs/neovim-ide.md \
     && grep -q '<leader>ac' docs/neovim-ide.md \
+    && grep -Fq "Visual \`<leader>aA\`" docs/neovim-ide.md \
     && grep -Fq "Visual \`<leader>ae\`" docs/neovim-ide.md
 }
 
@@ -225,6 +238,77 @@ end
 for _, name in ipairs({ 'Chat', 'Code workflow', 'Commit message', 'Explain code', 'Inline prompt', 'Upgrade Tools' }) do
   assert(action_names[name] == nil, 'unwanted built-in action/prompt visible in action palette: ' .. name)
 end
+for _, name in ipairs({ 'Review selected code', 'Edit selected code', 'Generate tests for selected code', 'Explain selected code' }) do
+  local prompt = config.prompt_library[name]
+  assert(prompt.opts.stop_context_insertion ~= true, 'curated selected-code prompt suppresses visual selection insertion: ' .. name)
+end
+
+local selection_sentinel = 'NVF_PHASE7_SELECTED_TEXT_SENTINEL'
+local source_buf = vim.api.nvim_create_buf(false, true)
+vim.api.nvim_buf_set_lines(source_buf, 0, -1, false, {
+  'local selected_value = "' .. selection_sentinel .. '"',
+})
+vim.api.nvim_set_current_buf(source_buf)
+vim.bo[source_buf].filetype = 'lua'
+local visual_context = {
+  mode = 'v',
+  is_visual = true,
+  bufnr = source_buf,
+  winnr = vim.api.nvim_get_current_win(),
+  filetype = 'lua',
+  start_line = 1,
+  end_line = 1,
+  start_col = 0,
+  end_col = 64,
+  lines = { 'local selected_value = "' .. selection_sentinel .. '"' },
+}
+local function contains_sentinel(value)
+  if type(value) == 'string' then
+    return value:find(selection_sentinel, 1, true) ~= nil
+  elseif type(value) == 'table' then
+    for _, item in pairs(value) do
+      if contains_sentinel(item) then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+local Interactions = require('codecompanion.interactions')
+local Chat = require('codecompanion.interactions.chat')
+local original_chat_submit = Chat.submit
+local submitted_chat_lines
+Chat.submit = function(chat)
+  submitted_chat_lines = vim.api.nvim_buf_get_lines(chat.bufnr, 0, -1, false)
+  return chat
+end
+local chat_ok, chat_err = pcall(function()
+  Interactions.new({
+    selected = vim.deepcopy(config.prompt_library['Review selected code']),
+    buffer_context = visual_context,
+  }):chat()
+end)
+Chat.submit = original_chat_submit
+assert(chat_ok, 'selected-code chat prompt path failed: ' .. vim.inspect(chat_err))
+assert(contains_sentinel(submitted_chat_lines), 'selected text did not reach auto-submitted chat prompt buffer: ' .. vim.inspect(submitted_chat_lines))
+
+local Inline = require('codecompanion.interactions.inline')
+local original_inline_submit = Inline.submit
+local submitted_inline_payload
+Inline.submit = function(_, payload)
+  submitted_inline_payload = payload
+  return payload
+end
+local inline_ok, inline_err = pcall(function()
+  Interactions.new({
+    selected = vim.deepcopy(config.prompt_library['Edit selected code']),
+    buffer_context = visual_context,
+  }):inline()
+end)
+Inline.submit = original_inline_submit
+assert(inline_ok, 'selected-code inline prompt path failed: ' .. vim.inspect(inline_err))
+assert(contains_sentinel(submitted_inline_payload), 'selected text did not reach inline edit prompt payload: ' .. vim.inspect(submitted_inline_payload))
 
 local adapter = require('codecompanion.adapters').resolve(config.interactions.chat.adapter)
 assert(adapter.name == 'openai_compatible', 'resolved adapter name mismatch: ' .. vim.inspect(adapter.name))
