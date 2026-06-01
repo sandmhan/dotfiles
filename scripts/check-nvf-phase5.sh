@@ -78,7 +78,8 @@ if
   && hasNormalMapping "<leader>as" "<cmd>NvfAiSkills<cr>"
   && hasText "Claude Code"
   && hasText "Codex CLI"
-  && hasText "Pi coding agent"
+  && ! hasText "Pi coding agent"
+  && ! hasText "command = \"pi\""
   && hasText "vim.fn.exepath"
   && hasText "vim.system"
   && hasText "vim.fn.confirm"
@@ -185,11 +186,7 @@ assert(not selected and tostring(range_reason):find("Full-buffer selection is bl
 selected, range_reason = bridge.get_range_context(1, 1)
 assert(selected == "one", "partial range should remain available: " .. tostring(range_reason))
 
-local pi = bridge.provider_by_id("pi")
-pi.exe = "/usr/bin/pi"
-local command, opts = bridge.build_provider_invocation(pi, "guarded prompt", "/tmp")
-assert(command[1] == "/usr/bin/pi" and command[2] == "-p" and command[3] == "guarded prompt", "pi prompt was not passed as a non-interactive argv message")
-assert(opts.stdin == nil, "pi provider should not rely on stdin-only prompting")
+assert(bridge.provider_by_id("pi") == nil, "pi should not be registered as a Neovim AI bridge provider")
 
 local claude = bridge.provider_by_id("claude")
 claude.exe = "/usr/bin/claude"

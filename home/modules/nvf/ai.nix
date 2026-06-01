@@ -20,13 +20,6 @@ let
       args = [ "exec" ];
       promptMode = "stdin";
     }
-    {
-      id = "pi";
-      label = "Pi coding agent";
-      command = "pi";
-      args = [ "-p" ];
-      promptMode = "argv";
-    }
   ];
 
   providerLua =
@@ -379,7 +372,7 @@ in
 
           local providers = available_providers()
           if #providers == 0 then
-            notify("No supported AI provider CLI found. Expected one of: claude, codex, pi.", vim.log.levels.ERROR)
+            notify("No supported AI provider CLI found. Expected one of: claude, codex.", vim.log.levels.ERROR)
             return
           end
 
@@ -456,11 +449,7 @@ in
             cwd = cwd,
           }
 
-          if provider.prompt_mode == "argv" then
-            table.insert(command, prompt)
-          else
-            system_opts.stdin = prompt
-          end
+          system_opts.stdin = prompt
 
           return command, system_opts
         end

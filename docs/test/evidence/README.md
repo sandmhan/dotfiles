@@ -15,4 +15,5 @@ For editor/NVF behavior changes, evidence should list the exact commands run, Ho
 - [NVF Phase 4 Workspace Hardening Evidence](./nvf-phase4-workspace-hardening-2026-05-31.md)
 - [NVF Phase 5 AI Bridge Evidence](./nvf-phase5-ai-bridge-2026-05-31.md)
 - [NVF Phase 6 Onboarding and Maintenance Evidence](./nvf-phase6-onboarding-maintenance-2026-06-01.md)
-- [NVF Phase 7 AI Companion Evidence](./nvf-phase7-ai-companion-2026-06-01.md)
+- [NVF Phase 7 AI Companion Evidence](./nvf-phase7-ai-companion-2026-06-01.md) — historical CodeCompanion rollout superseded by NVF-032.
+- [NVF Phase 7 Avante Evidence](./nvf-phase7-avante-2026-06-01.md)

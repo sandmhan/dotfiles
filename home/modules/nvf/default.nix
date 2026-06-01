@@ -16,7 +16,7 @@
     ./testing.nix
     ./hardening.nix
     ./ai.nix
-    ./ai-companion.nix
+    ./ai-avante.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix

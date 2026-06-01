@@ -228,8 +228,8 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
 | `testing.nix` | Neotest adapters, DAP UI, and shared test/debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
-| `ai.nix` | Guarded AI bridge keymaps and commands for Claude Code, Codex CLI, and Pi with confirmation, scoped context, and redaction |
-| `ai-companion.nix` | CodeCompanion.nvim OpenAI-compatible chat, selected-code edit/review/test prompts, and plugin keymaps behind `enableNvfAiCompanion` |
+| `ai.nix` | Guarded AI bridge keymaps and commands for Claude Code and Codex CLI with confirmation, scoped context, and redaction |
+| `ai-avante.nix` | Avante.nvim OpenAI-compatible chat, selected-code edit/review/test prompts, and plugin keymaps behind `enableNvfAiAvante` |
 | `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
 | `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |
@@ -256,7 +256,7 @@ Claude Code is configured declaratively from `home/modules/ai-claude.nix` using 
 
 Activation replaces legacy Home Manager symlinks with regular files or directories. Existing regular files are preserved and made user-writable so Claude can update them at runtime. Because preserved files are mutable, later Nix default changes are not forced over local edits; remove the specific file or directory and run Home Manager again to re-bootstrap the current declarative default.
 
-The NVF AI bridge in `home/modules/nvf/ai.nix` can invoke the Claude, Codex, and Pi CLIs only after scoped context redaction and explicit confirmation.
+The NVF AI bridge in `home/modules/nvf/ai.nix` can invoke the Claude and Codex CLIs only after scoped context redaction and explicit confirmation. Pi remains available as standalone Home Manager tooling outside the Neovim bridge.
 
 ## Codex Configuration
 
