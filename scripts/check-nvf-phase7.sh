@@ -29,7 +29,8 @@ assert_phase7_ai_companion_module_exists() {
     && grep -q 'OPENAI_BASE_URL' home/modules/nvf/ai-companion.nix \
     && grep -q 'OPENAI_MODEL' home/modules/nvf/ai-companion.nix \
     && grep -q 'https://api.openai.com' home/modules/nvf/ai-companion.nix \
-    && grep -q 'show_default_prompt_library = false' home/modules/nvf/ai-companion.nix \
+    && grep -q 'show_prompt_library_builtins = false' home/modules/nvf/ai-companion.nix \
+    && grep -q 'autoload = false' home/modules/nvf/ai-companion.nix \
     && grep -q 'http = {' home/modules/nvf/ai-companion.nix \
     && grep -q 'buffer = { enabled = false }' home/modules/nvf/ai-companion.nix \
     && grep -q 'run_command = { enabled = false }' home/modules/nvf/ai-companion.nix
@@ -99,7 +100,11 @@ if
   && companion.setupOpts.display.diff.enabled
   && companion.setupOpts.display.diff.provider == "inline"
   && companion.setupOpts.display.diff.layout == "vertical"
-  && companion.setupOpts.display.action_palette.opts.show_default_prompt_library == false
+  && companion.setupOpts.display.action_palette.opts.show_prompt_library_builtins == false
+  && companion.setupOpts.display.action_palette.opts.show_preset_rules == false
+  && companion.setupOpts.rules.opts.chat.enabled == false
+  && companion.setupOpts.rules.opts.chat.autoload == false
+  && companion.setupOpts.rules.opts.show_presets == false
   && companion.setupOpts.interactions.chat.adapter == "openai_compatible"
   && companion.setupOpts.interactions.inline.adapter == "openai_compatible"
   && builtins.hasAttr "Review selected code" companion.setupOpts.prompt_library
@@ -166,6 +171,20 @@ assert(config.adapters.openai_compatible == nil, 'adapter must not be configured
 assert(type(config.adapters.http.openai_compatible) == 'function', 'http.openai_compatible adapter override missing')
 assert(config.interactions.chat.adapter == 'openai_compatible', 'chat interaction is not using openai_compatible')
 assert(config.interactions.inline.adapter == 'openai_compatible', 'inline interaction is not using openai_compatible')
+assert(config.display.action_palette.opts.show_prompt_library_builtins == false, 'built-in prompt library should be hidden')
+assert(config.display.action_palette.opts.show_preset_rules == false, 'preset rules should be hidden from action palette')
+
+local chat_rules = config.rules and config.rules.opts and config.rules.opts.chat or {}
+assert(chat_rules.enabled == false, 'rules chat autoload must be disabled via enabled=false')
+assert(chat_rules.autoload == false, 'rules chat autoload must be false: ' .. vim.inspect(chat_rules.autoload))
+assert(config.rules.opts.show_presets == false, 'preset rules should be hidden from rules picker')
+local rules_callbacks = require('codecompanion.interactions.chat.rules.helpers').add_callbacks({})
+assert(rules_callbacks == nil, 'rules helper unexpectedly injected default callbacks: ' .. vim.inspect(rules_callbacks))
+for _, prompt in pairs(config.prompt_library or {}) do
+  if type(prompt) == 'table' and prompt.opts and prompt.opts.short_name then
+    assert(prompt.rules == 'none', 'curated prompt should explicitly opt out of rules: ' .. vim.inspect(prompt.opts.short_name))
+  end
+end
 
 local adapter = require('codecompanion.adapters').resolve(config.interactions.chat.adapter)
 assert(adapter.name == 'openai_compatible', 'resolved adapter name mismatch: ' .. vim.inspect(adapter.name))
@@ -226,7 +245,7 @@ check 'Phase 7 AI companion module exists and avoids committed credentials/repo 
 check 'Phase 7 default.nix import and README inventory are synchronized' assert_phase7_import_inventory_sync
 check 'terminal profile enables NVF AI companion feature flag' assert_phase7_feature_flag_enabled_for_terminal_profile
 check 'terminalman enables CodeCompanion config, selected-code keymaps, and guarded bridge keys' assert_phase7_terminalman_codecompanion_config
-check 'built terminalman NVF package resolves CodeCompanion adapter and disabled defaults at runtime' assert_phase7_runtime_codecompanion_config
+check 'built terminalman NVF package resolves CodeCompanion adapter and disables default context/tools at runtime' assert_phase7_runtime_codecompanion_config
 check 'operations guide documents CodeCompanion decision, privacy, Codex CLI, and Pi boundaries' assert_phase7_docs_cover_boundaries
 check 'Phase 7 evidence file is indexed and records the plugin decision' assert_phase7_evidence_documented
 check 'NVF-031 ticket files and index consistently mark completed work done' assert_phase7_ticket_status_done

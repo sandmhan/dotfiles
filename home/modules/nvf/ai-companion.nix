@@ -36,8 +36,21 @@ in
             };
 
             action_palette.opts = {
-              show_default_actions = true;
-              show_default_prompt_library = false;
+              show_preset_actions = true;
+              show_preset_prompts = true;
+              show_preset_rules = false;
+              show_prompt_library_builtins = false;
+            };
+          };
+
+          rules = {
+            opts = {
+              chat = {
+                autoload = false;
+                enabled = false;
+                default_params = "diff";
+              };
+              show_presets = false;
             };
           };
 
@@ -127,6 +140,7 @@ in
                 auto_submit = true;
                 stop_context_insertion = true;
               };
+              rules = "none";
               prompts = [
                 {
                   role = "user";
@@ -145,6 +159,7 @@ in
                 auto_submit = true;
                 stop_context_insertion = true;
               };
+              rules = "none";
               prompts = [
                 {
                   role = "user";
@@ -163,6 +178,7 @@ in
                 auto_submit = true;
                 stop_context_insertion = true;
               };
+              rules = "none";
               prompts = [
                 {
                   role = "user";
@@ -181,6 +197,7 @@ in
                 auto_submit = true;
                 stop_context_insertion = true;
               };
+              rules = "none";
               prompts = [
                 {
                   role = "user";
