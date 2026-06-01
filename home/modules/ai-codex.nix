@@ -40,7 +40,7 @@ in
   options.myHome.ai.codex.configToml = lib.mkOption {
     type = lib.types.lines;
     default = ''
-      model = "gpt-5-codex"
+      model = "gpt-5.5"
       model_reasoning_effort = "medium"
       approval_policy = "on-request"
       sandbox_mode = "workspace-write"
