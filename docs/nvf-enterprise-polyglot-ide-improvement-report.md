@@ -2,13 +2,13 @@
 
 ## Overview
 
-This report defines a phased plan for evolving the repository's current NVF/Neovim configuration into a documented, production-grade enterprise polyglot IDE. It documents the current implementation, identifies gaps against enterprise development workflows, assigns target ownership for language servers, formatters, linters, test runners, debug adapters, and CI parity commands, and provides an implementation roadmap with validation commands. This is a planning and architecture document only; it does not implement configuration changes.
+This report defines a phased plan for evolving the repository's current NVF/Neovim configuration into a documented, production-grade enterprise polyglot IDE. It documents the current implementation, identifies gaps against enterprise development workflows, assigns target ownership for language servers, formatters, linters, CLI test commands, debug adapters, and CI parity commands, and provides an implementation roadmap with validation commands. This is a planning and architecture document only; it does not implement configuration changes.
 
 ## Executive Summary
 
 The current NVF configuration is reproducible, modular, and already usable for Nix, Markdown, Typst, C/C++, and Haskell/Tidal workflows. It is delivered through Home Manager, imports the upstream NVF Home Manager module in multiple profiles, and makes `nvim` the default terminal editor.
 
-The next maturity step is not to add every plugin at once. The configuration needs explicit ownership policies, predictable keymap namespaces, test/debug foundations, workspace hardening, and documentation. The highest-priority implementation work is to remove duplicate Nix LSP ownership, add missing LSP ergonomics, split large language concerns into focused modules, and document supported workflows in a dedicated operational guide.
+The next maturity step is not to add every plugin at once. The configuration needs explicit ownership policies, predictable keymap namespaces, debug foundations, CLI test parity, workspace hardening, and documentation. The highest-priority implementation work is to remove duplicate Nix LSP ownership, add missing LSP ergonomics, split large language concerns into focused modules, and document supported workflows in a dedicated operational guide.
 
 ## Current-State Architecture
 
@@ -80,17 +80,17 @@ The current first-class language set does not cover several common enterprise do
 
 ### Formatter and Linter Policy Is Implicit
 
-Global formatting and extra diagnostics are enabled in `home/modules/nvf/languages.nix:8-11`, but the repository does not yet define which tool owns formatting, linting, diagnostics, test execution, debugging, and CI parity for each language.
+Global formatting and extra diagnostics are enabled in `home/modules/nvf/languages.nix:8-11`, but the repository does not yet define which tool owns formatting, linting, diagnostics, debugging, and CLI validation/CI parity for each language.
 
-### Testing and Debugging Are Incomplete
+### Debugging Is Incomplete
 
-C/C++ has DAP enabled, but there is no shared testing/debugging layer for nearest test, file test, suite test, failed-test reruns, debug-nearest, DAP UI, or coverage. The target IDE should expose a consistent workflow across languages while allowing language-specific adapters.
+C/C++ has DAP enabled, but there is no shared debugging layer for DAP UI, session controls, breakpoints, or scopes. IDE-integrated test running is intentionally out of scope; project tests should run from the CLI/devshell so editor behavior does not drift from CI.
 
 ### Keymaps Need a Stable Taxonomy
 
-`home/modules/nvf/keymaps.nix` already includes finder, Git, LSP discovery, code actions, and diagnostics mappings. Missing ergonomics include hover, rename, implementation, type definition, signature help, test actions, debug actions, AI actions, and refactoring actions.
+`home/modules/nvf/keymaps.nix` already includes finder, Git, LSP discovery, code actions, and diagnostics mappings. Missing ergonomics include hover, rename, implementation, type definition, signature help, debug actions, AI actions, and refactoring actions.
 
-Tidal currently uses buffer-local `<leader>t*` mappings in `home/modules/nvf/tidal.nix:218-229`, including `<leader>tt` and `<leader>tr`. Future global test mappings must avoid collisions or move Tidal to `<localleader>`.
+Tidal currently uses buffer-local `<leader>t*` mappings in `home/modules/nvf/tidal.nix:218-229`, including `<leader>tt` and `<leader>tr`. Future global task mappings must avoid collisions or move Tidal to `<localleader>`.
 
 ### Workspace Hardening Is Missing
 
@@ -104,7 +104,7 @@ Claude, Codex, Pi, and shared skills already exist in Home Manager modules, but 
 
 Use this matrix as the source of truth for future implementation. Tool names are target defaults and should be validated against the current NVF option schema before implementation.
 
-| Language/domain | Primary LSP | Formatter | Linter/diagnostics | Test runner | Debug adapter | CI parity command | Owning NVF module |
+| Language/domain | Primary LSP | Formatter | Linter/diagnostics | CLI test command | Debug adapter | CI parity command | Owning NVF module |
 |---|---|---|---|---|---|---|---|
 | C/C++ | `clangd` | `clang-format` | `clang-tidy`, compiler diagnostics | CTest or project task | `lldb-vscode` or `codelldb` | `cmake --build`, `ctest`, project-specific compile command | Existing `home/modules/nvf/languages.nix`, later optional `languages-cpp.nix` |
 | Python | `basedpyright` or `pyright` | `ruff format` | `ruff check`, optional `mypy` | `pytest` | `debugpy` | `ruff check .`, `ruff format --check .`, `pytest` | New `home/modules/nvf/languages-python.nix` |
@@ -131,10 +131,10 @@ Keep `home/modules/nvf/languages.nix` as the shared/core module. Add focused mod
 
 ```text
 home/modules/nvf/languages.nix          # current shared/core language defaults
-home/modules/nvf/languages-python.nix   # Python LSP, Ruff, pytest, debugpy
+home/modules/nvf/languages-python.nix   # Python LSP, Ruff, debugpy; pytest remains CLI-owned
 home/modules/nvf/languages-web.nix      # JS/TS, JSON, frontend tooling
 home/modules/nvf/languages-infra.nix    # YAML, Docker, Terraform/OpenTofu, Kubernetes, Bash, TOML
-home/modules/nvf/testing.nix            # Neotest/DAP orchestration and keymaps
+home/modules/nvf/debugging.nix          # DAP UI and supplemental debug keymaps
 home/modules/nvf/hardening.nix          # root detection, trust, large-file, secret/performance controls
 home/modules/nvf/ai.nix                 # safe bridge to Claude/Codex/Pi workflows
 ```
@@ -154,25 +154,22 @@ Adopt a stable taxonomy and keep WhichKey labels synchronized.
 | `<leader>l` | LSP | References, definitions, symbols, code actions, hover, rename, implementation, type definition, signature help. |
 | `<leader>x` | Diagnostics/trouble | Existing diagnostics mapping can remain, or migrate under `<leader>l` if preferred. |
 | `<leader>r` | Refactoring | Extract, inline, move, and language-specific refactors. |
-| `<leader>t` | Tests/tasks | Nearest, file, suite, failed, output, task runner. Avoid Tidal global collisions. |
-| `<leader>d` | Debugging | Continue, step, breakpoints, REPL, scopes, debug test. |
+| `<leader>t` | Tasks | Explicit workspace tasks only. Avoid Tidal global collisions. |
+| `<leader>d` | Debugging | Continue, step, breakpoints, REPL, scopes, and DAP UI actions. |
 | `<leader>a` | AI | Ask, review diff, generate tests, explain diagnostics, skill picker. |
 | `<leader>u` | UI toggles | Preserve existing toggle ownership. |
-| `<localleader>` | Language-local actions | Recommended for Tidal live-coding actions if global `<leader>t` becomes test-owned. |
+| `<localleader>` | Language-local actions | Recommended for Tidal live-coding actions when global namespaces would collide. |
 
-## Testing and Debugging Strategy
+## CLI Testing and Debugging Strategy
 
-### Testing
+### Project testing
 
-Add `home/modules/nvf/testing.nix` after validating NVF support for the selected plugins.
+Do not add Neovim test-runner integrations. Keep test discovery, execution, watches, reruns, and coverage output in project-local CLI/devshell commands that match CI.
 
 | Capability | Target behavior |
 |---|---|
-| Nearest test | Run test under cursor through language adapter. |
-| File tests | Run all tests in the current file. |
-| Suite tests | Run all tests in the detected project root. |
-| Failed rerun | Rerun only failed tests when supported. |
-| Test output | Open output panel or quickfix list. |
+| Python tests | Run project-selected pytest commands such as `pytest`, `uv run pytest`, or `nix develop -c pytest`. |
+| JavaScript/TypeScript tests | Run package-manager commands such as `npm test`, `pnpm test`, or `yarn test`. |
 | CI parity | Prefer commands that match repository CI scripts. |
 
 ### Debugging
@@ -181,11 +178,10 @@ Add `home/modules/nvf/testing.nix` after validating NVF support for the selected
 |---|---|
 | Breakpoints | Toggle, conditional, and clear breakpoints. |
 | Session control | Continue, pause, step over, step into, step out, restart, terminate. |
-| Debug nearest test | Start adapter-specific debug session for the current test. |
 | Debug UI | Scopes, watches, call stack, console/REPL if NVF supports it. |
 | Adapter ownership | Use `debugpy`, `js-debug-adapter`, `codelldb`, `delve`, and language-specific adapters only where needed. |
 
-Start with Python and JavaScript/TypeScript tests, then add Rust, Go, and C/C++ once the base DAP workflow is stable.
+Start with Python and JavaScript/TypeScript DAP adapters, then add Rust, Go, and C/C++ once the base DAP workflow is stable.
 
 ## Workspace, Security, Reliability, and Performance Hardening
 
@@ -287,16 +283,16 @@ Priority: high.
 
 Expected outcome: the editor supports common enterprise application, web, and infrastructure repositories with explicit tool ownership.
 
-### Phase 3: Testing and Debugging
+### Phase 3: Debugging
 
 Priority: high after Phase 2.
 
-- Add `home/modules/nvf/testing.nix` if current NVF options support the selected Neotest/DAP plugins.
-- Add test keymaps under `<leader>t` without breaking Tidal mappings.
+- Add `home/modules/nvf/debugging.nix` for shared DAP UI and supplemental debug keymaps.
+- Do not add IDE-integrated test-runner plugins or test keymaps; tests stay CLI/devshell-owned.
 - Add debug keymaps under `<leader>d`.
-- Start with Python and JavaScript/TypeScript adapters, then expand.
+- Start with Python and JavaScript/TypeScript DAP adapters, then expand.
 
-Expected outcome: developers can run and debug tests from consistent editor workflows that mirror CI commands.
+Expected outcome: developers can debug from consistent editor workflows while running tests from CLI commands that mirror CI.
 
 ### Phase 4: Workspace and Hardening
 
@@ -358,10 +354,10 @@ nix build --dry-run .#nixosConfigurations.<host>.config.system.build.toplevel
 ## Expected Outcomes
 
 - Nix uses one default language server, eliminating duplicate diagnostics and code actions.
-- Each supported language has documented ownership for LSP, formatting, linting, tests, debugging, and CI parity.
+- Each supported language has documented ownership for LSP, formatting, linting, CLI test commands, debugging, and CI parity.
 - Python, JavaScript/TypeScript, infrastructure formats, Docker, Bash, Kubernetes, Rust, Go, Lua, TOML, and SQL have a clear adoption path.
-- Keymaps are predictable across LSP, Git, tests, debugging, UI toggles, AI, and language-local actions.
-- Test and debug workflows are editor-native and aligned with CI commands.
+- Keymaps are predictable across LSP, Git, debugging, workspace tasks, UI toggles, AI, and language-local actions.
+- Debug workflows are editor-native/DAP-based, while test workflows stay CLI-owned and aligned with CI commands.
 - Workspace behavior is safer for monorepos, generated files, and untrusted local config.
 - AI workflows reuse the existing Claude/Codex/Pi foundation and require explicit confirmation before context sharing.
 - README and future `docs/neovim-ide.md` documentation match the real module structure.
@@ -373,7 +369,7 @@ nix build --dry-run .#nixosConfigurations.<host>.config.system.build.toplevel
 | NVF option names differ from examples | Validate the current NVF schema before adding each module. |
 | Too many LSPs slow startup | Add languages in phases and profile startup after each phase. |
 | Duplicate diagnostics from overlapping tools | Assign one primary owner per filetype and document intentional exceptions. |
-| Tidal `<leader>t` mappings collide with test mappings | Keep test mappings conflict-free or migrate Tidal workflows to `<localleader>`. |
+| Tidal `<leader>t` mappings collide with task mappings | Keep task mappings conflict-free or migrate Tidal workflows to `<localleader>`. |
 | AI sends sensitive data | Require confirmation, redact/block secret-like content, and show destination provider. |
 | Cross-platform package availability differs | Validate Linux, macOS, WSL, and terminal profiles independently where affected. |
 | Documentation drifts | Update README and `docs/neovim-ide.md` in the same change as module imports. |

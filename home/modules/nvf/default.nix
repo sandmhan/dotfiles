@@ -13,7 +13,7 @@
     ./languages-python.nix
     ./languages-web.nix
     ./languages-infra.nix
-    ./testing.nix
+    ./debugging.nix
     ./hardening.nix
     ./ai.nix
     ./ai-avante.nix

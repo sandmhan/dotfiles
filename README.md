@@ -226,7 +226,7 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
 | `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with ts_ls, prettierd, eslint_d, jsonls, and JS DAP |
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
-| `testing.nix` | Neotest adapters, DAP UI, and shared test/debug keymaps |
+| `debugging.nix` | Shared DAP UI and supplemental debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
 | `ai.nix` | Guarded AI bridge keymaps and commands for Claude Code and Codex CLI with confirmation, scoped context, and redaction |
 | `ai-avante.nix` | Avante.nvim OpenAI-compatible chat, selected-code edit/review/test prompts, and plugin keymaps behind `enableNvfAiAvante` |

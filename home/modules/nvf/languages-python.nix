@@ -24,7 +24,7 @@
         };
 
         # Ruff owns Python linting for editor/CI parity; pytest remains project-local
-        # and is documented in docs/neovim-ide.md rather than wired to Phase 3 keys.
+        # and is documented in docs/neovim-ide.md rather than wired into Neovim.
         extraDiagnostics.enable = false;
 
         dap = {

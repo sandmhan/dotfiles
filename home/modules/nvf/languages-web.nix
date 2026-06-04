@@ -46,8 +46,8 @@
         javascriptreact = [ "eslint_d" ];
       };
 
-      # JavaScript/TypeScript DAP ownership only. Phase 3 will decide task/test
-      # commands and any additional debug keymaps.
+      # JavaScript/TypeScript DAP ownership only. Project test commands remain
+      # CLI-owned; shared DAP UI and supplemental keymaps live in debugging.nix.
       debugger.nvim-dap = {
         enable = true;
         sources.js-debugger = ''

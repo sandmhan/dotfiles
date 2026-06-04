@@ -28,14 +28,14 @@ assert_phase4_hardening_module_exists() {
 
 assert_phase4_import_order() {
   local default_nix="home/modules/nvf/default.nix"
-  local testing_line hardening_line completion_line
+  local debugging_line hardening_line completion_line
 
-  testing_line="$(grep -n '^[[:space:]]*./testing\.nix$' "$default_nix" | cut -d: -f1)"
+  debugging_line="$(grep -n '^[[:space:]]*./debugging\.nix$' "$default_nix" | cut -d: -f1)"
   hardening_line="$(grep -n '^[[:space:]]*./hardening\.nix$' "$default_nix" | cut -d: -f1)"
   completion_line="$(grep -n '^[[:space:]]*./completion\.nix$' "$default_nix" | cut -d: -f1)"
 
-  [[ -n "$testing_line" && -n "$hardening_line" && -n "$completion_line" ]] || return 1
-  (( testing_line < hardening_line && hardening_line < completion_line ))
+  [[ -n "$debugging_line" && -n "$hardening_line" && -n "$completion_line" ]] || return 1
+  (( debugging_line < hardening_line && hardening_line < completion_line ))
 }
 
 assert_terminalman_phase4_hardening() {
@@ -108,7 +108,7 @@ assert_phase4_ticket_statuses_done() {
 }
 
 check 'Phase 4 hardening module exists' assert_phase4_hardening_module_exists
-check 'Phase 4 hardening module is imported after testing and before completion' assert_phase4_import_order
+check 'Phase 4 hardening module is imported after debugging and before completion' assert_phase4_import_order
 check 'terminalman enables workspace hardening, throttled diagnostics, gitleaks, and explicit task mapping' assert_terminalman_phase4_hardening
 check 'README, operations guide, and evidence index document Phase 4 hardening' assert_phase4_docs_updated
 check 'Phase 4 ticket files and index consistently mark completed work done' assert_phase4_ticket_statuses_done

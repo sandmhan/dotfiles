@@ -6,7 +6,7 @@ updated: 2026-06-01
 
 # Neovim IDE Operations Guide
 
-This guide is the implementation-facing companion to the [NVF Enterprise Polyglot IDE Improvement Report](./nvf-enterprise-polyglot-ide-improvement-report.md). The report remains the canonical architecture plan for language ownership, keymap taxonomy, rollout order, and validation expectations.
+This guide is the implementation-facing companion to the [NVF Enterprise Polyglot IDE Improvement Report](./nvf-enterprise-polyglot-ide-improvement-report.md). It is the current source of truth for implemented behavior and supersedes older roadmap items that proposed IDE-integrated test runners.
 
 ## Current implementation
 
@@ -22,7 +22,7 @@ Supported editor language coverage today is intentionally limited to the modules
 - JavaScript/TypeScript with `ts_ls`, prettierd, eslint_d, and JS debug adapter ownership from `home/modules/nvf/languages-web.nix`.
 - JSON with `jsonls` and `jsonfmt` from `home/modules/nvf/languages-web.nix`.
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
-- Neotest Python, Jest, and Vitest adapters plus DAP UI and shared test/debug keymaps from `home/modules/nvf/testing.nix`.
+- DAP UI and supplemental debug keymaps from `home/modules/nvf/debugging.nix`; IDE-integrated test runners are intentionally not configured.
 - Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, and an on-demand gitleaks secret scan task.
 - Guarded AI bridge workflows from `home/modules/nvf/ai.nix` for Claude Code and Codex CLI provider entry points, with explicit confirmation, scoped context, size limits, sensitive-path blocking, and secret-like redaction before provider invocation.
 - Avante.nvim from `home/modules/nvf/ai-avante.nix` for explicit OpenAI-compatible chat and selected-code edit/review/test prompts when `myHome.features.enableNvfAiAvante` is enabled.
@@ -32,7 +32,7 @@ Behavior not listed above is optional, project-local, or planned. Later adoption
 
 ## Required tools and ownership
 
-Most tools are provided by NVF or by Nix packages referenced from the Home Manager modules. Project-local test runners, dependencies, and devshells still own CI parity.
+Most tools are provided by NVF or by Nix packages referenced from the Home Manager modules. Project-local test runners, dependencies, and devshells own CI parity and are run outside Neovim.
 
 | Area | Implemented editor owner | Required or expected tools |
 |---|---|---|
@@ -40,15 +40,15 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Nix | `languages.nix`, `lsp.nix` | `nixd`, `nixfmt`; keep `nil_ls` disabled unless a ticket documents a split |
 | Typst | `languages.nix` | Tinymist and Typstyle |
 | C/C++ | `languages.nix` | Clangd plus the configured LLDB DAP adapter |
-| Python | `languages-python.nix`, `testing.nix` | basedpyright, Ruff, debugpy, pytest/neotest-python; project test dependencies must be available through the project environment |
-| JavaScript/TypeScript | `languages-web.nix`, `testing.nix` | `ts_ls`, prettierd, eslint_d, vscode-js-debug, Jest or Vitest available from the project package manager |
+| Python | `languages-python.nix` | basedpyright, Ruff, and debugpy; run pytest from the project CLI/devshell when needed |
+| JavaScript/TypeScript | `languages-web.nix` | `ts_ls`, prettierd, eslint_d, and vscode-js-debug; run Jest/Vitest/package-manager tests from the project CLI when needed |
 | JSON | `languages-web.nix` | jsonls and jsonfmt |
 | Terraform/OpenTofu and HCL | `languages-infra.nix` | tofuls, `tofu fmt`, hclfmt; project validation still runs `tofu validate` or `terraform validate` where applicable |
 | YAML/Kubernetes/Compose | `languages-infra.nix` | yaml-language-server; project validation may add yamllint, kubeconform, or `docker compose config` |
 | Dockerfile | `languages-infra.nix` | dockerfile-language-server, Dockerfile Treesitter grammar, hadolint |
 | Bash | `languages-infra.nix` | bash-language-server, shfmt, shellcheck |
 | TOML | `languages-infra.nix` | taplo and tombi |
-| Tests/debugging | `testing.nix`, language modules | Neotest, DAP UI, debugpy, vscode-js-debug, and project-local pytest/Jest/Vitest commands |
+| Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps |
 | Workspace safety | `hardening.nix` | root marker policy, disabled local config/modelines, generated-file guards, gitleaks scan wrapper |
 | Guarded AI | `ai.nix` plus `home/modules/ai-*.nix` | authenticated `claude` or `codex` CLI when used; bridge fails safely if neither is on `PATH`; standalone Pi remains available outside Neovim |
 | AI companion plugin | `ai-avante.nix` | Avante.nvim through NVF; an OpenAI-compatible endpoint configured at runtime with `OPENAI_API_KEY`, optional `OPENAI_BASE_URL` (falls back to `https://api.openai.com/v1`), and optional `OPENAI_MODEL` |
@@ -58,9 +58,9 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 
 - The approved improvement report is the canonical plan for the NVF IDE rollout.
 - Nix LSP ownership is singular by default: `nixd` is enabled and `nil_ls` is disabled unless a later ticket documents a deliberate split.
-- `home/modules/nvf/languages.nix` remains the shared/core language module. Python, web, infrastructure, testing, hardening, and AI use focused modules before being imported by `default.nix`; future language or workflow work should follow that pattern.
+- `home/modules/nvf/languages.nix` remains the shared/core language module. Python, web, infrastructure, debugging, hardening, and AI use focused modules before being imported by `default.nix`; future language or workflow work should follow that pattern.
 - The keymap taxonomy from the report is adopted as the namespace policy. Mapping descriptions are the current WhichKey label source and must stay synchronized with implemented keys.
-- Tidal live-coding mappings are buffer-local under `<localleader>t*`, leaving global `<leader>t*` chords available for test workflows.
+- Tidal live-coding mappings are buffer-local under `<localleader>t*`, leaving global `<leader>t*` chords available for explicit workspace tasks.
 
 ## Keymap namespaces
 
@@ -73,7 +73,7 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | `<leader>l` | LSP navigation and ergonomics |
 | `<leader>x` | Diagnostics/trouble |
 | `<leader>r` | Planned refactoring actions |
-| `<leader>t` | Tests/tasks via Neotest (`tn`, `tf`, `ta`, `tr`, `to`, `ts`, `tw`, `tD`) plus explicit workspace tasks (`tS` for secret scan) |
+| `<leader>t` | Explicit workspace tasks only; currently `<leader>tS` runs the secret scan |
 | `<leader>d` | Debugging via NVF DAP defaults plus supplemental pause, conditional breakpoint, clear, and scopes actions |
 | `<leader>a` | AI actions: lowercase bridge mappings remain guarded (`aa`, `ar`, `at`, `ad`, `as`); Avante uses `ac` and visual selected-code mappings `ae`, `aR`, `aT` |
 | `<leader>u` | UI toggles |
@@ -143,7 +143,7 @@ Start with the smallest scope that reproduces the issue.
 - Language server missing: confirm the affected profile has activated, run `:LspInfo`, and verify the tool appears in the required-tools table above. For project-local tools, enter the project devshell or package-manager environment first.
 - Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
-- Test/debug adapter failures: run the matching CI command outside Neovim, then inspect `:DapShowLog`, `:messages`, and Neotest output. The editor does not install project dependencies.
+- Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.
 - AI bridge actions unavailable: ensure `claude` or `codex` is installed and authenticated in the Home Manager profile. Blocked sensitive paths or full-buffer selections are expected guardrail failures. Pi is no longer a Neovim bridge provider.
 - Avante unavailable: confirm `myHome.features.enableNvfAiAvante` is true for the active profile, run `:AvanteAsk`, and verify `OPENAI_API_KEY` plus any `OPENAI_BASE_URL`/`OPENAI_MODEL` overrides are exported in the environment that launches Neovim. Use the guarded bridge instead for sensitive prompts.
 - Tidal issues: prefer a project `tidal-ghci` when available; otherwise the bundled fallback from `tidal.nix` is used. Tidal mappings are buffer-local under `<localleader>`.
@@ -167,7 +167,7 @@ Inside Neovim, inspect `:LspInfo`, `:checkhealth`, `:TSModuleInfo`, `:DapShowLog
 
 ## Adding or changing a language
 
-1. Open a ticket tied to the NVF report or a follow-up maintenance finding. State the filetypes, LSP, formatter, linter, test/debug ownership, keymaps, and affected profiles.
+1. Open a ticket tied to the NVF report or a follow-up maintenance finding. State the filetypes, LSP, formatter, linter, debug ownership, CLI validation commands, keymaps, and affected profiles.
 2. Add focused module code under `home/modules/nvf/` when the language is large enough to own separately. Keep `languages.nix` for shared/core coverage.
 3. Import the module from `home/modules/nvf/default.nix` in a deterministic position near related language or workflow modules.
 4. Update the README NVF module inventory in the same change. The table must contain exactly the same imported modules as `default.nix`, with accurate descriptions.
@@ -218,18 +218,18 @@ Review NVF-related pinned sources and language tools monthly, and immediately be
 |---|---|---|
 | Upstream `nvf` flake input | `flake.lock` entry for `github:NotAShelf/nvf` | Check release notes, option/schema changes, breaking migrations, open security issues, and whether existing phase validators still pass. |
 | Custom Tidal plugin | `home/modules/nvf/tidal.nix` pin for `grddavies/tidal.nvim` | Check upstream commits/tags, plugin activity, hash/rev provenance, Neovim compatibility, and supply-chain risk before bumping. |
-| Language tools from Nixpkgs/NVF | LSPs, formatters, linters, DAP adapters, test adapters | Review package availability across Linux, Darwin, WSL, and headless profiles. Validate schema or command changes before accepting updates. |
+| Language tools from Nixpkgs/NVF | LSPs, formatters, linters, and DAP adapters | Review package availability across Linux, Darwin, WSL, and headless profiles. Validate schema or command changes before accepting updates. |
 | Project-local runners | pytest, Jest, Vitest, Terraform/OpenTofu, Kubernetes, Docker, shell tooling | Document CI parity changes in the owning project and do not imply editor support for tools that are only optional/project-local. |
 
 Document each review in a dated evidence file or ticket workflow log. Open follow-up tickets for risky updates, breaking schema changes, inactive external sources, security advisories, or changes that require profile-specific validation.
 
 ## Project CI parity
 
-Neotest keymaps are convenience wrappers for interactive local feedback; project-local commands remain the source of truth for CI parity:
+IDE-integrated test runners are intentionally not configured; project-local commands remain the source of truth for CI parity:
 
-- Python: run project-selected pytest commands such as `pytest`, `uv run pytest`, or `nix develop -c pytest` alongside Ruff checks (`ruff check`, `ruff format --check`). The editor adapter uses pytest and depends on project-local test dependencies being available.
-- JavaScript/TypeScript/JSON: run package-manager checks such as `npm test`, `npm run lint`, `pnpm test`, `pnpm lint`, `yarn test`, or `yarn lint` according to each repository. The editor adapters call project-local Jest/Vitest through `npx`.
-- Debugging: NVF supplies continue/restart/terminate/step/REPL/UI mappings for nvim-dap. `testing.nix` adds pause, conditional breakpoints, clear breakpoints, and scopes float mappings, while Python and JavaScript/TypeScript adapter ownership remains in the language modules.
+- Python: run project-selected pytest commands such as `pytest`, `uv run pytest`, or `nix develop -c pytest` alongside Ruff checks (`ruff check`, `ruff format --check`).
+- JavaScript/TypeScript/JSON: run package-manager checks such as `npm test`, `npm run lint`, `pnpm test`, `pnpm lint`, `yarn test`, or `yarn lint` according to each repository.
+- Debugging: NVF supplies continue/restart/terminate/step/REPL/UI mappings for nvim-dap. `debugging.nix` adds pause, conditional breakpoints, clear breakpoints, and scopes float mappings, while Python and JavaScript/TypeScript adapter ownership remains in the language modules.
 - Infrastructure: run project checks such as `tofu fmt -check`, `tofu validate`, `terraform fmt -check`, `yamllint`, `kubeconform`, `docker compose config`, `hadolint`, `shellcheck`, `shfmt -d`, `taplo fmt --check`, and `tombi lint` where applicable.
 
 ## Planned, not yet implemented
