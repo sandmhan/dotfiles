@@ -15,6 +15,7 @@ For editor/NVF behavior changes, evidence should list the exact commands run, Ho
 - [NVF Phase 4 Workspace Hardening Evidence](./nvf-phase4-workspace-hardening-2026-05-31.md)
 - [NVF Phase 5 AI Bridge Evidence](./nvf-phase5-ai-bridge-2026-05-31.md)
 - [NVF Phase 6 Onboarding and Maintenance Evidence](./nvf-phase6-onboarding-maintenance-2026-06-01.md)
-- [NVF Phase 7 AI Companion Evidence](./nvf-phase7-ai-companion-2026-06-01.md) — historical CodeCompanion rollout superseded by NVF-032.
-- [NVF Phase 7 Avante Evidence](./nvf-phase7-avante-2026-06-01.md)
+- [NVF Phase 7 AI Companion Evidence](./nvf-phase7-ai-companion-2026-06-01.md) — historical CodeCompanion rollout context.
+- [NVF Phase 7 Avante Evidence](./nvf-phase7-avante-2026-06-01.md) — historical Avante attempt; not the current NVF in-editor AI workflow.
+- [NVF Phase 7 CodeCompanion Codex ACP Evidence](./nvf-phase7-codecompanion-codex-acp-2026-06-02.md) — current NVF in-editor AI workflow.
 - [NVF IDE Test Runner Removal Evidence](./nvf-remove-ide-test-runners-2026-06-04.md) — current DAP-only debugging workflow with IDE test runners removed.

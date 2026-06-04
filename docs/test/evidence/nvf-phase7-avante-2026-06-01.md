@@ -6,9 +6,11 @@ updated: 2026-06-01
 
 # NVF Phase 7 Avante Evidence
 
+> Historical note: this file records a short-lived Avante rollout attempt from 2026-06-01. The current NVF in-editor AI workflow is CodeCompanion Codex ACP; see [NVF Phase 7 CodeCompanion Codex ACP Evidence](./nvf-phase7-codecompanion-codex-acp-2026-06-02.md).
+
 ## Decision
 
-Avante replaces CodeCompanion for the NVF in-editor OpenAI-compatible assistant workflow. Pi was removed only from the Neovim AI bridge; standalone Pi, Codex, Claude, and shared AI skills Home Manager modules remain intact.
+This historical validation captured an Avante workflow for the NVF in-editor OpenAI-compatible assistant path. That workflow is no longer active. Pi was removed only from the Neovim AI bridge during that attempt; standalone Pi, Codex, Claude, and shared AI skills Home Manager modules remained intact.
 
 ## Implemented behavior
 

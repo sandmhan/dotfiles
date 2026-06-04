@@ -32,7 +32,7 @@
       # Development features
       enableClaudeCode = lib.mkDefault true;
       enableCodex = lib.mkDefault true;
-      enableNvfAiAvante = lib.mkDefault true;
+      enableNvfAiCodeCompanion = lib.mkDefault true;
       enableNixvim = lib.mkDefault true;
       enableContainerTools = lib.mkDefault false;
 

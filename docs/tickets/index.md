@@ -74,7 +74,7 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-028](NVF-028.md) | Review pinned plugins and language tool versions periodically | chore | done | NVF Phase 6 | [NVF-013](NVF-013.md) |
 | [NVF-030](NVF-030.md) | Extract NVF configuration as reusable flake input | task | open | NVF Phase 7 | [NVF-026](NVF-026.md), [NVF-027](NVF-027.md) |
 | [NVF-031](NVF-031.md) | Improve NVF AI prompt workflow with mature plugin evaluation | task | done | NVF Phase 7 | [NVF-021](NVF-021.md), [NVF-022](NVF-022.md), [NVF-023](NVF-023.md), [NVF-024](NVF-024.md), [NVF-027](NVF-027.md) |
-| [NVF-032](NVF-032.md) | Replace NVF CodeCompanion workflow with Avante.nvim | task | done | NVF Phase 7 | [NVF-021](NVF-021.md), [NVF-022](NVF-022.md), [NVF-023](NVF-023.md), [NVF-024](NVF-024.md), [NVF-027](NVF-027.md), [NVF-031](NVF-031.md) |
+| [NVF-032](NVF-032.md) | Restore NVF CodeCompanion Codex ACP workflow | task | done | NVF Phase 7 | [NVF-021](NVF-021.md), [NVF-022](NVF-022.md), [NVF-023](NVF-023.md), [NVF-024](NVF-024.md), [NVF-027](NVF-027.md), [NVF-031](NVF-031.md) |
 
 ## Homelab Phase 0
 - [HOMELAB-001](HOMELAB-001.md) — Dry-run current NixOS outputs
@@ -158,4 +158,4 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 ## NVF Phase 7
 - [NVF-030](NVF-030.md) — Extract NVF configuration as reusable flake input
 - [NVF-031](NVF-031.md) — Improve NVF AI prompt workflow with mature plugin evaluation
-- [NVF-032](NVF-032.md) — Replace NVF CodeCompanion workflow with Avante.nvim
+- [NVF-032](NVF-032.md) — Restore NVF CodeCompanion Codex ACP workflow

@@ -15,8 +15,7 @@
     ./languages-infra.nix
     ./debugging.nix
     ./hardening.nix
-    ./ai.nix
-    ./ai-avante.nix
+    ./ai-codecompanion.nix
     ./completion.nix
     ./treesitter.nix
     ./utility.nix

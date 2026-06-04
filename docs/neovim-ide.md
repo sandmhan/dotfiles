@@ -1,7 +1,7 @@
 ---
 title: Neovim IDE Operations Guide
 status: accepted
-updated: 2026-06-01
+updated: 2026-06-04
 ---
 
 # Neovim IDE Operations Guide
@@ -24,8 +24,7 @@ Supported editor language coverage today is intentionally limited to the modules
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
 - DAP UI and supplemental debug keymaps from `home/modules/nvf/debugging.nix`; IDE-integrated test runners are intentionally not configured.
 - Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, and an on-demand gitleaks secret scan task.
-- Guarded AI bridge workflows from `home/modules/nvf/ai.nix` for Claude Code and Codex CLI provider entry points, with explicit confirmation, scoped context, size limits, sensitive-path blocking, and secret-like redaction before provider invocation.
-- Avante.nvim from `home/modules/nvf/ai-avante.nix` for explicit OpenAI-compatible chat and selected-code edit/review/test prompts when `myHome.features.enableNvfAiAvante` is enabled.
+- CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when `myHome.features.enableNvfAiCodeCompanion` is enabled.
 - Haskell/Tidal live-coding support from `home/modules/nvf/tidal.nix`.
 
 Behavior not listed above is optional, project-local, or planned. Later adoption candidates such as Rust, Go, Lua, SQL, richer refactoring flows, and additional language-specific task runners are not implemented until their modules and tickets land.
@@ -50,8 +49,8 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | TOML | `languages-infra.nix` | taplo and tombi |
 | Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps |
 | Workspace safety | `hardening.nix` | root marker policy, disabled local config/modelines, generated-file guards, gitleaks scan wrapper |
-| Guarded AI | `ai.nix` plus `home/modules/ai-*.nix` | authenticated `claude` or `codex` CLI when used; bridge fails safely if neither is on `PATH`; standalone Pi remains available outside Neovim |
-| AI companion plugin | `ai-avante.nix` | Avante.nvim through NVF; an OpenAI-compatible endpoint configured at runtime with `OPENAI_API_KEY`, optional `OPENAI_BASE_URL` (falls back to `https://api.openai.com/v1`), and optional `OPENAI_MODEL` |
+| Neovim AI | `ai-codecompanion.nix` | CodeCompanion.nvim through NVF; `codex-acp` installed by the feature; ChatGPT authentication (`auth_method = "chatgpt"`) from a prior Codex/ChatGPT login rather than an API key |
+| Standalone AI CLIs | `home/modules/ai-*.nix` | Claude, Codex, and Pi remain Home Manager CLI/TUI tools outside Neovim |
 | Tidal/Haskell | `tidal.nix` | haskell-language-server, haskell-tools, `tidal.nvim`, `tidal-ghci` from the project or bundled fallback |
 
 ## Phase 0 decisions
@@ -75,7 +74,7 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | `<leader>r` | Planned refactoring actions |
 | `<leader>t` | Explicit workspace tasks only; currently `<leader>tS` runs the secret scan |
 | `<leader>d` | Debugging via NVF DAP defaults plus supplemental pause, conditional breakpoint, clear, and scopes actions |
-| `<leader>a` | AI actions: lowercase bridge mappings remain guarded (`aa`, `ar`, `at`, `ad`, `as`); Avante uses `ac` and visual selected-code mappings `ae`, `aR`, `aT` |
+| `<leader>a` | AI actions: CodeCompanion chat on `ac`; command/inline action-palette workflows are not exposed for the Codex ACP adapter |
 | `<leader>u` | UI toggles |
 | `<localleader>` | Language-local actions when global namespaces would collide |
 
@@ -89,52 +88,27 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 - Secret scanning is an explicit task only. `:NvfScanSecrets` and `<leader>tS` run `gitleaks detect --no-git --redact --source <workspace-root>` using the Nix-provided wrapper package. Pass a directory to scan a different root. Findings open in the quickfix list.
 - Diagnostic throttling is intentionally conservative: diagnostics do not update in insert mode, severity sorting is enabled, and guarded buffers disable diagnostics entirely.
 
-## AI bridge
+## Neovim AI: CodeCompanion Codex ACP
 
-`home/modules/nvf/ai.nix` is a thin editor bridge to existing Home Manager AI tooling rather than a new provider stack. It looks for provider CLIs with `vim.fn.exepath` in this order: Claude Code (`claude`) and Codex CLI (`codex`). If no backing CLI is available, the action fails safely and sends nothing. Pi remains available as standalone Home Manager tooling and shared skills content, but it is no longer registered as a Neovim bridge provider.
+`home/modules/nvf/ai-codecompanion.nix` is the only Neovim AI integration. It enables NVF's `vim.assistant.codecompanion-nvim`, installs `codex-acp`, and selects the CodeCompanion `codex` ACP adapter for chat.
+
+Authentication is ChatGPT-based: the adapter sets `auth_method = "chatgpt"` and clears adapter environment variables, so no `OPENAI_API_KEY`, `OPENAI_BASE_URL`, or model secret is committed to Nix. Run the Codex/ChatGPT login flow outside Neovim first and ensure the account has the required subscription/access for Codex ACP.
 
 Implemented mappings and commands:
 
 | Key | Command | Scope |
 |---|---|---|
-| `<leader>aa` | `:NvfAiAsk` | Typed small prompt, or selected text in visual mode |
-| `<leader>ar` | `:NvfAiReviewDiff` | Current `git diff --no-ext-diff` from the workspace root |
-| `<leader>at` | `:NvfAiTests` | Typed test prompt, or selected code in visual mode |
-| `<leader>ad` | `:NvfAiDiagnostic` | Current diagnostic under the cursor plus the current line |
-| `<leader>as` | `:NvfAiSkills` | Shared skills/rules discovered from `AI_SKILLS_DIR` or `~/.local/share/ai` |
+| `<leader>ac` | `:CodeCompanionChat` | Chat workflow using the Codex ACP adapter |
 
-Guardrails are enforced before any provider invocation:
+Configured boundaries:
 
-- Context is scoped to selected text, typed prompts, the current diagnostic, the current git diff, or an explicitly selected shared skill/rule; full buffers are not collected automatically, and full-buffer visual selections are blocked.
-- Sensitive paths such as `secrets/`, `.env`, private-key material, SOPS YAML markers, and key files are blocked. Secret-like values such as passwords, tokens, quoted or unquoted API keys, bearer tokens, and common cloud/source-control token patterns are redacted before confirmation.
-- The confirmation prompt shows the destination provider, action, exact scope, workspace root, context size, and redaction count. Cancelling the prompt stops before `vim.system` runs.
-- Provider commands are built as argv lists and run with `vim.system` from the detected workspace root. Claude and Codex use stdin-based prompts. The bridge does not enable autonomous or dangerous provider modes; sandboxing and approvals remain owned by `home/modules/ai-claude.nix` and `home/modules/ai-codex.nix`. Pi configuration remains in `home/modules/ai-pi.nix` for standalone CLI/TUI use outside Neovim.
+- CodeCompanion chat uses `adapter = "codex"`. Command (`:CodeCompanionCmd`) and inline/action-palette interactions are HTTP-adapter-only upstream, so this profile does not point them at the Codex ACP adapter and does not expose action-palette prompt workflows.
+- The configured Codex adapter launches `codex-acp`, uses `auth_method = "chatgpt"`, disables inherited MCP servers with `mcpServers = {}`, and uses a 20 second adapter timeout.
+- Avante.nvim, the prior `NvfAi*` bridge commands, and Neovim Pi/Claude/Codex CLI bridge mappings are removed from the active NVF imports. Claude, Codex, and Pi remain standalone Home Manager tools outside Neovim.
+- API-key HTTP workflows are intentionally not configured. CodeCompanion may still register upstream default commands such as `:CodeCompanion` or `:CodeCompanionCmd`, but this profile documents and maps only `:CodeCompanionChat` / chat prompt workflows for the Codex ACP path.
+- Rules chat autoload is disabled, action-palette default/preset action and prompt display is hidden, chat variables are empty, built-in slash commands are disabled, and default chat tools are not auto-loaded. These settings reduce automatic context/tool surface; they are not a substitute for reviewing what you send in chat.
 
-## AI companion plugin
-
-NVF-032 replaces the earlier CodeCompanion.nvim workflow with Avante.nvim through NVF's first-class `vim.assistant.avante-nvim.enable` option. Avante is gated by `myHome.features.enableNvfAiAvante` in `home/modules/nvf/ai-avante.nix`; terminal-derived profiles enable it with `lib.mkDefault true` after validation. Credentials are never committed to Nix. The plugin reads runtime environment variables only:
-
-- `OPENAI_API_KEY` for the OpenAI-compatible API token.
-- `OPENAI_BASE_URL` when using a non-default OpenAI-compatible endpoint such as a secured local server; when unset, the provider falls back to `https://api.openai.com/v1`.
-- `OPENAI_MODEL` to override the default model (`gpt-4o-mini`).
-
-Implemented Avante mappings:
-
-| Key | Command | Scope |
-|---|---|---|
-| `<leader>ac` | `:AvanteAsk` | Plugin ask/chat using the configured OpenAI-compatible provider |
-| Visual `<leader>ae` | `:AvanteEdit ...` | Edit only the selected range and propose a minimal diff |
-| Visual `<leader>aR` | `:AvanteAsk ...` | Review only the selected range for correctness, safety, tests, and docs drift |
-| Visual `<leader>aT` | `:AvanteAsk ...` | Generate tests for only the selected range and ask for missing runner details |
-
-Use the workflows as distinct paths:
-
-- Use the guarded bridge for sensitive material, redaction-dependent prompts, Claude/Codex CLI workflows, current diff review with confirmation, diagnostics, and shared skills/rules.
-- Use Avante for explicit interactive chat, selected-code review, selected-code edits, and OpenAI-compatible API or local endpoint experiments when the selected context is safe to send.
-- Use Codex CLI (`codex exec`) for subscription/OAuth-backed Codex workflows; Avante does not inherit Codex CLI authentication or sandbox settings.
-- Pi remains available as standalone Home Manager tooling and shared AI skills content, but it is not routed through the Neovim AI bridge or Avante.
-
-Privacy boundary: Avante does not inherit the bridge's sensitive-path blocking, secret redaction, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin. The configured plugin controls disable Avante automatic keymaps, auto-suggestions, automatic diff application, automatic current-file attachment, tool auto-approval, automatic diagnostic checks, prompt logging, hints, cursor planning mode, Claude text-editor tool mode, and provider tools (`disable_tools = true`). These controls reduce Avante's automatic context/tool surface, but they are not equivalent to the guarded bridge's pre-send redaction and confirmation policy.
+Privacy boundary: CodeCompanion does not provide the retired bridge's pre-send secret redaction, sensitive-path blocking, confirmation summary, or full-buffer-selection guard. Do not send secrets, private keys, `.env` content, or broad repository context through the plugin.
 
 ## Troubleshooting
 
@@ -144,8 +118,8 @@ Start with the smallest scope that reproduces the issue.
 - Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
 - Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.
-- AI bridge actions unavailable: ensure `claude` or `codex` is installed and authenticated in the Home Manager profile. Blocked sensitive paths or full-buffer selections are expected guardrail failures. Pi is no longer a Neovim bridge provider.
-- Avante unavailable: confirm `myHome.features.enableNvfAiAvante` is true for the active profile, run `:AvanteAsk`, and verify `OPENAI_API_KEY` plus any `OPENAI_BASE_URL`/`OPENAI_MODEL` overrides are exported in the environment that launches Neovim. Use the guarded bridge instead for sensitive prompts.
+- CodeCompanion unavailable: confirm `myHome.features.enableNvfAiCodeCompanion` is true for the active profile, run `:CodeCompanionChat`, and verify `codex-acp` is on `PATH`. Do not use `:CodeCompanionCmd` or inline/action-palette prompts with the Codex ACP adapter unless a supported HTTP adapter is configured separately.
+- Codex ACP authentication failures: complete the Codex/ChatGPT login flow outside Neovim first. This configuration uses `auth_method = "chatgpt"` and does not read `OPENAI_API_KEY` from Nix.
 - Tidal issues: prefer a project `tidal-ghci` when available; otherwise the bundled fallback from `tidal.nix` is used. Tidal mappings are buffer-local under `<localleader>`.
 
 ## Health checks and profiling
@@ -154,9 +128,9 @@ Use runtime checks after activation when editor behavior changes or performance 
 
 ```bash
 nvim --headless "+checkhealth" "+qa"
-nvim --headless -c 'if exists(":AvanteAsk") != 2 | cquit | endif' -c 'qa!'
-nvim --headless -c 'if exists(":CodeCompanionChat") == 2 | cquit | endif' -c 'qa!'
-nvim --headless -c 'if exists(":NvfAiAsk") != 2 | cquit | endif' -c 'qa!'
+nvim --headless -c 'if exists(":CodeCompanionChat") != 2 | cquit | endif' -c 'qa!'
+nvim --headless -c 'if exists(":AvanteAsk") == 2 | cquit | endif' -c 'qa!'
+nvim --headless -c 'if exists(":NvfAiAsk") == 2 | cquit | endif' -c 'qa!'
 nvim --headless "+checkhealth vim.lsp" "+qa"
 nvim --headless "+checkhealth nvim-treesitter" "+qa"
 nvim --headless "+checkhealth dap" "+qa"
@@ -202,7 +176,7 @@ Required evidence for NVF changes:
 
 - The exact validation commands run and whether each passed.
 - Home Manager dry-run coverage for every affected profile. At minimum, run `nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage` and `nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage` when shared Linux NVF behavior changes; include `macman` or `wslman` if the change affects those profiles or platform-specific packages.
-- Runtime health evidence after activation when plugin startup, LSP, Treesitter, DAP, or AI bridge behavior changes. Use the headless `checkhealth` commands above, and include `:LspInfo`, `:TSModuleInfo`, `:DapShowLog`, `:messages`, or startup profiling notes when relevant.
+- Runtime health evidence after activation when plugin startup, LSP, Treesitter, DAP, or AI behavior changes. Use the headless `checkhealth` commands above, and include `:LspInfo`, `:TSModuleInfo`, `:DapShowLog`, `:messages`, or startup profiling notes when relevant.
 - README and `docs/neovim-ide.md` drift checks for import, language, keymap, or workflow changes.
 - Skipped validation with an explicit reason and the affected profile list, for example: `Skipped: macman dry-run (no Darwin builder available); affected profiles: macman only`.
 
