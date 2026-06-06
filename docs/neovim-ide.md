@@ -10,7 +10,23 @@ This guide is the implementation-facing companion to the [NVF Enterprise Polyglo
 
 ## Current implementation
 
-The Home Manager NVF configuration is composed from `home/modules/nvf/default.nix` and enabled for terminal-derived profiles through `home/modules/terminal.nix`.
+The Home Manager NVF configuration is composed from `home/modules/nvf/default.nix` and exported as the reusable flake module `homeManagerModules.sandvim` (also aliased as `homeManagerModules.default`). The exported module imports upstream `nvf.homeManagerModules.default` plus this repository's Sandvim modules, and external consumers enable it with `programs.sandvim.enable = true`.
+
+This repository's local profiles preserve the existing `myHome` interface through a flake-local adapter, which maps `myHome.features.enableNixvim` to `programs.sandvim.enable`. The reusable Sandvim module itself does not depend on `home/options.nix` or `config.myHome`.
+
+### Portable API and smoke test
+
+The public Sandvim option API is intentionally minimal while the module remains hosted in this dotfiles flake pending extraction:
+
+- `programs.sandvim.enable` enables the NVF-backed editor, including the CodeCompanion Codex ACP chat workflow.
+
+External consumers import `dotfiles.homeManagerModules.sandvim` in their Home Manager module list and set `programs.sandvim.enable = true`. They do not need this repo's local profiles, Stylix module, or `myHome` options.
+
+The flake check `checks.x86_64-linux.sandvimExternalConsumer` is the repo-native portability smoke test. It builds a minimal external-consumer Home Manager activation package using only `homeManagerModules.sandvim`, `programs.sandvim.enable = true`, and the required `home.*` identity/state options:
+
+```bash
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
+```
 
 Supported editor language coverage today is intentionally limited to the modules already imported by `default.nix`:
 
@@ -24,7 +40,7 @@ Supported editor language coverage today is intentionally limited to the modules
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
 - DAP UI and supplemental debug keymaps from `home/modules/nvf/debugging.nix`; IDE-integrated test runners are intentionally not configured.
 - Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, and an on-demand gitleaks secret scan task.
-- CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when `myHome.features.enableNvfAiCodeCompanion` is enabled.
+- CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when `programs.sandvim.enable` is enabled.
 - Haskell/Tidal live-coding support from `home/modules/nvf/tidal.nix`.
 
 Behavior not listed above is optional, project-local, or planned. Later adoption candidates such as Rust, Go, Lua, SQL, richer refactoring flows, and additional language-specific task runners are not implemented until their modules and tickets land.
@@ -118,7 +134,7 @@ Start with the smallest scope that reproduces the issue.
 - Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
 - Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.
-- CodeCompanion unavailable: confirm `myHome.features.enableNvfAiCodeCompanion` is true for the active profile, run `:CodeCompanionChat`, and verify `codex-acp` is on `PATH`. Do not use `:CodeCompanionCmd` or inline/action-palette prompts with the Codex ACP adapter unless a supported HTTP adapter is configured separately.
+- CodeCompanion unavailable: confirm `programs.sandvim.enable` is true for the active profile, run `:CodeCompanionChat`, and verify `codex-acp` is on `PATH`. Do not use `:CodeCompanionCmd` or inline/action-palette prompts with the Codex ACP adapter unless a supported HTTP adapter is configured separately.
 - Codex ACP authentication failures: complete the Codex/ChatGPT login flow outside Neovim first. This configuration uses `auth_method = "chatgpt"` and does not read `OPENAI_API_KEY` from Nix.
 - Tidal issues: prefer a project `tidal-ghci` when available; otherwise the bundled fallback from `tidal.nix` is used. Tidal mappings are buffer-local under `<localleader>`.
 
@@ -161,12 +177,23 @@ bash scripts/check-nvf-phase4.sh
 bash scripts/check-nvf-phase5.sh
 bash scripts/check-nvf-phase6.sh
 bash scripts/check-nvf-phase7.sh
-nixfmt home/modules/nvf/*.nix
+nixfmt home/modules/nvf/*.nix flake.nix home/modules/terminal.nix
+nix flake show --no-write-lock-file
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
 nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage
 nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
 ```
 
-Activate with `make terminalman` only when it is safe to update the local profile. After activation, run `nvim --headless "+checkhealth" "+qa"` when runtime health evidence is needed.
+For runtime validation without activation, build the configured Neovim package and invoke it directly:
+
+```bash
+nix build --no-write-lock-file .#homeConfigurations.terminalman.config.programs.nvf.finalPackage -o result-sandvim-nvim
+./result-sandvim-nvim/bin/nvim --headless "+checkhealth" "+qa"
+./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":CodeCompanionChat") != 2 | cquit | endif' -c 'qa!'
+./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":AvanteAsk") == 2 | cquit | endif' -c 'if exists(":NvfAiAsk") == 2 | cquit | endif' -c 'qa!'
+```
+
+Activate with `make terminalman` only when it is safe to update the local profile. True activation is only required to validate profile activation hooks, shell integration, or the user's active `nvim` command; packaged Neovim startup and command-registration checks can run from the built `finalPackage` without activation. After activation, run `nvim --headless "+checkhealth" "+qa"` when runtime health evidence is needed.
 
 ## Validation evidence expectations
 

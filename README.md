@@ -213,12 +213,29 @@ sudo nixos-rebuild switch --flake .#gaia
 
 ## Neovim Configuration (nvf)
 
-The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`. See `docs/neovim-ide.md` for the current IDE decisions, keymap taxonomy, and validation workflow.
+The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`. The flake exports it as `homeManagerModules.sandvim` (also available as `homeManagerModules.default`) so other Home Manager flakes can consume it without this repo's `myHome` options. See `docs/neovim-ide.md` for the current IDE decisions, keymap taxonomy, portability status, and validation workflow.
+
+Portable use:
+
+```nix
+{
+  inputs.dotfiles.url = "github:<owner>/<repo>";
+
+  outputs = { dotfiles, ... }: {
+    # In a Home Manager module list:
+    # imports = [ dotfiles.homeManagerModules.sandvim ];
+  };
+}
+```
+
+Enable it with `programs.sandvim.enable = true;`. CodeCompanion/Codex ACP is included whenever Sandvim is enabled. The public Sandvim API intentionally stays limited to that single option while the module remains in this dotfiles flake pending extraction. Local profiles keep their existing behavior through a dotfiles-only adapter that maps `myHome.features.enableNixvim` onto the portable option.
+
+The repo-native external-consumer smoke test is `nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer`. It builds a minimal Home Manager activation package that imports only `homeManagerModules.sandvim` with `programs.sandvim.enable = true`, without `myHome`, Stylix, or local profiles.
 
 | File | Description |
 |------|-------------|
-| `default.nix` | Entry point, imports all modules |
-| `options.nix` | Editor options (clipboard, line numbers, tabs) |
+| `default.nix` | Entry point, imports all modules behind `programs.sandvim.enable` |
+| `options.nix` | Portable `programs.sandvim.enable` option plus editor options (clipboard, line numbers, tabs) |
 | `keymaps.nix` | Core key mappings, leader key, finder, Git, LSP, and diagnostics shortcuts |
 | `visuals.nix` | Visual plugins and presentation settings |
 | `lsp.nix` | Global LSP enablement and explicit server ownership |
@@ -228,7 +245,7 @@ The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is mod
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
 | `debugging.nix` | Shared DAP UI and supplemental debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
-| `ai-codecompanion.nix` | CodeCompanion.nvim chat workflow using Codex ACP through `codex-acp` with ChatGPT authentication behind `enableNvfAiCodeCompanion`; HTTP-only command/inline workflows are not exposed |
+| `ai-codecompanion.nix` | CodeCompanion.nvim chat workflow using Codex ACP through `codex-acp` with ChatGPT authentication enabled with `programs.sandvim.enable`; HTTP-only command/inline workflows are not exposed |
 | `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
 | `treesitter.nix` | Treesitter grammars and highlighting |
 | `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |

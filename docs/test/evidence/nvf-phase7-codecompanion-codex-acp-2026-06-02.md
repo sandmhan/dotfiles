@@ -13,13 +13,13 @@ CodeCompanion Codex ACP is the current NVF in-editor AI workflow. The active NVF
 ## Implemented behavior
 
 - `home/modules/nvf/default.nix` imports `home/modules/nvf/ai-codecompanion.nix` after `hardening.nix` and before `completion.nix`.
-- `home/modules/nvf/ai-codecompanion.nix` is gated by `myHome.features.enableNvfAiCodeCompanion`.
+- `home/modules/nvf/ai-codecompanion.nix` is gated by the high-level `programs.sandvim.enable` option.
 - The feature installs `pkgs.codex-acp` and enables `vim.assistant.codecompanion-nvim`.
 - CodeCompanion chat uses adapter `codex`; the adapter command is `codex-acp`; adapter defaults set `auth_method = "chatgpt"`, `mcpServers = {}`, and a 20 second timeout.
 - CodeCompanion command (`:CodeCompanionCmd`) and inline/action-palette interactions are HTTP-adapter-only upstream, so the Codex ACP adapter is not assigned to those interactions and action-palette prompt/action display is hidden.
 - API-key and OpenAI-compatible HTTP provider wiring are not configured in Nix.
 - Avante modules/imports and `NvfAi*` bridge modules/imports are removed from active NVF.
-- Terminal profile enables `enableNvfAiCodeCompanion` by default.
+- Terminal profile enables `myHome.features.enableNixvim` by default; the flake-local adapter maps that to `programs.sandvim.enable`, which includes CodeCompanion.
 
 ## Validation results
 
@@ -29,7 +29,7 @@ Validation was initially run from `/home/sandmhan/dotfiles` on 2026-06-02. The c
 |---|---|---|
 | `bash scripts/check-nvf-phase5.sh` | pass | Verifies the retired Phase 5 `NvfAi*` bridge is not active in NVF while historical evidence remains indexed. |
 | `bash scripts/check-nvf-phase6.sh` | pass | Verifies the README NVF module inventory is synchronized with `home/modules/nvf/default.nix`. |
-| `bash scripts/check-nvf-phase7.sh` | pass | Verifies chat-only CodeCompanion Codex ACP module wiring, terminal profile feature flag, `codex-acp` installation, ChatGPT auth configuration, hidden unsupported command/inline/action-palette workflows, absence of API-key/OpenAI-compatible/Avante/`NvfAi*` wiring, docs/evidence/ticket synchronization, build-local `checkhealth`, `:CodeCompanionChat` availability, and absence of `:AvanteAsk`/`:NvfAiAsk`. |
+| `bash scripts/check-nvf-phase7.sh` | pass | Verifies chat-only CodeCompanion Codex ACP module wiring under `programs.sandvim.enable`, `codex-acp` installation, ChatGPT auth configuration, hidden unsupported command/inline/action-palette workflows, absence of API-key/OpenAI-compatible/Avante/`NvfAi*` wiring, docs/evidence/ticket synchronization, build-local `checkhealth`, `:CodeCompanionChat` availability, and absence of `:AvanteAsk`/`:NvfAiAsk`. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage` | pass | Affected by shared terminal NVF profile; dry-run evaluated successfully. Would build 5 derivations and fetch `codex-acp-0.9.2`. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage` | pass | Affected through desktop → terminal profile; dry-run evaluated successfully. Would build 5 derivations and fetch `codex-acp-0.9.2`. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage` | pass | Affected through WSL → terminal profile; dry-run evaluated successfully. Would build 5 derivations and fetch `codex-acp-0.9.2`. |

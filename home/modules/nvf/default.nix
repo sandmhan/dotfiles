@@ -1,8 +1,11 @@
 {
   lib,
-  pkgs,
+  config,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
   imports = [
     ./options.nix
@@ -28,7 +31,7 @@
     ./ui.nix
   ];
 
-  programs.nvf = {
-    enable = true;
+  config = lib.mkIf cfg.enable {
+    programs.nvf.enable = true;
   };
 }

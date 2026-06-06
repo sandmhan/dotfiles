@@ -40,10 +40,6 @@ let
   '';
 in
 {
-  imports = [
-    ./nvf
-  ];
-
   # Bash configuration
   programs.bash = {
     enable = true;

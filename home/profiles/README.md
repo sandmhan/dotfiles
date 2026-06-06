@@ -115,11 +115,13 @@ make macman       # macOS profile
 make wslman       # WSL profile
 make terminalman  # Terminal-only profile
 
-# Add custom profile to flake.nix:
+# Add custom profile to flake.nix. mkHomeConfiguration appends
+# homeManagerModules.sandvim through the shared flake helper.
 customProfile = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
   ./home/profiles/custom.nix
-  nixvim.homeModules.nixvim
   stylix.homeModules.stylix
-  nvf.homeManagerModules.default
 ];
+
+# External Home Manager flakes can import dotfiles.homeManagerModules.sandvim
+# and enable the editor with programs.sandvim.enable = true.
 ```

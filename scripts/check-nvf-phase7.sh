@@ -25,7 +25,7 @@ nix_eval_raw() {
 assert_phase7_codecompanion_module_exists() {
   [[ -f home/modules/nvf/ai-codecompanion.nix ]] \
     && grep -q 'codecompanion-nvim' home/modules/nvf/ai-codecompanion.nix \
-    && grep -q 'enableNvfAiCodeCompanion' home/modules/nvf/ai-codecompanion.nix \
+    && grep -q 'config = lib.mkIf cfg.enable' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'pkgs.codex-acp' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'auth_method = "chatgpt"' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'default = { "codex-acp" }' home/modules/nvf/ai-codecompanion.nix \
@@ -54,13 +54,13 @@ assert_phase7_no_forbidden_nvf_ai_wiring() {
   ! grep -R -q 'avante-nvim\|openai_compatible\|OPENAI_API_KEY\|OPENAI_BASE_URL\|OPENAI_MODEL\|luaConfigRC\.ai-bridge\|NvfAiAsk\|NvfAiReviewDiff\|NvfAiTests\|NvfAiDiagnostic\|NvfAiSkills' home/modules/nvf home/options.nix home/profiles/terminal.nix
 }
 
-assert_phase7_feature_flag_enabled_for_terminal_profile() {
+assert_phase7_sandvim_enabled_for_terminal_profile() {
   local expr result
   expr=$(cat <<'NIX'
 let
   flake = builtins.getFlake "path:__REPO_ROOT__";
 in
-if flake.homeConfigurations.terminalman.config.myHome.features.enableNvfAiCodeCompanion then "true" else "false"
+if flake.homeConfigurations.terminalman.config.programs.sandvim.enable then "true" else "false"
 NIX
 )
   expr="${expr//__REPO_ROOT__/$repo_root}"
@@ -173,7 +173,7 @@ assert_phase7_evidence_documented() {
 assert_phase7_ticket_status_done() {
   grep -q '^status: done$' docs/tickets/NVF-032.md \
     && grep -q 'CodeCompanion Codex ACP' docs/tickets/NVF-032.md \
-    && grep -q 'enableNvfAiCodeCompanion' docs/tickets/NVF-032.md \
+    && grep -q 'programs.sandvim.enable' docs/tickets/NVF-032.md \
     && grep -q 'Unsupported CodeCompanion command/inline/action-palette interactions are not wired to the Codex ACP adapter' docs/tickets/NVF-032.md \
     && grep -F '| [NVF-032](NVF-032.md) ' docs/tickets/index.md \
       | grep -F '| done | NVF Phase 7 |' \
@@ -217,7 +217,7 @@ assert_phase7_runtime_codecompanion_commands() {
 check 'Phase 7 CodeCompanion Codex ACP module exists with ChatGPT auth and no API-key/Avante/bridge wiring' assert_phase7_codecompanion_module_exists
 check 'Phase 7 default.nix import and README inventory are synchronized' assert_phase7_import_inventory_sync
 check 'NVF modules have no active API-key, OpenAI-compatible, Avante, or NvfAi bridge wiring' assert_phase7_no_forbidden_nvf_ai_wiring
-check 'terminal profile enables NVF CodeCompanion feature flag' assert_phase7_feature_flag_enabled_for_terminal_profile
+check 'terminal profile enables Sandvim' assert_phase7_sandvim_enabled_for_terminal_profile
 check 'terminalman enables chat-only CodeCompanion Codex config and hides unsupported cmd/inline workflows' assert_phase7_terminalman_codecompanion_config
 check 'terminalman installs codex-acp' assert_phase7_terminalman_installs_codex_acp
 check 'operations guide, ticket, and evidence index document CodeCompanion-only boundaries' assert_phase7_docs_cover_codecompanion_boundaries

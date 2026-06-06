@@ -58,6 +58,43 @@
       # Runtime theme switching uses OSC escape sequences — see home/modules/theming.nix.
       activeTheme = "gruvbox-dark-hard";
 
+      # Reusable Home Manager module for the NVF-based Sandvim configuration.
+      sandvimHomeManagerModule = {
+        imports = [
+          nvf.homeManagerModules.default
+          ./home/modules/nvf
+        ];
+      };
+
+      dotfilesSandvimAdapter =
+        {
+          lib,
+          config,
+          ...
+        }:
+        {
+          config.programs.sandvim.enable = lib.mkDefault config.myHome.features.enableNixvim;
+        };
+
+      sandvimExternalConsumerSmoke =
+        system:
+        (home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${system};
+          modules = [
+            sandvimHomeManagerModule
+            {
+              home = {
+                username = "sandvim-smoke";
+                homeDirectory = "/home/sandvim-smoke";
+                stateVersion = "24.11";
+              };
+
+              news.display = "silent";
+              programs.sandvim.enable = true;
+            }
+          ];
+        }).activationPackage;
+
       # User settings per-machine/platform
       linuxUserSettings = baseUserSettings // {
         theme = activeTheme;
@@ -97,13 +134,23 @@
         system: userSettings: modules:
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
-          inherit modules;
+          modules = modules ++ [
+            sandvimHomeManagerModule
+            dotfilesSandvimAdapter
+          ];
           extraSpecialArgs = {
             inherit userSettings;
           };
         };
     in
     {
+      homeManagerModules = {
+        sandvim = sandvimHomeManagerModule;
+        default = sandvimHomeManagerModule;
+      };
+
+      checks.x86_64-linux.sandvimExternalConsumer = sandvimExternalConsumerSmoke "x86_64-linux";
+
       nixosConfigurations = {
         # Desktop — Framework 13 AMD (daily driver)
         gaia = nixpkgs.lib.nixosSystem {
@@ -274,7 +321,8 @@
                   imports = [
                     ./home/profiles/headless-terminal.nix
                     ./home/modules/ai-agent.nix
-                    nvf.homeManagerModules.default
+                    sandvimHomeManagerModule
+                    dotfilesSandvimAdapter
                   ];
                 };
                 extraSpecialArgs = {
@@ -404,28 +452,24 @@
         sandmhan = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
           ./home/profiles/desktop.nix
           stylix.homeModules.stylix
-          nvf.homeManagerModules.default
         ];
 
         # macOS (terminal-focused)
         macman = mkHomeConfiguration "aarch64-darwin" macUserSettings [
           ./home/profiles/macos.nix
           stylix.homeModules.stylix
-          nvf.homeManagerModules.default
         ];
 
         # WSL (terminal-focused)
         wslman = mkHomeConfiguration "x86_64-linux" wslUserSettings [
           ./home/profiles/wsl.nix
           stylix.homeModules.stylix
-          nvf.homeManagerModules.default
         ];
 
         # Terminal-only Linux (servers/headless)
         terminalman = mkHomeConfiguration "x86_64-linux" linuxUserSettings [
           ./home/profiles/terminal.nix
           stylix.homeModules.stylix
-          nvf.homeManagerModules.default
         ];
       };
 

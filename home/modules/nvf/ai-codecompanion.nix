@@ -5,11 +5,11 @@
   ...
 }:
 let
-  cfg = config.myHome.features;
+  cfg = config.programs.sandvim;
   inherit (lib.generators) mkLuaInline;
 in
 {
-  config = lib.mkIf cfg.enableNvfAiCodeCompanion {
+  config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.codex-acp ];
 
     programs.nvf.settings.vim = {

@@ -1,24 +1,28 @@
 {
   lib,
+  config,
   pkgs,
   ...
 }:
 {
-  programs.nvf = {
-    settings.vim = {
-      visuals = {
-        nvim-web-devicons.enable = true;
-        nvim-cursorline.enable = true;
-        indent-blankline.enable = true;
-      };
+  config = lib.mkIf config.programs.sandvim.enable {
+    programs.nvf = {
+      settings.vim = {
+        visuals = {
+          nvim-web-devicons.enable = true;
+          nvim-cursorline.enable = true;
+          indent-blankline.enable = true;
+        };
 
-      # Prettier buffer tabs
-      tabline.nvimBufferline = {
-        enable = true;
-        setupOpts.options = {
-          numbers = "none";
+        # Prettier buffer tabs
+        tabline.nvimBufferline = {
+          enable = true;
+          setupOpts.options = {
+            numbers = "none";
+          };
         };
       };
     };
+
   };
 }

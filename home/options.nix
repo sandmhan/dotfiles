@@ -38,7 +38,6 @@ in
       enableClaudeCode = mkEnableOption "Claude Code configuration";
       enableCodex = mkEnableOption "OpenAI Codex CLI configuration";
       enablePi = mkEnableOption "pi coding agent configuration";
-      enableNvfAiCodeCompanion = mkEnableOption "CodeCompanion.nvim Codex ACP assistant workflow for NVF";
 
       # Development features
       enableNixvim = mkEnableOption "Nixvim/Neovim configuration";
