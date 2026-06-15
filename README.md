@@ -279,14 +279,14 @@ Neovim AI is CodeCompanion-only in `home/modules/nvf/ai-codecompanion.nix`, usin
 
 ## Codex Configuration
 
-Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes the same shared skill/rule registry as Claude. Home Manager activation bootstraps writable regular files into Codex's runtime paths:
+Codex is configured declaratively from `home/modules/ai-codex.nix` and consumes the same shared skill/rule registry as Claude. Home Manager activation treats `~/.codex/` as a writable runtime directory and bootstraps regular files inside it:
 
 - **Config**: `~/.codex/config.toml`
 - **Rules**: `~/.codex/AGENTS.md`
 - **Skills**: `~/.codex/skills/<name>/`
 - **Default model**: `gpt-5-codex` with `model_reasoning_effort = "medium"` for ChatGPT account compatibility
 
-Activation replaces legacy Home Manager symlinks, preserves existing regular files, and copies only missing skill directory entries. Remove or manually refresh existing mutable files when you want a later Nix default to take effect. This keeps source content declarative while allowing Codex to read and modify regular runtime files.
+Activation replaces legacy Home Manager symlinks, preserves existing regular files, and copies only missing skill directory entries. If an existing `~/.codex` regular file is found, activation moves it to a timestamped `~/.codex.hm-backup-*` path and, when non-empty, copies it into `~/.codex/config.toml` for inspection. Remove or manually refresh existing mutable files when you want a later Nix default to take effect. This keeps source content declarative while allowing Codex to read and modify regular runtime files.
 
 ---
 

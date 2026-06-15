@@ -184,7 +184,7 @@ Claude and Codex defaults come from Home Manager modules, but activation materia
 | Claude Code | `~/.claude/settings.json`, `~/.claude/rules/`, `~/.claude/skills/` | `home/modules/ai-claude.nix` |
 | Codex | `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/skills/` | `home/modules/ai-codex.nix` |
 
-Activation replaces legacy read-only Nix-store symlinks with regular files or directories. Existing regular files are preserved and made user-writable, so later Nix default changes do not overwrite local edits. To reapply a Nix default, remove the specific mutable file or skill directory and run Home Manager activation again.
+Activation replaces legacy read-only Nix-store symlinks with regular files or directories. Existing regular files are preserved and made user-writable, so later Nix default changes do not overwrite local edits. Codex specifically expects `~/.codex/` to be a directory with config at `~/.codex/config.toml`; if activation finds a legacy regular `~/.codex` file, it moves that file to a timestamped `~/.codex.hm-backup-*` path and copies non-empty contents into `~/.codex/config.toml` for inspection. To reapply a Nix default, remove the specific mutable file or skill directory and run Home Manager activation again.
 
 Codex defaults use `model = "gpt-5-codex"` and `model_reasoning_effort = "medium"` for ChatGPT account compatibility. The `agent-sandbox` profile keeps those model settings and overrides approval/sandbox settings for autonomous VM operation in `home/modules/ai-agent.nix`.
 
