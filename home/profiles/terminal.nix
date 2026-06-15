@@ -9,6 +9,7 @@
     ../modules/terminal.nix
     ../modules/development.nix
     ../modules/theming.nix
+    ../modules/gtk-compat.nix
   ];
 
   # Terminal profile configuration - use mkDefault for easy overrides
