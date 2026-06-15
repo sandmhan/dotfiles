@@ -18,11 +18,11 @@
             treesitter.enable = true;
             format = {
               enable = true;
-              type = [ "prettierd" ];
+              type = [ "mdformat" ];
             };
             lsp = {
               enable = true;
-              servers = [ "marksman" ];
+              servers = [ "markdown-oxide" ];
             };
             extensions = {
               # Render markdown in-buffer (tables, checkboxes, headers, links)

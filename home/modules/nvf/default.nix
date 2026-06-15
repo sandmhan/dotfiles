@@ -16,6 +16,8 @@ in
     ./languages-python.nix
     ./languages-web.nix
     ./languages-infra.nix
+    ./languages-systems.nix
+    ./languages-data-mobile.nix
     ./debugging.nix
     ./hardening.nix
     ./ai-codecompanion.nix
@@ -25,6 +27,7 @@ in
     ./finder.nix
     ./editing.nix
     ./git.nix
+    ./workflow.nix
     ./notes.nix
     ./tidal.nix
     ./toggles.nix

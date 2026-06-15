@@ -18,7 +18,7 @@ This repository's local profiles preserve the existing `myHome` interface throug
 
 The public Sandvim option API is intentionally minimal while the module remains hosted in this dotfiles flake pending extraction:
 
-- `programs.sandvim.enable` enables the NVF-backed editor, including the CodeCompanion Codex ACP chat workflow.
+- `programs.sandvim.enable` enables the NVF-backed editor, including the CodeCompanion Codex ACP chat workflow, polyglot language modules, Obsidian note navigation, workflow plugins, and smart-splits tmux-aware navigation.
 
 External consumers import `dotfiles.homeManagerModules.sandvim` in their Home Manager module list and set `programs.sandvim.enable = true`. They do not need this repo's local profiles, Stylix module, or `myHome` options.
 
@@ -28,9 +28,9 @@ The flake check `checks.x86_64-linux.sandvimExternalConsumer` is the repo-native
 nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
 ```
 
-Supported editor language coverage today is intentionally limited to the modules already imported by `default.nix`:
+Supported editor language and workflow coverage today is intentionally limited to the modules already imported by `default.nix`:
 
-- Markdown with Marksman and rendered/preview workflows.
+- Markdown and Obsidian-style notes with markdown-oxide, mdformat, markdown/markdown-inline Treesitter, rendered/preview workflows, wiki-link/backlink navigation, and dynamic current-directory workspaces.
 - Nix with `nixd` as the default language server and `nixfmt` formatting.
 - Typst with Tinymist and Typstyle.
 - C/C++ with Clang tooling and the existing DAP settings.
@@ -38,12 +38,16 @@ Supported editor language coverage today is intentionally limited to the modules
 - JavaScript/TypeScript with `ts_ls`, prettierd, eslint_d, and JS debug adapter ownership from `home/modules/nvf/languages-web.nix`.
 - JSON with `jsonls` and `jsonfmt` from `home/modules/nvf/languages-web.nix`.
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
+- Rust, Go, and Lua support from `home/modules/nvf/languages-systems.nix`, including rust-analyzer/rustfmt/crates.nvim, gopls/gofmt/golangci-lint, and lua-language-server/lazydev/stylua/luacheck.
+- SQL and Dart/Flutter support from `home/modules/nvf/languages-data-mobile.nix`, including SQLS/sqlfluff and Dart LSP/flutter-tools with the Flutter SDK resolved from PATH or a project devshell rather than bundled in every profile. `enableNoResolvePatch` is intentionally disabled because NVF's current patch fails against the pinned flutter-tools.nvim source; prefer a non-Nix Flutter SDK on PATH until the NVF/input pin is updated.
 - DAP UI and supplemental debug keymaps from `home/modules/nvf/debugging.nix`; IDE-integrated test runners are intentionally not configured.
-- Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, and an on-demand gitleaks secret scan task.
+- Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, expanded polyglot root markers, and an on-demand gitleaks secret scan task.
+- Workflow tooling from `home/modules/nvf/workflow.nix`: Trouble diagnostics, GrugFar search/replace, Diffview review, fastaction, code-action lightbulb, mini.align/splitjoin/move, and vim-sleuth.
+- Smart split and tmux pane navigation from `home/modules/nvf/utility.nix` plus the tmux-side `smart-splits.tmux` integration in `home/modules/terminal.nix`.
 - CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when `programs.sandvim.enable` is enabled.
 - Haskell/Tidal live-coding support from `home/modules/nvf/tidal.nix`.
 
-Behavior not listed above is optional, project-local, or planned. Later adoption candidates such as Rust, Go, Lua, SQL, richer refactoring flows, and additional language-specific task runners are not implemented until their modules and tickets land.
+Behavior not listed above is optional, project-local, or planned. IDE-integrated test runners, per-project task runners, and broader language-specific debug profiles remain project-local until their modules and tickets land.
 
 ## Required tools and ownership
 
@@ -51,7 +55,7 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 
 | Area | Implemented editor owner | Required or expected tools |
 |---|---|---|
-| Markdown | `languages.nix` | Marksman, prettierd, render-markdown-nvim/markdown preview plugins from NVF/Nix |
+| Markdown/Obsidian | `languages.nix`, `notes.nix` | markdown-oxide, mdformat with GFM/frontmatter/footnote plugins, markdown/markdown-inline Treesitter, render-markdown-nvim/markdown preview, and obsidian.nvim |
 | Nix | `languages.nix`, `lsp.nix` | `nixd`, `nixfmt`; keep `nil_ls` disabled unless a ticket documents a split |
 | Typst | `languages.nix` | Tinymist and Typstyle |
 | C/C++ | `languages.nix` | Clangd plus the configured LLDB DAP adapter |
@@ -63,8 +67,15 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Dockerfile | `languages-infra.nix` | dockerfile-language-server, Dockerfile Treesitter grammar, hadolint |
 | Bash | `languages-infra.nix` | bash-language-server, shfmt, shellcheck |
 | TOML | `languages-infra.nix` | taplo and tombi |
-| Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps |
+| Rust | `languages-systems.nix` | rust-analyzer, rustfmt, crates.nvim; Rust DAP remains intentionally disabled until a project-owned profile is documented |
+| Go | `languages-systems.nix` | gopls, gofmt, golangci-lint; Delve DAP remains intentionally disabled until a project-owned profile is documented |
+| Lua | `languages-systems.nix` | lua-language-server, lazydev.nvim, stylua, luacheck |
+| SQL | `languages-data-mobile.nix` | sqls, sqlfluff with `ansi` dialect defaults; project config may override dialect/lint policy outside the editor |
+| Dart/Flutter | `languages-data-mobile.nix` | Dart LSP from Nix; flutter-tools resolves `flutter` from PATH/devshell because `flutterPackage = null` keeps the shared wrapper lightweight; `enableNoResolvePatch` stays disabled until NVF's patch applies to the pinned flutter-tools.nvim source |
+| Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps; Rust, Go, and Dart DAP are disabled by default |
 | Workspace safety | `hardening.nix` | root marker policy, disabled local config/modelines, generated-file guards, gitleaks scan wrapper |
+| Workflow tooling | `workflow.nix` | Trouble, grug-far.nvim, diffview.nvim, fastaction.nvim, nvim-lightbulb, mini.align/splitjoin/move, and vim-sleuth |
+| Tmux/Vim navigation | `utility.nix`, `terminal.nix` | smart-splits.nvim and the packaged `smart-splits.tmux` script |
 | Neovim AI | `ai-codecompanion.nix` | CodeCompanion.nvim through NVF; `codex-acp` installed by the feature; ChatGPT authentication (`auth_method = "chatgpt"`) from a prior Codex/ChatGPT login rather than an API key |
 | Standalone AI CLIs | `home/modules/ai-*.nix` | Claude, Codex, and Pi remain Home Manager CLI/TUI tools outside Neovim |
 | Tidal/Haskell | `tidal.nix` | haskell-language-server, haskell-tools, `tidal.nvim`, `tidal-ghci` from the project or bundled fallback |
@@ -84,9 +95,11 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | `<leader><leader>` | File picker |
 | `<leader>/` | Live grep |
 | `<leader>f` | Find/search |
-| `<leader>g` | Git |
+| `<leader>g` | Git, including Diffview review on unused `gd/gD/gh/gH/gt` chords |
 | `<leader>l` | LSP navigation and ergonomics |
-| `<leader>x` | Diagnostics/trouble |
+| `<leader>n` | Obsidian/Markdown note navigation |
+| `<leader>s` | Search/replace workflows such as GrugFar |
+| `<leader>x` | Diagnostics/Trouble |
 | `<leader>r` | Planned refactoring actions |
 | `<leader>t` | Explicit workspace tasks only; currently `<leader>tS` runs the secret scan |
 | `<leader>d` | Debugging via NVF DAP defaults plus supplemental pause, conditional breakpoint, clear, and scopes actions |
@@ -94,11 +107,31 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | `<leader>u` | UI toggles |
 | `<localleader>` | Language-local actions when global namespaces would collide |
 
+Implemented Phase 8 workflow keys:
+
+| Key | Command | Scope |
+|---|---|---|
+| `<leader>nn` | `:Obsidian new` | New note |
+| `<leader>no` | `:Obsidian open` | Open note in Obsidian |
+| `<leader>nq` | `:Obsidian quick_switch` | Quick note switcher |
+| `<leader>ns` | `:Obsidian search` | Note search |
+| `<leader>nb` | `:Obsidian backlinks` | Backlinks |
+| `<leader>nl` | `:Obsidian links` | Link picker |
+| `<leader>nf` | `:Obsidian follow_link` | Follow wiki/Markdown link |
+| `<leader>nt` | `:Obsidian tags` | Tag picker |
+| `<leader>nr` | `:Obsidian rename` | Rename note/link |
+| `<leader>sr` | `:GrugFar` | Workspace search/replace |
+| `<leader>sR` | `:GrugFarWithin` | Buffer search/replace |
+| `<leader>xw` / `<leader>xd` / `<leader>xR` | `:Trouble ...` | Workspace diagnostics, document diagnostics, references |
+| `<leader>xq` / `<leader>xl` / `<leader>xs` | `:Trouble ...` | Quickfix, location list, symbols |
+| `<leader>gd` / `<leader>gD` | `:DiffviewOpen` / `:DiffviewClose` | Diff review open/close |
+| `<leader>gh` / `<leader>gH` / `<leader>gt` | `:DiffviewFileHistory %` / `:DiffviewFileHistory` / `:DiffviewToggleFiles` | Git file history and file list |
+
 ## Workspace hardening
 
 `home/modules/nvf/hardening.nix` defines the Phase 4 workspace policy without silently executing project-local code.
 
-- Root detection uses the first matching marker from `flake.nix`, `.envrc`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, JVM build files, Terraform/OpenTofu files, or `.git`. Use `:NvfWorkspaceRoot` to inspect the detected root for the current buffer or `:NvfWorkspaceRoot <path>` for another path.
+- Root detection uses the first matching marker from `flake.nix`, `.envrc`, `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `.sqlfluff`, `sqlfluff.toml`, `.luarc.json`, `stylua.toml`, JVM build files, Terraform/OpenTofu files, or `.git`. Use `:NvfWorkspaceRoot` to inspect the detected root for the current buffer or `:NvfWorkspaceRoot <path>` for another path.
 - Local Neovim config execution is disabled with `exrc = false` and modelines disabled. Use `:NvfWorkspacePolicy` to show the active policy; trusted project bootstrapping must stay explicit through shell/devshell commands rather than automatic editor hooks.
 - Large/generated-file guards apply to files above 1 MiB, buffers above 20,000 lines, and dependency/generated paths such as `.git`, `node_modules`, `dist`, `build`, `target`, `.terraform`, `.next`, coverage output, lock files, minified JavaScript, and generated paths. Guarded buffers disable diagnostics, stop Treesitter when possible, and detach LSP clients to reduce monorepo and generated-file churn.
 - Secret scanning is an explicit task only. `:NvfScanSecrets` and `<leader>tS` run `gitleaks detect --no-git --redact --source <workspace-root>` using the Nix-provided wrapper package. Pass a directory to scan a different root. Findings open in the quickfix list.
@@ -131,10 +164,13 @@ Privacy boundary: CodeCompanion does not provide the retired bridge's pre-send s
 Start with the smallest scope that reproduces the issue.
 
 - Language server missing: confirm the affected profile has activated, run `:LspInfo`, and verify the tool appears in the required-tools table above. For project-local tools, enter the project devshell or package-manager environment first.
-- Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default.
+- Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default; Markdown should stay on markdown-oxide rather than also enabling Marksman.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
 - Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.
 - CodeCompanion unavailable: confirm `programs.sandvim.enable` is true for the active profile, run `:CodeCompanionChat`, and verify `codex-acp` is on `PATH`. Do not use `:CodeCompanionCmd` or inline/action-palette prompts with the Codex ACP adapter unless a supported HTTP adapter is configured separately.
+- Obsidian navigation unavailable: confirm `:Obsidian` exists, check that the buffer is inside the intended workspace root, and use `:NvfWorkspaceRoot` to inspect the dynamic current-directory workspace.
+- Flutter tooling unavailable: enter the project devshell or otherwise put `flutter` on PATH before opening Neovim. Sandvim intentionally sets `flutterPackage = null` and does not bundle the full Flutter SDK. Because NVF's no-resolve patch currently fails to apply to the pinned flutter-tools.nvim source, use a non-Nix Flutter SDK on PATH or revisit `enableNoResolvePatch` after updating NVF/flutter-tools.
+- Tmux navigation issues: confirm the activated tmux config contains `run-shell .../smart-splits.tmux` and no unconditional `bind -n C-h select-pane` bindings. In Neovim, smart-splits owns `<C-h/j/k/l>` and tmux falls back to pane selection only outside Vim-aware panes.
 - Codex ACP authentication failures: complete the Codex/ChatGPT login flow outside Neovim first. This configuration uses `auth_method = "chatgpt"` and does not read `OPENAI_API_KEY` from Nix.
 - Tidal issues: prefer a project `tidal-ghci` when available; otherwise the bundled fallback from `tidal.nix` is used. Tidal mappings are buffer-local under `<localleader>`.
 
@@ -147,6 +183,8 @@ nvim --headless "+checkhealth" "+qa"
 nvim --headless -c 'if exists(":CodeCompanionChat") != 2 | cquit | endif' -c 'qa!'
 nvim --headless -c 'if exists(":AvanteAsk") == 2 | cquit | endif' -c 'qa!'
 nvim --headless -c 'if exists(":NvfAiAsk") == 2 | cquit | endif' -c 'qa!'
+nvim --headless -c 'if exists(":Obsidian") != 2 | cquit | endif' -c 'qa!'
+nvim --headless -c 'if exists(":GrugFar") != 2 | cquit | endif' -c 'if exists(":DiffviewOpen") != 2 | cquit | endif' -c 'if exists(":Trouble") != 2 | cquit | endif' -c 'qa!'
 nvim --headless "+checkhealth vim.lsp" "+qa"
 nvim --headless "+checkhealth nvim-treesitter" "+qa"
 nvim --headless "+checkhealth dap" "+qa"
@@ -177,6 +215,7 @@ bash scripts/check-nvf-phase4.sh
 bash scripts/check-nvf-phase5.sh
 bash scripts/check-nvf-phase6.sh
 bash scripts/check-nvf-phase7.sh
+bash scripts/check-nvf-phase8.sh
 nixfmt home/modules/nvf/*.nix flake.nix home/modules/terminal.nix
 nix flake show --no-write-lock-file
 nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
@@ -191,6 +230,8 @@ nix build --no-write-lock-file .#homeConfigurations.terminalman.config.programs.
 ./result-sandvim-nvim/bin/nvim --headless "+checkhealth" "+qa"
 ./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":CodeCompanionChat") != 2 | cquit | endif' -c 'qa!'
 ./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":AvanteAsk") == 2 | cquit | endif' -c 'if exists(":NvfAiAsk") == 2 | cquit | endif' -c 'qa!'
+./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":Obsidian") != 2 | cquit | endif' -c 'qa!'
+./result-sandvim-nvim/bin/nvim --headless -c 'if exists(":GrugFar") != 2 | cquit | endif' -c 'if exists(":DiffviewOpen") != 2 | cquit | endif' -c 'if exists(":Trouble") != 2 | cquit | endif' -c 'qa!'
 ```
 
 Activate with `make terminalman` only when it is safe to update the local profile. True activation is only required to validate profile activation hooks, shell integration, or the user's active `nvim` command; packaged Neovim startup and command-registration checks can run from the built `finalPackage` without activation. After activation, run `nvim --headless "+checkhealth" "+qa"` when runtime health evidence is needed.
@@ -232,7 +273,12 @@ IDE-integrated test runners are intentionally not configured; project-local comm
 - JavaScript/TypeScript/JSON: run package-manager checks such as `npm test`, `npm run lint`, `pnpm test`, `pnpm lint`, `yarn test`, or `yarn lint` according to each repository.
 - Debugging: NVF supplies continue/restart/terminate/step/REPL/UI mappings for nvim-dap. `debugging.nix` adds pause, conditional breakpoints, clear breakpoints, and scopes float mappings, while Python and JavaScript/TypeScript adapter ownership remains in the language modules.
 - Infrastructure: run project checks such as `tofu fmt -check`, `tofu validate`, `terraform fmt -check`, `yamllint`, `kubeconform`, `docker compose config`, `hadolint`, `shellcheck`, `shfmt -d`, `taplo fmt --check`, and `tombi lint` where applicable.
+- Rust: run project checks such as `cargo fmt --check`, `cargo clippy --all-targets --all-features`, and `cargo test` from the project CLI/devshell.
+- Go: run `gofmt -w` or `gofmt -l`, `go test ./...`, and project-selected `golangci-lint run` from the project CLI/devshell.
+- Lua: run project-selected `stylua --check`, `luacheck`, or plugin test harnesses outside Neovim.
+- SQL: run project-selected `sqlfluff lint`, migrations, and database integration tests outside Neovim; choose dialect/project config in the repository owning the SQL.
+- Dart/Flutter: run `dart format`, `dart analyze`, `flutter analyze`, and `flutter test` from a devshell or SDK environment that provides `flutter` on PATH.
 
 ## Planned, not yet implemented
 
-Later phases will fill in Rust, Go, Lua, and SQL workflows. This guide does not claim those behaviors are available until their implementation tickets land.
+Later phases may add per-language debug profiles, project-local task runner UX, and explicit project override recipes. This guide does not claim those behaviors are available until their implementation tickets land.

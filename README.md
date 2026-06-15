@@ -228,7 +228,7 @@ Portable use:
 }
 ```
 
-Enable it with `programs.sandvim.enable = true;`. CodeCompanion/Codex ACP is included whenever Sandvim is enabled. The public Sandvim API intentionally stays limited to that single option while the module remains in this dotfiles flake pending extraction. Local profiles keep their existing behavior through a dotfiles-only adapter that maps `myHome.features.enableNixvim` onto the portable option.
+Enable it with `programs.sandvim.enable = true;`. CodeCompanion/Codex ACP, polyglot language support, Obsidian notes, workflow plugins, and smart split navigation are included whenever Sandvim is enabled. The public Sandvim API intentionally stays limited to that single option while the module remains in this dotfiles flake pending extraction. Local profiles keep their existing behavior through a dotfiles-only adapter that maps `myHome.features.enableNixvim` onto the portable option.
 
 The repo-native external-consumer smoke test is `nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer`. It builds a minimal Home Manager activation package that imports only `homeManagerModules.sandvim` with `programs.sandvim.enable = true`, without `myHome`, Stylix, or local profiles.
 
@@ -243,6 +243,8 @@ The repo-native external-consumer smoke test is `nix build --no-write-lock-file 
 | `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
 | `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with ts_ls, prettierd, eslint_d, jsonls, and JS DAP |
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
+| `languages-systems.nix` | Rust, Go, and Lua IDE ownership with LSP, Treesitter, formatting, and linting hooks |
+| `languages-data-mobile.nix` | SQL and Dart/Flutter IDE ownership with SQL lint/format tools and PATH/devshell-owned Flutter SDK discovery; the NVF no-resolve patch is documented as disabled with the current pin |
 | `debugging.nix` | Shared DAP UI and supplemental debug keymaps |
 | `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
 | `ai-codecompanion.nix` | CodeCompanion.nvim chat workflow using Codex ACP through `codex-acp` with ChatGPT authentication enabled with `programs.sandvim.enable`; HTTP-only command/inline workflows are not exposed |
@@ -252,7 +254,8 @@ The repo-native external-consumer smoke test is `nix build --no-write-lock-file 
 | `finder.nix` | FZF-based search and navigation |
 | `editing.nix` | Editing helpers such as comments, surround, autopairs, and undo tooling |
 | `git.nix` | Git integrations for signs, status, and conflict tooling |
-| `notes.nix` | TODO/FIXME/NOTE highlighting |
+| `workflow.nix` | Professional diagnostics, search/replace, diff review, fast actions, code-action lightbulb, sleuth, and mini ergonomics |
+| `notes.nix` | TODO/FIXME/NOTE highlighting plus Obsidian Markdown note navigation |
 | `tidal.nix` | Haskell/Tidal language support and live-coding commands |
 | `toggles.nix` | UI/editor toggles |
 | `ui.nix` | Statusline, messages, breadcrumbs, bufferline, and related UI modules |

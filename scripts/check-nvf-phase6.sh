@@ -29,7 +29,7 @@ assert_phase6_operations_guide_published() {
     && grep -q '^## Validation evidence expectations$' "$guide" \
     && grep -q '^## Pinned source and tool review cadence$' "$guide" \
     && grep -q 'Behavior not listed above is optional, project-local, or planned' "$guide" \
-    && grep -q 'Later phases will fill in Rust, Go, Lua, and SQL workflows' "$guide" \
+    && grep -q 'Later phases may add per-language debug profiles' "$guide" \
     && grep -q 'bash scripts/check-nvf-phase6.sh' "$guide" \
     && grep -q 'docs/test/evidence/' "$guide"
 }

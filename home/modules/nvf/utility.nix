@@ -23,6 +23,12 @@
 
           # Color Picker/Renderer
           ccc.enable = true;
+
+          # Vim-aware split navigation with tmux pane integration.
+          smart-splits = {
+            enable = true;
+            setupOpts.multiplexer_integration = "tmux";
+          };
         };
 
         # Hotkey cheat sheet

@@ -104,11 +104,16 @@ in
       	set -g prefix C-a
       	bind C-a send-prefix
 
-        # Pane Navigation
-      	bind -n C-h select-pane -L
-      	bind -n C-j select-pane -D
-      	bind -n C-k select-pane -U
-      	bind -n C-l select-pane -R
+        # Vim-aware pane navigation via smart-splits.nvim.
+        set -g @smart-splits_move_left_key C-h
+        set -g @smart-splits_move_down_key C-j
+        set -g @smart-splits_move_up_key C-k
+        set -g @smart-splits_move_right_key C-l
+        set -g @smart-splits_resize_left_key M-h
+        set -g @smart-splits_resize_down_key M-j
+        set -g @smart-splits_resize_up_key M-k
+        set -g @smart-splits_resize_right_key M-l
+        run-shell ${pkgs.vimPlugins.smart-splits-nvim}/smart-splits.tmux
 
         # Resizing Panes
         bind -r h resize-pane -L 5

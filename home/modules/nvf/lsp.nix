@@ -22,8 +22,9 @@
             # Typst
             tinymist.enable = true;
 
-            # Markdown
-            marksman.enable = true;
+            # Markdown/Obsidian notes
+            marksman.enable = false;
+            markdown-oxide.enable = true;
           };
 
           # Spellchecking
