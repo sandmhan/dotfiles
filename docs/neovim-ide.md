@@ -1,7 +1,7 @@
 ---
 title: Neovim IDE Operations Guide
 status: accepted
-updated: 2026-06-04
+updated: 2026-06-15
 ---
 
 # Neovim IDE Operations Guide
