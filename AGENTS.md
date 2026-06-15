@@ -29,9 +29,9 @@ Name hosts and modules by responsibility: `hosts/<machine>/default.nix`, `system
 
 ## Testing Guidelines
 
-There is no separate unit test suite; evaluation is the primary safety check. Run `nix build --dry-run` for any affected host or profile before opening a PR. For Home Manager changes, also run the relevant `make <profile>` target locally when safe.
+There is no separate unit test suite; evaluation is the primary safety check. Before claiming confirmed Nix configuration changes, run a safe build or dry-run that evaluates each affected configuration: `nix build --dry-run .#nixosConfigurations.<host>.config.system.build.toplevel --show-trace` for NixOS hosts and `nix build --dry-run .#homeConfigurations.<profile>.activationPackage --show-trace` (or `home-manager build --flake .#<profile>`) for Home Manager profiles. Agents must not use `make <profile>`, `home-manager switch`, `nixos-rebuild switch`, or deploy commands as validation unless the user explicitly requests activation/deployment.
 
-Editor/NVF behavior changes must include validation evidence in the PR body or under `docs/test/evidence/`: the phase check scripts run, Home Manager dry-runs for affected profiles, and runtime `nvim --headless "+checkhealth" "+qa"` or scoped `checkhealth` output when plugin, LSP, Treesitter, DAP, AI bridge, or startup behavior changes. If validation is skipped, state the reason and list the affected profiles explicitly.
+Editor/NVF behavior changes must include validation evidence in the PR body or under `docs/test/evidence/`: the phase check scripts run, Home Manager build/dry-runs for affected profiles, and runtime `nvim --headless "+checkhealth" "+qa"` or scoped `checkhealth` output when plugin, LSP, Treesitter, DAP, AI bridge, or startup behavior changes. If validation is skipped, state the reason and list the affected profiles explicitly.
 
 ## Commit & Pull Request Guidelines
 
