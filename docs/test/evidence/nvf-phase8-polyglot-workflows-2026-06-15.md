@@ -62,11 +62,22 @@ client.opts is deprecated, use Obsidian.opts instead.
 client is going to be removed in the future as well.
 ```
 
-The warning did not fail startup or command registration. Track it during the next pinned NVF/obsidian.nvim review.
+Follow-up investigation found the warning is emitted during `:checkhealth render-markdown`, not by this repository's Obsidian setup. The pinned `render-markdown.nvim` health check calls `obsidian.get_client().opts.ui.enable`, while pinned `obsidian.nvim` v3.16.0 deprecates `client.opts` in favor of the global `Obsidian.opts`. There is no safe Sandvim configuration knob for that upstream health-check implementation with the current NVF pins, and the warning remains non-fatal. Track it during the next pinned NVF/render-markdown.nvim/obsidian.nvim review.
 
 ## Skipped checks
 
 No safe no-activation checks were intentionally skipped. Home Manager activation/deploy commands were not run by design.
+
+## Follow-up validation notes
+
+Results recorded by the follow-up worker on 2026-06-15:
+
+| Command | Result | Notes |
+|---|---|---|
+| `nix build --no-write-lock-file .#homeConfigurations.terminalman.config.programs.nvf.finalPackage -o result-sandvim-nvim` | passed | Rebuilt the packaged Sandvim Neovim for runtime follow-up checks. Before the GTK follow-up fix, this reproduced the unrelated Home Manager `gtk.gtk4.theme` legacy-default warning for `terminalman`; after the fix, only the expected dirty-tree notice remained. |
+| `nix build --dry-run --no-write-lock-file .#homeConfigurations.{terminalman,sandmhan,wslman,macman}.activationPackage` | passed | Re-ran each profile separately and confirmed no `gtk.gtk4.theme` warning remains. |
+| `./result-sandvim-nvim/bin/nvim --headless test.md '+checkhealth' '+qa!'` from a temporary Markdown workspace | passed with non-fatal warning | Confirmed the Obsidian deprecation appears while `checkhealth` is checking `render-markdown`; command completed successfully. |
+| `patch --dry-run -p1 < .../flutter-tools.patch` against pinned `flutter-tools.nvim` source `677cc07c16e8b89999108d2ebeefcfc5f539b73c` | failed as expected | Confirms NVF's current no-resolve patch is incompatible with the pinned upstream source (`2 out of 3 hunks FAILED`), so Flutter remains PATH/devshell-owned. |
 
 ## Notes
 
