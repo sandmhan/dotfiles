@@ -8,7 +8,6 @@
     programs.nvf.settings.vim.languages = {
       sql = {
         enable = true;
-        dialect = "ansi";
         treesitter.enable = true;
 
         lsp = {

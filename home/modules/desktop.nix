@@ -63,6 +63,11 @@ in
     '';
   };
 
+  # Bitwarden Desktop currently depends on Electron 39 in the pinned nixpkgs.
+  nixpkgs.config.permittedInsecurePackages = lib.mkIf cfg.features.enableSecurity [
+    "electron-39.8.10"
+  ];
+
   # Desktop packages
   home.packages =
     with pkgs;
@@ -134,6 +139,4 @@ in
       nerd-fonts.blex-mono
     ];
 
-  # Silence legacy default warning for gtk4 theme (stateVersion < 26.05)
-  gtk.gtk4.theme = lib.mkIf cfg.profiles.enableDesktop null;
 }

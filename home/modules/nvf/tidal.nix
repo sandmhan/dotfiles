@@ -73,7 +73,7 @@ in
         treesitter.enable = true;
         lsp = {
           enable = true;
-          servers = [ "hls" ];
+          servers = [ "haskell-language-server" ];
         };
       };
 
