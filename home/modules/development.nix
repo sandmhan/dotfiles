@@ -21,6 +21,7 @@ in
     lib.optionals cfg.profiles.enableDevelopment [
       typst
       git
+      lazygit
       sops
       age
       ssh-to-age

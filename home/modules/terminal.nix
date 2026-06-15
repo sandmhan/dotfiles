@@ -146,7 +146,21 @@ in
     ];
 
   # Advanced shell features
-  programs.starship.enable = lib.mkIf cfg.features.enableAdvancedShell true;
+  programs.starship = lib.mkIf cfg.features.enableAdvancedShell {
+    enable = true;
+    settings = {
+      directory.truncation_length = 3;
+      git_branch.format = "on [$symbol$branch(:$remote_branch)]($style) ";
+      nix_shell = {
+        disabled = false;
+        format = "via [$symbol$state( \\($name\\))]($style) ";
+        impure_msg = "nix dev shell";
+        pure_msg = "pure nix dev shell";
+        symbol = "❄️ ";
+        unknown_msg = "nix dev shell";
+      };
+    };
+  };
   programs.zoxide.enable = lib.mkIf cfg.features.enableAdvancedShell true;
 
   # Set up home directory and username
