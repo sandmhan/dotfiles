@@ -104,11 +104,14 @@ in
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../../systemModules/kinect-v2.nix
     ../../systemModules/sops.nix
     ../../systemModules/tailscale.nix
     #../../systemModules/jellyfin.nix
     # ../../systemModules/frigate.nix
   ];
+
+  hardware.meridianKinect.enable = true;
 
   stylix = {
     enable = true;
@@ -468,6 +471,7 @@ in
     hashedPasswordFile = config.sops.secrets.user-password.path;
     extraGroups = [
       "networkmanager"
+      "video"
       "wheel"
     ];
     packages = with pkgs; [
