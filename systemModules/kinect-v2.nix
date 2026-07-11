@@ -25,6 +25,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    boot.kernelParams = [ "usbcore.usbfs_memory_mb=64" ];
     users.groups.${cfg.group} = { };
     services.udev.extraRules = kinectRules;
   };
