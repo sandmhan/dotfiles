@@ -188,8 +188,9 @@ in
   # Enable Amd microcode updates
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Follow nixpkgs' maintained default kernel instead of jumping to every new
+  # mainline release. The default remains new enough for the Ryzen AI platform.
+  boot.kernelPackages = pkgs.linuxPackages;
 
   # Enable BIOS updates
   services.fwupd.enable = true;
@@ -251,30 +252,38 @@ in
   # Needed to setup Sway using Home Manager
   security.polkit.enable = true;
 
-  # Enable fingerprint reader
-  services.fprintd.enable = false;
+  # Enable the fingerprint reader for the display manager only. PAM consumers
+  # that need immediate password entry are disabled explicitly below.
+  services.fprintd.enable = true;
 
   # Configure PAM for fingerprint authentication
   security.pam.services = {
 
     sudo = {
-      fprintAuth = true; # Enable fingerprint for sudo
-      rules.auth.fprintd.settings.timeout = 10;
+      fprintAuth = false;
     };
 
     su = {
-      fprintAuth = true; # Enable fingerprint for su
+      fprintAuth = false;
     };
 
     login = {
       enable = true;
-      fprintAuth = false; # Enable for login. Doesn't work properly with SDDM. See https://discourse.nixos.org/t/plasma-6-login-screen-is-broken/57742/24?u=sandmhan
+      fprintAuth = false;
       nodelay = true;
+    };
+
+    ly = {
+      fprintAuth = true;
+      rules.auth.fprintd.settings = {
+        timeout = 5;
+        "max-tries" = 1;
+      };
     };
 
     swaylock = {
       enable = false;
-      fprintAuth = true;
+      fprintAuth = false;
       text = ''
         auth sufficient pam_unix.so try_first_pass likeauth nullok
         auth sufficient pam_fprintd.so
@@ -282,7 +291,7 @@ in
       '';
     };
 
-    hyprland.fprintAuth = false; # Enable for Hyprland
+    hyprland.fprintAuth = false;
   };
 
   networking.hostName = "gaia"; # Define your hostname.
