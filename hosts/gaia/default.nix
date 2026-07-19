@@ -280,8 +280,9 @@ in
   # Needed to setup Sway using Home Manager
   security.polkit.enable = true;
 
-  # Enable the fingerprint reader for the display manager only. PAM consumers
-  # that need immediate password entry are disabled explicitly below.
+  # Keep the fingerprint reader available for enrollment and future display
+  # manager/lock-screen evaluation. Ly uses a sequential PAM conversation, so
+  # enabling fprintd there delays the password prompt until fingerprint timeout.
   services.fprintd.enable = true;
 
   # Configure PAM for fingerprint authentication
@@ -302,11 +303,7 @@ in
     };
 
     ly = {
-      fprintAuth = true;
-      rules.auth.fprintd.settings = {
-        timeout = 5;
-        "max-tries" = 1;
-      };
+      fprintAuth = false;
     };
 
     swaylock = {
