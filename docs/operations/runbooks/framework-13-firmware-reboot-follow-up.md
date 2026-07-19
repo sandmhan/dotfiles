@@ -22,6 +22,21 @@ restarts finish.
   - `f1645bb feat(gaia): preserve work across closed-lid AC use`
   - `0352fec feat(gaia): align Framework AI power management`
 
+## Verified outcome
+
+The follow-up completed successfully on 2026-07-19:
+
+- System Firmware reports `0.0.4.2`; Linux reports BIOS `04.02`.
+- UEFI dbx reports `20260402`.
+- fwupd history records both updates as successful.
+- fwupd reports no remaining update for either device.
+
+The BIOS capsule applied on the first reboot. The dbx capsule had to be staged
+again by device ID and applied on a second reboot. fwupd 2.0.19 continued to
+prompt for a reboot afterward despite the successful versions and history; this
+matches [upstream fwupd issue 9720](https://github.com/fwupd/fwupd/issues/9720)
+and was not treated as a third-reboot request.
+
 ## Reboot safely
 
 1. Save or stop any work that cannot survive a restart, including long-running
@@ -63,7 +78,8 @@ Success criteria:
 - System Firmware reports version `0.0.4.2` or `4.02`.
 - UEFI dbx reports version `20260402`.
 - History records both updates as successful.
-- `check-reboot-needed` does not request another restart.
+- `check-reboot-needed` does not request another restart, except for the known
+  fwupd 2.0.19 false-positive described above.
 - Neither update remains marked `update-in-progress`.
 
 If fwupd requests another reboot, keep the charger connected and reboot once
@@ -97,16 +113,49 @@ The branch already contains the agreed power behavior:
 - An 80% battery charge ceiling
 - The nixos-hardware Framework AMD Ryzen AI 300 profile
 
-Do not activate the branch as part of this firmware verification. First review
-the remaining decisions together:
+The remaining decisions were resolved without activating the branch:
 
-- Whether to enable a 48 Hz display mode for battery use
-- Whether fingerprint login can be restored without the prior 30-second delay,
-  while keeping fingerprint authentication disabled for `sudo`
-- Whether to retain `linuxPackages_latest` or use a less aggressive kernel policy
+- Keep the display at 60 Hz for the initial post-firmware baseline. The panel
+  exposes a native 47.998 Hz mode, which can be added later through a
+  user-session power policy.
+- Enable fingerprint authentication for Ly with one five-second attempt. Keep
+  it disabled for `sudo`, `su`, TTY login, swaylock, and Hyprland.
+- Follow nixpkgs' maintained default kernel (`linuxPackages`) instead of
+  `linuxPackages_latest`.
 
-The Gaia closure was already built successfully before the firmware reboot. Run
-a fresh dry-run after any further edits and before activation:
+These decisions are recorded in:
+
+- `307599e feat(gaia): stabilize kernel and fingerprint login`
+- `6ba40a6 feat(gaia): add declarative firmware status helper`
+
+## Declarative firmware maintenance
+
+Gaia enables `services.fwupd`, so NixOS owns the daemon and the persistent
+`fwupd-refresh.timer`. The timer refreshes LVFS metadata automatically; a manual
+`fwupdmgr refresh` is not part of routine maintenance.
+
+After activating this branch, use the Nix-installed read-only summary command:
+
+```console
+gaia-firmware-status
+```
+
+Firmware payloads and BIOS state are mutable hardware state outside the Nix
+store and its rollback model. Keep installation and reboot explicit:
+
+```console
+fwupdmgr update
+systemctl reboot
+```
+
+Do not run unattended `fwupdmgr update` from a timer: it can stage a capsule
+that flashes during an otherwise routine reboot. Gaia currently exposes no
+settings through `fwupdmgr get-bios-settings`, so BIOS setup values cannot be
+managed through fwupd policy. The charge ceiling and power policy remain
+declarative through their existing sysfs-backed NixOS services.
+
+The updated Gaia closure passed a fresh dry-run after the follow-up edits. Run
+it again after any further edits and before activation:
 
 ```console
 nix build --dry-run .#nixosConfigurations.gaia.config.system.build.toplevel --show-trace

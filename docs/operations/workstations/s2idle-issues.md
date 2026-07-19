@@ -2,7 +2,7 @@
 
 ## Hardware
 - Framework Laptop 13 (AMD Ryzen AI 300 Series)
-- BIOS version: 03.03
+- BIOS version: 04.02 (updated 2026-07-19; suspend behavior still needs retesting)
 - Kernel: 6.19.11 (linuxPackages_latest)
 - Sleep mode: s2idle only (deep sleep not available)
 
@@ -72,7 +72,8 @@ systemd.services.fix-resume-input = {
 ```
 
 ### BIOS update
-Check for updates with `sudo fwupdmgr get-updates`. Framework has released BIOS updates that may improve suspend behavior on this platform.
+BIOS 4.02 was installed successfully on 2026-07-19. Retest suspend behavior
+before adding lower-level wake-source or input-device workarounds.
 
 ### Fix plugdev udev rule
 In the Gaia NixOS config (`hosts/gaia/default.nix` or an imported module), change the `hid_listen` rule from:
