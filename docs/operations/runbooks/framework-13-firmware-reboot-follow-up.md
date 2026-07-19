@@ -118,8 +118,11 @@ The remaining decisions were resolved without activating the branch:
 - Keep the display at 60 Hz for the initial post-firmware baseline. The panel
   exposes a native 47.998 Hz mode, which can be added later through a
   user-session power policy.
-- Enable fingerprint authentication for Ly with one five-second attempt. Keep
-  it disabled for `sudo`, `su`, TTY login, swaylock, and Hyprland.
+- Keep fingerprint authentication disabled for Ly, `sudo`, `su`, TTY login,
+  swaylock, and Hyprland. A post-activation boot confirmed that Ly's sequential
+  PAM conversation delayed password login by the full five-second fingerprint
+  timeout. Keep `fprintd` enabled so the enrolled fingerprints remain available
+  when evaluating display managers or lock screens with parallel authentication.
 - Follow nixpkgs' maintained default kernel (`linuxPackages`) instead of
   `linuxPackages_latest`.
 
