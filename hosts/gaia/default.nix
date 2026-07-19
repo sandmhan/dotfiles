@@ -238,12 +238,25 @@ in
 
   systemd.services.gaia-power-source-policy = {
     description = "Apply Gaia power policy when the power source changes";
-    after = [ "power-profiles-daemon.service" ];
+    after = [
+      "graphical.target"
+      "power-profiles-daemon.service"
+    ];
     wants = [ "power-profiles-daemon.service" ];
-    wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = gaiaPowerSourcePolicy;
+    };
+  };
+
+  # Defer the initial policy run until the graphical session and PPD are ready.
+  # Power-source udev events continue to start the service directly.
+  systemd.timers.gaia-power-source-policy = {
+    description = "Apply Gaia power policy after graphical startup";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "20s";
+      Unit = "gaia-power-source-policy.service";
     };
   };
 
