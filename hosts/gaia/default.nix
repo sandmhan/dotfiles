@@ -149,6 +149,21 @@ let
 
     echo 80 > "$charge_limit"
   '';
+
+  gaiaFirmwareStatus = pkgs.writeShellScriptBin "gaia-firmware-status" ''
+    set -u
+
+    echo "BIOS version: $(< /sys/class/dmi/id/bios_version)"
+    echo
+    ${pkgs.fwupd}/bin/fwupdmgr get-devices --no-unreported-check
+    ${pkgs.fwupd}/bin/fwupdmgr get-history --no-unreported-check
+
+    update_status=0
+    ${pkgs.fwupd}/bin/fwupdmgr get-updates --no-unreported-check || update_status=$?
+    if [ "$update_status" -ne 0 ] && [ "$update_status" -ne 2 ]; then
+      exit "$update_status"
+    fi
+  '';
 in
 {
   imports = [
@@ -587,6 +602,7 @@ in
       gaiaFanStatus
       gaiaFanAuto
       gaiaFanDuty
+      gaiaFirmwareStatus
     ];
 
   # Some programs need SUID wrappers, can be configured further or are
