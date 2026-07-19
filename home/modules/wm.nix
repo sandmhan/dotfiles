@@ -282,6 +282,8 @@ in
         "${modifier}+${down}" = "focus down";
         "${modifier}+Shift+Backslash" = "layout toggle split";
         "${modifier}+Shift+G" = "layout toggle splitv tabbed";
+        "${modifier}+Shift+Space" = "floating toggle";
+        "${modifier}+Space" = "focus mode_toggle";
 
         # Quick settings windows
         "${modifier}+N" =
