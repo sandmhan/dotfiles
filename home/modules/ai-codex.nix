@@ -4,6 +4,7 @@
   lib,
   config,
   pkgs,
+  codexPkgs ? pkgs,
   ...
 }:
 let
@@ -57,7 +58,7 @@ in
   };
 
   config = lib.mkIf cfg.features.enableCodex {
-    home.packages = [ pkgs.codex ];
+    home.packages = [ codexPkgs.codex ];
 
     home.activation.materializeCodexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ -v DRY_RUN ]]; then

@@ -61,8 +61,15 @@
 
             dap = {
               enable = true;
-              debugger = "lldb-vscode";
+              debugger = [ "lldb" ];
             };
+
+            # NVF defaults C/C++ extra diagnostics to cpplint when global
+            # extra diagnostics are enabled. cpplint 2.0.2 currently fails to
+            # build with Python 3.14 because its test suite treats
+            # DeprecationWarning output as lint output. Keep clangd diagnostics
+            # and formatting, but do not pull cpplint into the editor closure.
+            extraDiagnostics.enable = false;
           };
         };
       };

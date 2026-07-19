@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  freecadPkgs ? pkgs,
   config,
   ...
 }:
@@ -125,7 +126,7 @@ in
     # 3D printing tools
     ++ lib.optionals cfg.features.enable3DPrinting [
       orca-slicer
-      freecad
+      freecadPkgs.freecad
       openscad
       qidi-studio
     ]

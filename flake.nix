@@ -3,6 +3,12 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    # FreeCAD is pinned separately to avoid transient source build failures in
+    # unstable's GDAL/Python stack while keeping the rest of the system current.
+    nixpkgsFreecad.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Codex releases move faster than nixos-unstable. Track nixpkgs master for
+    # just the Codex CLI while keeping the rest of the profile on the main pin.
+    nixpkgsCodex.url = "github:NixOS/nixpkgs/master";
     nixos-hardware.url = "github:NixOs/nixos-hardware/master";
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -26,6 +32,8 @@
     {
       self,
       nixpkgs,
+      nixpkgsFreecad,
+      nixpkgsCodex,
       nixos-hardware,
       home-manager,
       stylix,
@@ -132,6 +140,20 @@
       # Helper to create Home Manager configurations
       mkHomeConfiguration =
         system: userSettings: modules:
+        let
+          pinnedNixpkgsConfig = {
+            allowUnfree = true;
+            allowUnsupportedSystem = true;
+          };
+          freecadPkgs = import nixpkgsFreecad {
+            inherit system;
+            config = pinnedNixpkgsConfig;
+          };
+          codexPkgs = import nixpkgsCodex {
+            inherit system;
+            config = pinnedNixpkgsConfig;
+          };
+        in
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
           modules = modules ++ [
@@ -139,7 +161,7 @@
             dotfilesSandvimAdapter
           ];
           extraSpecialArgs = {
-            inherit userSettings;
+            inherit userSettings freecadPkgs codexPkgs;
           };
         };
     in
