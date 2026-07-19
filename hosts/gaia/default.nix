@@ -99,6 +99,27 @@ let
     "$tool" fanduty "$percent"
     echo "Restore automatic control with: sudo gaia-fan-auto"
   '';
+
+  gaiaSuspendClosedLidOnAcLoss = pkgs.writeShellScript "gaia-suspend-closed-lid-on-ac-loss" ''
+    set -eu
+
+    ac_online=/sys/class/power_supply/ACAD/online
+    lid_state=/proc/acpi/button/lid/LID0/state
+
+    # The udev event can race with sysfs updates. Only act after both sources
+    # confirm that external power is gone and the lid is still closed.
+    if [ ! -r "$ac_online" ] || [ "$(<"$ac_online")" != "0" ]; then
+      exit 0
+    fi
+
+    if [ ! -r "$lid_state" ] || ! ${pkgs.gnugrep}/bin/grep -q 'closed' "$lid_state"; then
+      exit 0
+    fi
+
+    ${pkgs.util-linux}/bin/logger -t gaia-power \
+      "AC disconnected with lid closed; requesting suspend-then-hibernate"
+    ${pkgs.systemd}/bin/systemctl --no-block suspend-then-hibernate
+  '';
 in
 {
   imports = [
@@ -170,11 +191,26 @@ in
     enable32Bit = true;
   };
 
-  # Lid close settings
+  # Keep long-running work active when the lid is closed on AC. If AC is
+  # removed while the lid remains closed, the udev-triggered safety service
+  # below starts suspend-then-hibernate instead of leaving Gaia awake in a bag.
   services.logind.settings.Login = {
     HandleLidSwitch = "suspend-then-hibernate";
-    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchExternalPower = "ignore";
     HandleLidSwitchDocked = "ignore";
+  };
+
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "30min";
+    HibernateOnACPower = false;
+  };
+
+  systemd.services.gaia-suspend-closed-lid-on-ac-loss = {
+    description = "Suspend Gaia when AC is removed with the lid closed";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = gaiaSuspendClosedLidOnAcLoss;
+    };
   };
 
   # Enable garbage collection
@@ -315,6 +351,10 @@ in
 
   # udev rules for QMK setup
   services.udev.extraRules = ''
+    # Keep long-running sessions alive with the lid closed on AC, but suspend
+    # safely if the charger is removed before the lid is reopened.
+    ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="ACAD", ATTR{online}=="0", TAG+="systemd", ENV{SYSTEMD_WANTS}+="gaia-suspend-closed-lid-on-ac-loss.service"
+
     # Atmel DFU
     ### ATmega16U2
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2fef", TAG+="uaccess"

@@ -59,7 +59,13 @@ in
         network = {
           interval = 5;
           format-wifi = "{icon} {bandwidthDownBytes}";
-          format-icons = [ "󰤯" "󰤟" "󰤢" "󰤥" "󰤨" ];
+          format-icons = [
+            "󰤯"
+            "󰤟"
+            "󰤢"
+            "󰤥"
+            "󰤨"
+          ];
           format-ethernet = "󰈀 {bandwidthDownBytes}";
           format-disconnected = "󰤭";
           tooltip-format-wifi = "{essid} ({signalStrength}%)\n{ipaddr}/{cidr}\n {bandwidthUpBytes}  {bandwidthDownBytes}";
@@ -213,6 +219,19 @@ in
       #   };
       # };
     };
+  };
+
+  # Blank idle displays without suspending the system so long-running local
+  # jobs and agent sessions continue to make progress. Input restores output.
+  services.swayidle = {
+    enable = true;
+    timeouts = [
+      {
+        timeout = 600;
+        command = "${pkgs.sway}/bin/swaymsg 'output * power off'";
+        resumeCommand = "${pkgs.sway}/bin/swaymsg 'output * power on'";
+      }
+    ];
   };
 
   wayland.windowManager.sway = {
