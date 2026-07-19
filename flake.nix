@@ -179,7 +179,7 @@
           system = "x86_64-linux";
           modules = [
             ./hosts/gaia
-            nixos-hardware.nixosModules.framework-13-7040-amd
+            nixos-hardware.nixosModules.framework-amd-ai-300-series
             stylix.nixosModules.stylix
             sops-nix.nixosModules.sops
           ];

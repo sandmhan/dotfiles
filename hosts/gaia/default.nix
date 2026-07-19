@@ -100,25 +100,54 @@ let
     echo "Restore automatic control with: sudo gaia-fan-auto"
   '';
 
-  gaiaSuspendClosedLidOnAcLoss = pkgs.writeShellScript "gaia-suspend-closed-lid-on-ac-loss" ''
+  gaiaPowerSourcePolicy = pkgs.writeShellScript "gaia-power-source-policy" ''
     set -eu
 
     ac_online=/sys/class/power_supply/ACAD/online
     lid_state=/proc/acpi/button/lid/LID0/state
 
-    # The udev event can race with sysfs updates. Only act after both sources
-    # confirm that external power is gone and the lid is still closed.
-    if [ ! -r "$ac_online" ] || [ "$(<"$ac_online")" != "0" ]; then
+    if [ ! -r "$ac_online" ]; then
       exit 0
     fi
 
-    if [ ! -r "$lid_state" ] || ! ${pkgs.gnugrep}/bin/grep -q 'closed' "$lid_state"; then
+    case "$(<"$ac_online")" in
+      1)
+        if ! ${pkgs.coreutils}/bin/timeout 5s \
+          ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set balanced; then
+          ${pkgs.util-linux}/bin/logger -t gaia-power \
+            "Unable to select the balanced power profile on AC"
+        fi
+        ;;
+      0)
+        if ! ${pkgs.coreutils}/bin/timeout 5s \
+          ${pkgs.power-profiles-daemon}/bin/powerprofilesctl set power-saver; then
+          ${pkgs.util-linux}/bin/logger -t gaia-power \
+            "Unable to select the power-saver profile on battery"
+        fi
+
+        # The udev event can race with sysfs updates. Only request sleep after
+        # both sources confirm that external power is gone and the lid remains
+        # closed. Profile selection failure must not bypass this safety path.
+        if [ -r "$lid_state" ] && ${pkgs.gnugrep}/bin/grep -q 'closed' "$lid_state"; then
+          ${pkgs.util-linux}/bin/logger -t gaia-power \
+            "AC disconnected with lid closed; requesting suspend-then-hibernate"
+          ${pkgs.systemd}/bin/systemctl --no-block suspend-then-hibernate
+        fi
+        ;;
+    esac
+  '';
+
+  gaiaApplyBatteryChargeLimit = pkgs.writeShellScript "gaia-apply-battery-charge-limit" ''
+    set -eu
+
+    charge_limit=/sys/class/power_supply/BAT1/charge_control_end_threshold
+    if [ ! -w "$charge_limit" ]; then
+      ${pkgs.util-linux}/bin/logger -t gaia-power \
+        "Battery charge-limit control is unavailable; retaining firmware policy"
       exit 0
     fi
 
-    ${pkgs.util-linux}/bin/logger -t gaia-power \
-      "AC disconnected with lid closed; requesting suspend-then-hibernate"
-    ${pkgs.systemd}/bin/systemctl --no-block suspend-then-hibernate
+    echo 80 > "$charge_limit"
   '';
 in
 {
@@ -162,28 +191,14 @@ in
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # Enable AMD CPU scaling (amd-pstate driver for better energy efficiency)
-  # https://www.kernel.org/doc/html/latest/admin-guide/pm/amd-pstate.html
-  # Since we use linuxPackages_latest (currently 6.17+), we always use active mode
-  boot.kernelParams = [ "amd_pstate=active" ];
   # Enable BIOS updates
   services.fwupd.enable = true;
 
-  # Disable power-profiles-daemon (conflicts with auto-cpufreq)
-  services.power-profiles-daemon.enable = false;
-
-  # Power saving and management
-  services.auto-cpufreq.enable = true;
-  services.auto-cpufreq.settings = {
-    battery = {
-      governor = "powersave";
-      turbo = "never";
-    };
-    charger = {
-      governor = "performance";
-      turbo = "auto";
-    };
-  };
+  # Use one AMD-aware power manager. The Framework profile defaults to PPD;
+  # explicit settings prevent the generic laptop profile from enabling TLP.
+  services.power-profiles-daemon.enable = true;
+  services.auto-cpufreq.enable = false;
+  services.tlp.enable = false;
 
   # Enable graphics
   hardware.graphics = {
@@ -205,11 +220,23 @@ in
     HibernateOnACPower = false;
   };
 
-  systemd.services.gaia-suspend-closed-lid-on-ac-loss = {
-    description = "Suspend Gaia when AC is removed with the lid closed";
+  systemd.services.gaia-power-source-policy = {
+    description = "Apply Gaia power policy when the power source changes";
+    after = [ "power-profiles-daemon.service" ];
+    wants = [ "power-profiles-daemon.service" ];
+    wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = gaiaSuspendClosedLidOnAcLoss;
+      ExecStart = gaiaPowerSourcePolicy;
+    };
+  };
+
+  systemd.services.gaia-battery-charge-limit = {
+    description = "Keep Gaia battery charging capped at 80 percent";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = gaiaApplyBatteryChargeLimit;
     };
   };
 
@@ -353,7 +380,7 @@ in
   services.udev.extraRules = ''
     # Keep long-running sessions alive with the lid closed on AC, but suspend
     # safely if the charger is removed before the lid is reopened.
-    ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="ACAD", ATTR{online}=="0", TAG+="systemd", ENV{SYSTEMD_WANTS}+="gaia-suspend-closed-lid-on-ac-loss.service"
+    ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="ACAD", TAG+="systemd", ENV{SYSTEMD_WANTS}+="gaia-power-source-policy.service"
 
     # Atmel DFU
     ### ATmega16U2
