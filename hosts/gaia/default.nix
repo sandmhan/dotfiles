@@ -188,6 +188,7 @@ in
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.timeout = 2;
   boot.extraModulePackages = with config.boot.kernelPackages; [
     v4l2loopback.out
   ];
