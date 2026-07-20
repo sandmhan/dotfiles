@@ -211,6 +211,10 @@ in
   # Enable BIOS updates
   services.fwupd.enable = true;
 
+  # xdg-document-portal mounts its per-user document store through FUSE.
+  # Enable the privileged fusermount3 wrapper required for that mount.
+  programs.fuse.enable = true;
+
   # Use one AMD-aware power manager. The Framework profile defaults to PPD;
   # explicit settings prevent the generic laptop profile from enabling TLP.
   services.power-profiles-daemon.enable = true;
