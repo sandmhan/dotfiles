@@ -9,18 +9,18 @@
     programs.nvf = {
       settings.vim = {
         languages = {
-          ts = {
+          typescript = {
             enable = true;
             treesitter.enable = true;
 
             lsp = {
               enable = true;
-              servers = [ "ts_ls" ];
+              servers = [ "typescript-language-server" ];
             };
 
             format = {
               enable = true;
-              type = [ "prettierd" ];
+              type = [ "prettier" ];
             };
 
             extraDiagnostics = {
@@ -35,7 +35,7 @@
 
             lsp = {
               enable = true;
-              servers = [ "jsonls" ];
+              servers = [ "vscode-json-language-server" ];
             };
 
             format = {
@@ -46,10 +46,11 @@
         };
 
         # Pinned NVF only derives ESLint mappings for TypeScript filetypes from
-        # languages.ts.extraDiagnostics, so wire JavaScript filetypes explicitly.
+        # languages.typescript.extraDiagnostics, so wire JavaScript filetypes explicitly.
         diagnostics.nvim-lint.linters_by_ft = {
           javascript = [ "eslint_d" ];
           javascriptreact = [ "eslint_d" ];
+          typescriptreact = [ "eslint_d" ];
         };
 
         # JavaScript/TypeScript DAP ownership only. Project test commands remain

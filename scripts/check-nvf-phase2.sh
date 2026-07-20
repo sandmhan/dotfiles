@@ -65,30 +65,30 @@ if
   && languages.python.lsp.servers == [ "basedpyright" "ruff" ]
   && languages.python.format.type == [ "ruff" ]
   && languages.python.dap.enable
-  && languages.python.dap.debugger == "debugpy"
+  && languages.python.dap.debugger == [ "debugpy" ]
   && (lintersByFt.python or []) == [ "ruff" ]
   && has "ruff" linters
-  && languages.ts.enable
-  && languages.ts.lsp.servers == [ "ts_ls" ]
-  && languages.ts.format.type == [ "prettierd" ]
-  && languages.ts.extraDiagnostics.types == [ "eslint_d" ]
+  && languages.typescript.enable
+  && languages.typescript.lsp.servers == [ "typescript-language-server" ]
+  && languages.typescript.format.type == [ "prettier" ]
+  && languages.typescript.extraDiagnostics.types == [ "eslint_d" ]
   && (lintersByFt.javascript or []) == [ "eslint_d" ]
   && (lintersByFt.javascriptreact or []) == [ "eslint_d" ]
   && (lintersByFt.typescript or []) == [ "eslint_d" ]
   && (lintersByFt.typescriptreact or []) == [ "eslint_d" ]
   && languages.json.enable
-  && languages.json.lsp.servers == [ "jsonls" ]
+  && languages.json.lsp.servers == [ "vscode-json-language-server" ]
   && languages.json.format.type == [ "jsonfmt" ]
   && has "js-debugger" dapSources
   && languages.terraform.enable
-  && languages.terraform.lsp.servers == [ "tofuls-tf" ]
-  && languages.terraform.format.type == [ "tofu-fmt" ]
+  && languages.terraform.lsp.servers == [ "tofu-ls" ]
+  && languages.terraform.format.type == [ "opentofu" ]
   && languages.hcl.enable
-  && languages.hcl.lsp.servers == [ "tofuls-hcl" ]
+  && languages.hcl.lsp.servers == [ "tofu-ls" ]
   && languages.yaml.enable
   && languages.yaml.lsp.servers == [ "yaml-language-server" ]
   && languages.bash.enable
-  && languages.bash.lsp.servers == [ "bash-ls" ]
+  && languages.bash.lsp.servers == [ "bash-language-server" ]
   && languages.bash.format.type == [ "shfmt" ]
   && languages.bash.extraDiagnostics.types == [ "shellcheck" ]
   && languages.toml.enable
@@ -114,7 +114,7 @@ assert_phase2_docs_updated() {
     && grep -q '`languages-web.nix`' README.md \
     && grep -q '`languages-infra.nix`' README.md \
     && grep -q 'Python with basedpyright' docs/neovim-ide.md \
-    && grep -q 'JavaScript/TypeScript with `ts_ls`' docs/neovim-ide.md \
+    && grep -q 'JavaScript/TypeScript with `typescript-language-server`' docs/neovim-ide.md \
     && grep -q 'Terraform/OpenTofu' docs/neovim-ide.md \
     && grep -q 'NVF Phase 2 Enterprise Language Evidence' docs/test/evidence/README.md
 }

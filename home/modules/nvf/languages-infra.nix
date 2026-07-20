@@ -15,12 +15,12 @@
 
             lsp = {
               enable = true;
-              servers = [ "tofuls-tf" ];
+              servers = [ "tofu-ls" ];
             };
 
             format = {
               enable = true;
-              type = [ "tofu-fmt" ];
+              type = [ "opentofu" ];
             };
           };
 
@@ -30,7 +30,7 @@
 
             lsp = {
               enable = true;
-              servers = [ "tofuls-hcl" ];
+              servers = [ "tofu-ls" ];
             };
 
             format = {
@@ -57,7 +57,7 @@
 
             lsp = {
               enable = true;
-              servers = [ "bash-ls" ];
+              servers = [ "bash-language-server" ];
             };
 
             format = {

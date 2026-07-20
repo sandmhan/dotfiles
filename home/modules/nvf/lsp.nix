@@ -28,7 +28,7 @@
           };
 
           # Spellchecking
-          harper-ls = {
+          presets.harper = {
             enable = true;
           };
         };

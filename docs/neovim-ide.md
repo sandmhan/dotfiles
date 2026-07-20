@@ -35,8 +35,8 @@ Supported editor language and workflow coverage today is intentionally limited t
 - Typst with Tinymist and Typstyle.
 - C/C++ with Clang tooling and the existing DAP settings.
 - Python with basedpyright, Ruff formatting/linting, and debugpy from `home/modules/nvf/languages-python.nix`.
-- JavaScript/TypeScript with `ts_ls`, prettierd, eslint_d, and JS debug adapter ownership from `home/modules/nvf/languages-web.nix`.
-- JSON with `jsonls` and `jsonfmt` from `home/modules/nvf/languages-web.nix`.
+- JavaScript/TypeScript with `typescript-language-server`, prettier, eslint_d, and JS debug adapter ownership from `home/modules/nvf/languages-web.nix`.
+- JSON with `vscode-json-language-server` and `jsonfmt` from `home/modules/nvf/languages-web.nix`.
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
 - Rust, Go, and Lua support from `home/modules/nvf/languages-systems.nix`, including rust-analyzer/rustfmt/crates.nvim, gopls/gofmt/golangci-lint, and lua-language-server/lazydev/stylua/luacheck.
 - SQL and Dart/Flutter support from `home/modules/nvf/languages-data-mobile.nix`, including SQLS/sqlfluff and Dart LSP/flutter-tools with the Flutter SDK resolved from PATH or a project devshell rather than bundled in every profile. `enableNoResolvePatch` is intentionally disabled because NVF's current patch fails against the pinned flutter-tools.nvim source; prefer a non-Nix Flutter SDK on PATH until the NVF/input pin is updated.
@@ -60,8 +60,8 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Typst | `languages.nix` | Tinymist and Typstyle |
 | C/C++ | `languages.nix` | Clangd plus the configured LLDB DAP adapter |
 | Python | `languages-python.nix` | basedpyright, Ruff, and debugpy; run pytest from the project CLI/devshell when needed |
-| JavaScript/TypeScript | `languages-web.nix` | `ts_ls`, prettierd, eslint_d, and vscode-js-debug; run Jest/Vitest/package-manager tests from the project CLI when needed |
-| JSON | `languages-web.nix` | jsonls and jsonfmt |
+| JavaScript/TypeScript | `languages-web.nix` | `typescript-language-server`, prettier, eslint_d, and vscode-js-debug; run Jest/Vitest/package-manager tests from the project CLI when needed |
+| JSON | `languages-web.nix` | vscode-json-language-server and jsonfmt |
 | Terraform/OpenTofu and HCL | `languages-infra.nix` | tofuls, `tofu fmt`, hclfmt; project validation still runs `tofu validate` or `terraform validate` where applicable |
 | YAML/Kubernetes/Compose | `languages-infra.nix` | yaml-language-server; project validation may add yamllint, kubeconform, or `docker compose config` |
 | Dockerfile | `languages-infra.nix` | dockerfile-language-server, Dockerfile Treesitter grammar, hadolint |

@@ -241,7 +241,7 @@ The repo-native external-consumer smoke test is `nix build --no-write-lock-file 
 | `lsp.nix` | Global LSP enablement and explicit server ownership |
 | `languages.nix` | Shared/core language configs for Markdown, Nix, Typst, and C/C++ |
 | `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
-| `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with ts_ls, prettierd, eslint_d, jsonls, and JS DAP |
+| `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with typescript-language-server, prettier, eslint_d, vscode-json-language-server, and JS DAP |
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
 | `languages-systems.nix` | Rust, Go, and Lua IDE ownership with LSP, Treesitter, formatting, and linting hooks |
 | `languages-data-mobile.nix` | SQL and Dart/Flutter IDE ownership with SQL lint/format tools and PATH/devshell-owned Flutter SDK discovery; the NVF no-resolve patch is documented as disabled with the current pin |

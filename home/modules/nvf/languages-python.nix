@@ -31,7 +31,7 @@
 
           dap = {
             enable = true;
-            debugger = "debugpy";
+            debugger = [ "debugpy" ];
           };
         };
 
