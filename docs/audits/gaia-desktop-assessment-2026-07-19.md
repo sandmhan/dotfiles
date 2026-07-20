@@ -67,7 +67,7 @@ SwayNotificationCenter is now the declarative owner of
 applications using the desktop notification protocol require no per-app wiring.
 The integration adds:
 
-- `Alt+Shift+N` and a left-clickable Waybar icon to toggle notification history.
+- `Ctrl+Alt+N` and a left-clickable Waybar icon to toggle notification history.
 - Right-clicking the Waybar icon to toggle do-not-disturb mode.
 - Six-second normal, three-second low-priority, and persistent critical
   notification timeouts.

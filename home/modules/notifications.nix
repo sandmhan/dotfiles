@@ -207,7 +207,7 @@ in
       };
     };
 
-    wayland.windowManager.sway.config.keybindings."Mod1+Shift+N" =
+    wayland.windowManager.sway.config.keybindings."Ctrl+Mod1+N" =
       "exec ${swaync}/bin/swaync-client -t -sw";
 
     systemd.user.services.gaia-desktop-event-notifier = {
