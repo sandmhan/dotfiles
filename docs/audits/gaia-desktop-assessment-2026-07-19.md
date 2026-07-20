@@ -21,9 +21,11 @@ Sway remains the compositor, and automatic tiling remains enabled.
 - `home/modules/desktop.nix` owns Rofi, swaylock, and desktop applications.
 - `home/modules/wm.nix` owns Sway, Waybar, swayidle, window assignments, and
   session startup.
+- `home/modules/notifications.nix` owns SwayNotificationCenter, its Waybar and
+  Sway controls, and low-priority desktop state notifications.
 - `home/modules/screenshot.nix` owns the Rofi screenshot/recording workflow.
-- `home/modules/theming.nix` generates runtime-switchable Sway, Waybar, and Rofi
-  colors.
+- `home/modules/theming.nix` generates runtime-switchable Sway, Waybar,
+  SwayNotificationCenter, Rofi, terminal, and tmux colors.
 
 The live session uses Sway 1.12 and Waybar 0.15.0 on the internal `eDP-1`
 display at 2256x1504 with scale 2.
@@ -58,6 +60,29 @@ Edited captures use Swappy's output-file support, so the annotated result is
 what reaches the clipboard. Canceling Rofi or Slurp exits without creating an
 empty capture. Screen-recording behavior is unchanged.
 
+### SwayNotificationCenter integration
+
+SwayNotificationCenter is now the declarative owner of
+`org.freedesktop.Notifications`. Discord/Legcord, Element, browsers, and other
+applications using the desktop notification protocol require no per-app wiring.
+The integration adds:
+
+- `Alt+Shift+N` and a left-clickable Waybar icon to toggle notification history.
+- Right-clicking the Waybar icon to toggle do-not-disturb mode.
+- Six-second normal, three-second low-priority, and persistent critical
+  notification timeouts.
+- Grouping, notification actions, inline replies when an application supports
+  them, 2FA-code actions, and a compact 400-pixel popup width.
+- Runtime Base16 theme updates through the existing `theme-switch` command.
+
+A supervised user service reports only meaningful state transitions: AC power
+connected or disconnected, a Wi-Fi connection established, and a newly
+connected Bluetooth device. It also warns once at 15% battery and raises a
+persistent critical alert at 5% while discharging. It does not report periodic
+status, Wi-Fi disconnects, or Bluetooth disconnects. Successful screenshots,
+recordings, theme changes, and routine system events use low urgency to reduce
+interruption; failures and battery warnings retain higher urgency.
+
 ## Prioritized findings
 
 ### Notification daemon evaluation
@@ -81,13 +106,9 @@ Waybar notification module, bind one key to the control center, and extend the
 runtime theme switcher to reload its generated CSS. Only one notification daemon
 may own `org.freedesktop.Notifications`, so the other three must remain disabled.
 
-### Priority 0: choose an idle-lock and notification policy
+### Priority 0: choose an idle-lock policy
 
-1. No notification daemon currently owns `org.freedesktop.Notifications`.
-   `notify-send` is used by the screenshot and recording workflow. Trial the
-   recommended SwayNotificationCenter integration, then retain it or fall back
-   to Dunst if the control-center dependency/UI surface is not worthwhile.
-2. swayidle powers displays off after ten minutes but does not lock first and
+1. swayidle powers displays off after ten minutes but does not lock first and
    has no `before-sleep` lock event. This preserves long-running work but leaves
    the resumed session unlocked. A proposed policy is to lock at ten minutes,
    power displays off shortly afterward, and run `swaylock -f` before sleep.
@@ -160,11 +181,27 @@ sway --validate -c <generated Home Manager Sway config>
 The pre-existing NVF rename/deprecation warnings observed during the initial
 desktop checkpoint were resolved in the subsequent NVF maintenance work.
 
+The notification checkpoint additionally passed:
+
+```text
+nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage --show-trace
+nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage --show-trace
+nix build --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
+check-jsonschema --schemafile <pinned-swaync-schema> <generated-config.json>
+shellcheck <generated-event-notifier> <generated-screenshot-rofi> <generated-theme-switch>
+sway --validate -c <generated Home Manager Sway config>
+deadnix home/modules/notifications.nix home/modules/screenshot.nix home/modules/theming.nix
+statix check home/modules/notifications.nix
+statix check home/modules/screenshot.nix
+```
+
+`statix check home/modules/theming.nix` continues to report its pre-existing
+repeated dotted-key style warnings; the generated module evaluates and builds.
+
 ## Suggested next phase
 
-1. Trial SwayNotificationCenter with a Waybar indicator and theme integration.
-2. Decide the idle-lock and before-sleep policy.
-3. Add fullscreen and scratchpad-recall bindings plus a discoverable key guide.
-4. Correct the Waybar height and remove inactive modules.
-5. Collect `app_id`/class evidence from applications that still need automatic
+1. Decide the idle-lock and before-sleep policy.
+2. Add fullscreen and scratchpad-recall bindings plus a discoverable key guide.
+3. Correct the Waybar height and remove inactive modules.
+4. Collect `app_id`/class evidence from applications that still need automatic
    floating rules after using the new manual toggle.

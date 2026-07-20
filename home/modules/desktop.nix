@@ -14,6 +14,7 @@ in
     ./moonlight.nix
     ./sunshine.nix
     ./screenshot.nix
+    ./notifications.nix
   ];
 
   # Rofi application launcher

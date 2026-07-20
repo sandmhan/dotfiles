@@ -19,16 +19,19 @@ let
       screenshot_path="$1"
 
       if [ ! -s "$screenshot_path" ]; then
-        ${pkgs.libnotify}/bin/notify-send "Screenshot failed" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          "Screenshot failed" \
           "No image was captured" -t 3000
         return 1
       fi
 
       if ${pkgs.wl-clipboard}/bin/wl-copy --type image/png < "$screenshot_path"; then
-        ${pkgs.libnotify}/bin/notify-send "Screenshot" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          --urgency=low "Screenshot" \
           "Saved to Screenshots/ and copied to clipboard" -t 3000
       else
-        ${pkgs.libnotify}/bin/notify-send "Screenshot" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          "Screenshot" \
           "Saved to Screenshots/, but clipboard copy failed" -t 4000
         return 1
       fi
@@ -90,19 +93,22 @@ let
         ;;
       "Record fullscreen")
         ${pkgs.wf-recorder}/bin/wf-recorder -f "${recordingDir}/recording_$TIMESTAMP.mp4" &
-        ${pkgs.libnotify}/bin/notify-send "Recording" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          --urgency=low "Recording" \
           "Screen recording started" -t 3000
         ;;
       "Record region")
         GEOMETRY=$(${pkgs.slurp}/bin/slurp) || exit 0
         ${pkgs.wf-recorder}/bin/wf-recorder -g "$GEOMETRY" \
           -f "${recordingDir}/recording_$TIMESTAMP.mp4" &
-        ${pkgs.libnotify}/bin/notify-send "Recording" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          --urgency=low "Recording" \
           "Region recording started" -t 3000
         ;;
       "Stop recording")
         kill "$RECORDING_PID"
-        ${pkgs.libnotify}/bin/notify-send "Recording" \
+        ${pkgs.libnotify}/bin/notify-send --app-name="Gaia Screenshot" \
+          --urgency=low "Recording" \
           "Screen recording saved to Recordings/" -t 3000
         ;;
     esac
