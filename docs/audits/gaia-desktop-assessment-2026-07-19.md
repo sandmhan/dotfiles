@@ -60,12 +60,33 @@ empty capture. Screen-recording behavior is unchanged.
 
 ## Prioritized findings
 
+### Notification daemon evaluation
+
+The pinned package set and Home Manager input support all four practical Sway
+candidates declaratively. Stylix also has Home Manager targets for each, so no
+out-of-band package installation or hand-maintained configuration is required.
+
+| Daemon | Pinned version | Strengths | Tradeoffs | Gaia fit |
+| --- | --- | --- | --- | --- |
+| SwayNotificationCenter | 0.12.6 | Notification history panel, grouped notifications, actions and inline replies, persistent do-not-disturb state, CSS styling, hot reload, and an upstream Waybar integration | Largest dependency/UI surface because it uses GTK4 and libadwaita; third-party GTK themes can require CSS adjustments | Best fit when missed-notification recovery and a visible control center matter |
+| Dunst | 1.13.2 | Mature rules, scripts, urgency handling, pause levels, replayable history, `dunstctl`, and both Wayland and X11 support | History is replay-oriented rather than a browsable panel; carries X11 support that Gaia does not need | Best balanced fallback if SwayNotificationCenter feels too heavy |
+| Mako | 1.11.0 | Small Wayland-native daemon designed for Sway, straightforward rules, actions, runtime control through `makoctl`, and D-Bus activation | No full notification-center panel; less useful when a notification disappears before it is read | Best minimalist choice |
+| Fnott | 1.8.0 | Small wlroots-native, keyboard-driven daemon with urgency, actions, pause control, and simple INI configuration | Implements only part of the desktop notification specification and has the least rich history/discovery surface | Best only when minimal footprint is the overriding requirement |
+
+SwayNotificationCenter is the recommended first trial for Gaia. The existing
+desktop audit already identifies discoverability as a weakness, and its panel,
+notification count, do-not-disturb control, and upstream Waybar protocol address
+that directly. A clean implementation should use `services.swaync`, add a
+Waybar notification module, bind one key to the control center, and extend the
+runtime theme switcher to reload its generated CSS. Only one notification daemon
+may own `org.freedesktop.Notifications`, so the other three must remain disabled.
+
 ### Priority 0: choose an idle-lock and notification policy
 
 1. No notification daemon currently owns `org.freedesktop.Notifications`.
-   `notify-send` is used by the screenshot and recording workflow, but neither
-   Dunst nor Mako is enabled. Evaluate Dunst, Mako, and SwayNotificationCenter,
-   then enable one declaratively.
+   `notify-send` is used by the screenshot and recording workflow. Trial the
+   recommended SwayNotificationCenter integration, then retain it or fall back
+   to Dunst if the control-center dependency/UI surface is not worthwhile.
 2. swayidle powers displays off after ten minutes but does not lock first and
    has no `before-sleep` lock event. This preserves long-running work but leaves
    the resumed session unlocked. A proposed policy is to lock at ten minutes,
@@ -136,13 +157,12 @@ shellcheck <generated screenshot-rofi>
 sway --validate -c <generated Home Manager Sway config>
 ```
 
-The Home Manager build emits pre-existing NVF rename/deprecation warnings. They
-are unrelated to this desktop checkpoint and should be handled in the NVF work
-stream.
+The pre-existing NVF rename/deprecation warnings observed during the initial
+desktop checkpoint were resolved in the subsequent NVF maintenance work.
 
 ## Suggested next phase
 
-1. Select and configure a notification daemon.
+1. Trial SwayNotificationCenter with a Waybar indicator and theme integration.
 2. Decide the idle-lock and before-sleep policy.
 3. Add fullscreen and scratchpad-recall bindings plus a discoverable key guide.
 4. Correct the Waybar height and remove inactive modules.
