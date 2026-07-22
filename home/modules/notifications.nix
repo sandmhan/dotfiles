@@ -135,6 +135,13 @@ let
 in
 {
   config = lib.mkIf cfg.features.enableWindowManager {
+    # SwayNC's empty state uses a 96 px symbolic icon. Declare a scalable icon
+    # theme so GTK does not enlarge its low-resolution fallback icon.
+    gtk.iconTheme = lib.mkDefault {
+      package = pkgs.adwaita-icon-theme;
+      name = "Adwaita";
+    };
+
     services.swaync = {
       enable = true;
       settings = {
