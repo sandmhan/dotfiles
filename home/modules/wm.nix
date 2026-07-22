@@ -236,6 +236,10 @@ in
     ];
   };
 
+  # Keep the inactive Hyprland module on its current configuration format and
+  # avoid relying on a state-version-dependent Home Manager default.
+  wayland.windowManager.hyprland.configType = "hyprlang";
+
   wayland.windowManager.sway = {
     enable = true;
     checkConfig = false;
