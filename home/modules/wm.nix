@@ -103,7 +103,9 @@ in
 
         "sway/workspaces" = {
           disable-scroll = true;
-          all-outputs = true;
+          # Keep virtual/headless outputs from contributing empty workspaces to
+          # the bar on a physical display.
+          all-outputs = false;
         };
 
         pulseaudio = {
