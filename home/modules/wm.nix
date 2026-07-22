@@ -404,6 +404,7 @@ in
           # Browser
           { app_id = ".*qutebrowser"; }
           { app_id = "firefox"; }
+          { app_id = "zen.*"; }
         ];
         "3" = [
           # Entertainment

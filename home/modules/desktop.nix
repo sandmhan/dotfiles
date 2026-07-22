@@ -11,6 +11,7 @@ in
 {
   imports = [
     ./wm.nix
+    ./browser.nix
     ./moonlight.nix
     ./sunshine.nix
     ./screenshot.nix
