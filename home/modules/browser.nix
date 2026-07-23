@@ -34,8 +34,13 @@ in
         };
       };
 
+      profiles.default.settings = {
+        "zen.urlbar.replace-newtab" = false;
+      };
+
       profiles.default.search = {
         force = true;
+        default = "ddg";
         engines = {
           google-shortcut = mkSearchEngine "Google" "https://www.google.com/search?hl=en&q={searchTerms}" "g";
           wikipedia-shortcut =
@@ -69,7 +74,8 @@ in
       set searchurls.y https://www.youtube.com/results?search_query=%s
       set searchurls.np https://search.nixos.org/packages?channel=unstable&query=%s
       set searchurls.no https://search.nixos.org/options?channel=unstable&query=%s
-      set searchengine g
+      set searchurls.ddg https://duckduckgo.com/?q=%s
+      set searchengine ddg
 
       " Keep the core qutebrowser-style normal-mode bindings explicit.
       bind j scrollline 10
