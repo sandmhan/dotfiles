@@ -35,6 +35,7 @@ in
       };
 
       profiles.default.settings = {
+        "browser.sessionstore.restore_tabs_lazily" = false;
         "zen.urlbar.replace-newtab" = false;
       };
 
