@@ -84,7 +84,6 @@ if
   && langs.lua.extraDiagnostics.enable
   && langs.lua.extraDiagnostics.types == [ "luacheck" ]
   && langs.sql.enable
-  && langs.sql.dialect == "ansi"
   && langs.sql.treesitter.enable
   && langs.sql.lsp.enable
   && langs.sql.lsp.servers == [ "sqls" ]
@@ -106,10 +105,12 @@ then "true" else "false"'
 assert_phase8_markdown_obsidian_workflow_options() {
   nix_bool_expr 'let
   flake = builtins.getFlake "path:__REPO_ROOT__";
+  lib = flake.inputs.nixpkgs.lib;
   vim = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim;
   langs = vim.languages;
   lspServers = vim.lsp.servers or {};
   notes = vim.notes or {};
+  flutterToolsSetup = vim.pluginRC.flutter-tools.data;
   trouble = vim.lsp.trouble;
   utility = vim.utility;
   mini = vim.mini;
@@ -124,6 +125,8 @@ if
   && notes.obsidian.enable
   && builtins.hasAttr "workspaces" notes.obsidian.setupOpts
   && (notes.obsidian.setupOpts.legacy_commands or true) == false
+  && !(builtins.hasAttr "completion" notes.obsidian.setupOpts)
+  && !(lib.strings.hasInfix "color" flutterToolsSetup)
   && trouble.enable
   && trouble.mappings.workspaceDiagnostics == "<leader>xw"
   && trouble.mappings.documentDiagnostics == "<leader>xd"

@@ -49,5 +49,20 @@
         };
       };
     };
+
+    # NVF currently emits `lsp.color` even when its color feature is disabled.
+    # flutter-tools.nvim deprecates the presence of that field on Neovim 0.12,
+    # so preserve NVF's setup while omitting the disabled legacy option.
+    programs.nvf.settings.vim.pluginRC.flutter-tools = lib.mkForce {
+      after = [ "lsp-servers" ];
+      before = [ ];
+      data = ''
+        require('flutter-tools').setup {
+          lsp = {
+            capabilities = capabilities,
+          },
+        }
+      '';
+    };
   };
 }

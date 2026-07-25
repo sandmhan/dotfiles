@@ -81,7 +81,7 @@ assert_phase6_readme_import_inventory_sync() {
 
 assert_phase6_validation_evidence_expectations() {
   grep -q 'Editor/NVF behavior changes must include validation evidence' AGENTS.md \
-    && grep -q 'Home Manager dry-runs for affected profiles' AGENTS.md \
+    && grep -q 'Home Manager build/dry-runs for affected profiles' AGENTS.md \
     && grep -q 'nvim --headless' AGENTS.md \
     && grep -q 'If validation is skipped, state the reason and list the affected profiles explicitly' AGENTS.md \
     && grep -q 'For editor/NVF behavior changes, evidence should list the exact commands run' docs/test/evidence/README.md \

@@ -32,7 +32,6 @@ in
                 }
               '';
               picker.name = "fzf-lua";
-              completion.nvim_cmp = false;
             };
           };
         };

@@ -21,3 +21,4 @@ For editor/NVF behavior changes, evidence should list the exact commands run, Ho
 - [NVF IDE Test Runner Removal Evidence](./nvf-remove-ide-test-runners-2026-06-04.md) — current DAP-only debugging workflow with IDE test runners removed.
 - [NVF Sandvim Portability Evidence](./nvf-sandvim-portability-2026-06-05.md) — portable `homeManagerModules.sandvim` smoke test and no-activation runtime validation.
 - [NVF Phase 8 Polyglot Workflow Evidence](./nvf-phase8-polyglot-workflows-2026-06-15.md) — Rust, Go, Lua, SQL, Dart/Flutter, Obsidian notes, workflow plugins, and smart-splits tmux navigation.
+- [NVF Markdown Deprecation Cleanup Evidence](./nvf-markdown-deprecations-2026-07-24.md) — Obsidian completion and flutter-tools document-color deprecation cleanup.
