@@ -111,6 +111,7 @@ assert_phase8_markdown_obsidian_workflow_options() {
   lspServers = vim.lsp.servers or {};
   notes = vim.notes or {};
   flutterToolsSetup = vim.pluginRC.flutter-tools.data;
+  navicMarkdownOwner = vim.pluginRC.navic-markdown-owner.data;
   trouble = vim.lsp.trouble;
   utility = vim.utility;
   mini = vim.mini;
@@ -127,6 +128,7 @@ if
   && (notes.obsidian.setupOpts.legacy_commands or true) == false
   && !(builtins.hasAttr "completion" notes.obsidian.setupOpts)
   && !(lib.strings.hasInfix "color" flutterToolsSetup)
+  && lib.strings.hasInfix "client.name == \"obsidian-ls\"" navicMarkdownOwner
   && trouble.enable
   && trouble.mappings.workspaceDiagnostics == "<leader>xw"
   && trouble.mappings.documentDiagnostics == "<leader>xd"
@@ -197,6 +199,7 @@ assert_phase8_docs_sync() {
     && grep -Fq '| `languages-data-mobile.nix` | SQL and Dart/Flutter' README.md \
     && grep -Fq '| `workflow.nix` | Professional diagnostics' README.md \
     && grep -q 'markdown-oxide' docs/neovim-ide.md \
+    && grep -q 'markdown-oxide owns nvim-navic breadcrumbs' docs/neovim-ide.md \
     && grep -q 'Rust, Go, and Lua support' docs/neovim-ide.md \
     && grep -q 'SQL and Dart/Flutter support' docs/neovim-ide.md \
     && grep -q '<leader>n' docs/neovim-ide.md \
@@ -216,7 +219,7 @@ assert_phase8_ticket_and_evidence_sync() {
 }
 
 assert_phase8_runtime_commands() {
-  local tmpdir build_log nvim_bin
+  local tmpdir build_log markdown_log nvim_bin
   tmpdir="$(mktemp -d)"
   build_log="$tmpdir/build.log"
   trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
@@ -239,6 +242,7 @@ assert_phase8_runtime_commands() {
   fi
 
   nvim_bin="$tmpdir/nvim/bin/nvim"
+  markdown_log="$tmpdir/markdown.log"
   "$nvim_bin" --headless -c 'if exists(":Obsidian") != 2 | cquit | endif' -c 'qa!' || return 1
   "$nvim_bin" --headless \
     -c 'if exists(":GrugFar") != 2 | cquit | endif' \
@@ -247,6 +251,22 @@ assert_phase8_runtime_commands() {
     -c 'if exists(":DiffviewToggleFiles") != 2 | cquit | endif' \
     -c 'if exists(":Trouble") != 2 | cquit | endif' \
     -c 'qa!' || return 1
+
+  if ! "$nvim_bin" --headless "$repo_root/README.md" \
+    -c 'sleep 4000m' \
+    -c 'lua for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do print("CLIENT " .. client.name) end' \
+    -c 'messages' \
+    -c 'qa!' >"$markdown_log" 2>&1; then
+    cat "$markdown_log" >&2
+    return 1
+  fi
+
+  if ! grep -Fq 'CLIENT markdown-oxide' "$markdown_log" \
+    || ! grep -Fq 'CLIENT obsidian-ls' "$markdown_log" \
+    || grep -Fq 'nvim-navic: Failed to attach' "$markdown_log"; then
+    cat "$markdown_log" >&2
+    return 1
+  fi
 
   rm -rf "$tmpdir"
   trap - RETURN
@@ -261,7 +281,7 @@ check 'workspace hardening includes Phase 8 root markers' assert_phase8_hardenin
 check 'tmux uses smart-splits integration without unconditional pane-navigation binds' assert_phase8_tmux_smart_splits
 check 'README and Neovim operations guide document Phase 8 imports and behavior' assert_phase8_docs_sync
 check 'NVF-033 ticket and Phase 8 evidence are indexed' assert_phase8_ticket_and_evidence_sync
-check 'built terminalman NVF package exposes Obsidian, GrugFar, Diffview, and Trouble commands when build is available' assert_phase8_runtime_commands
+check 'built terminalman NVF package exposes workflow commands and keeps both Markdown LSPs without a navic conflict' assert_phase8_runtime_commands
 
 if ((failures > 0)); then
   exit 1

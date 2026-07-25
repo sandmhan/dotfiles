@@ -11,7 +11,9 @@ updated: 2026-07-24
 Remove the obsolete Obsidian `completion.nvim_cmp` setting and prevent NVF's
 Dart integration from passing the deprecated `lsp.color` field to
 flutter-tools.nvim. Flutter tooling remains enabled, and its previously
-disabled document-color behavior remains unchanged.
+disabled document-color behavior remains unchanged. Resolve the resulting
+single-buffer breadcrumb conflict by keeping markdown-oxide as nvim-navic's
+Markdown owner while leaving obsidian-ls attached for note-aware LSP features.
 
 The shared Sandvim module affects `sandmhan`, `terminalman`, `wslman`, and
 `macman`.
@@ -20,11 +22,11 @@ The shared Sandvim module affects `sandmhan`, `terminalman`, `wslman`, and
 
 | Command | Result | Notes |
 |---|---|---|
-| `nixfmt home/modules/nvf/notes.nix home/modules/nvf/languages-data-mobile.nix` | passed | Changed Nix modules are formatted. |
+| `nixfmt home/modules/nvf/notes.nix home/modules/nvf/languages-data-mobile.nix home/modules/nvf/ui.nix` | passed | Changed Nix modules are formatted. |
 | `git diff --check` | passed | No whitespace errors. |
 | `bash -n scripts/check-nvf-*.sh` | passed | All NVF validation scripts parse. |
 | `bash scripts/check-nvf-baseline.sh` through `bash scripts/check-nvf-phase7.sh` | passed | Existing NVF behavior and documentation checks pass. |
-| `NVF_PHASE8_REQUIRE_RUNTIME=1 bash scripts/check-nvf-phase8.sh` | passed | Includes regression assertions that Obsidian has no legacy completion table and flutter-tools receives no color field, plus a packaged runtime smoke test. |
+| `NVF_PHASE8_REQUIRE_RUNTIME=1 bash scripts/check-nvf-phase8.sh` | passed | Includes regression assertions that Obsidian has no legacy completion table, flutter-tools receives no color field, and markdown-oxide exclusively owns nvim-navic breadcrumbs. The runtime check confirms both Markdown LSPs remain attached without a navic conflict. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage --show-trace` | passed | Main Linux profile evaluates without activation. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage --show-trace` | passed | Terminal profile evaluates without activation. |
 | `nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage --show-trace` | passed | WSL profile evaluates without activation. |

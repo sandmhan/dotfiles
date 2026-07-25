@@ -55,7 +55,7 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 
 | Area | Implemented editor owner | Required or expected tools |
 |---|---|---|
-| Markdown/Obsidian | `languages.nix`, `notes.nix` | markdown-oxide, mdformat with GFM/frontmatter/footnote plugins, markdown/markdown-inline Treesitter, render-markdown-nvim/markdown preview, and obsidian.nvim |
+| Markdown/Obsidian | `languages.nix`, `notes.nix`, `ui.nix` | markdown-oxide, mdformat with GFM/frontmatter/footnote plugins, markdown/markdown-inline Treesitter, render-markdown-nvim/markdown preview, and obsidian.nvim; markdown-oxide owns nvim-navic breadcrumbs while obsidian-ls remains attached for note-aware LSP features |
 | Nix | `languages.nix`, `lsp.nix` | `nixd`, `nixfmt`; keep `nil_ls` disabled unless a ticket documents a split |
 | Typst | `languages.nix` | Tinymist and Typstyle |
 | C/C++ | `languages.nix` | Clangd plus the configured LLDB DAP adapter |
