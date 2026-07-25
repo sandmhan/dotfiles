@@ -23,6 +23,8 @@ in
 
       nativeMessagingHosts = [ pkgs.tridactyl-native ];
 
+      policies.PasswordManagerEnabled = false;
+
       policies.ExtensionSettings = {
         "tridactyl.vim@cmcaine.co.uk" = {
           installation_mode = "force_installed";
@@ -44,6 +46,14 @@ in
         "browser.sessionstore.restore_tabs_lazily" = false;
         "zen.urlbar.replace-newtab" = false;
       };
+
+      profiles.default.userChrome = lib.mkAfter ''
+        .webextension-browser-action
+          > .toolbarbutton-badge-stack
+          > .toolbarbutton-badge {
+          display: none !important;
+        }
+      '';
 
       profiles.default.search = {
         force = true;
