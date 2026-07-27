@@ -97,6 +97,8 @@ in
       " Keep the core qutebrowser-style normal-mode bindings explicit.
       bind j scrollline 10
       bind k scrollline -10
+      bind J tabnext
+      bind K tabprev
       bind gg scrollto 0
       bind G scrollto 100
       bind f hint
