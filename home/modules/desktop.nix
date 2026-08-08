@@ -39,7 +39,7 @@ in
 
   # Qutebrowser
   programs.qutebrowser = lib.mkIf cfg.profiles.enableDesktop {
-    enable = true;
+    enable = false;
     searchEngines = {
       w = "https://en.wikipedia.org/wiki/Special:Search?search={}&amp;go=Go&amp;ns0=1";
       g = "https://www.google.com/search?hl=en&amp;q={}";

@@ -43,8 +43,12 @@ in
   };
 
   # Development environment variables
-  home.sessionVariables = lib.mkIf cfg.profiles.enableDevelopment {
-    EDITOR = "nvim";
-    BROWSER = if cfg.platform.enableLinuxSpecific then "firefox" else "open";
-  };
+  home.sessionVariables = lib.mkIf cfg.profiles.enableDevelopment (
+    {
+      EDITOR = "nvim";
+    }
+    // lib.optionalAttrs (!cfg.profiles.enableDesktop) {
+      BROWSER = if cfg.platform.enableLinuxSpecific then "firefox" else "open";
+    }
+  );
 }

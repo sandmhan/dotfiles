@@ -17,13 +17,32 @@ in
   config = lib.mkIf cfg.profiles.enableDesktop {
     stylix.targets.zen-browser.profileNames = [ "default" ];
 
+    xdg = {
+      mimeApps = {
+        enable = true;
+        defaultApplications = {
+          "x-scheme-handler/bitwarden" = "bitwarden.desktop";
+          "x-scheme-handler/discord" = "legcord.desktop";
+          "x-scheme-handler/claude-cli" = "claude-code-url-handler.desktop";
+        };
+      };
+
+      configFile."mimeapps.list".force = true;
+      dataFile."applications/mimeapps.list".force = true;
+    };
+
     programs.zen-browser = {
       enable = true;
-      setAsDefaultBrowser = false;
+      setAsDefaultBrowser = true;
 
       nativeMessagingHosts = [ pkgs.tridactyl-native ];
 
       policies.PasswordManagerEnabled = false;
+
+      policies.Preferences."sidebar.visibility" = {
+        Value = "expand-on-hover";
+        Status = "locked";
+      };
 
       policies.ExtensionSettings = {
         "tridactyl.vim@cmcaine.co.uk" = {
