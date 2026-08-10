@@ -426,10 +426,6 @@ let
       color: @base03;
     }
 
-    #tray {
-      padding: 0 8px;
-    }
-
     #custom-kdeconnect.connected,
     #custom-tailscale.connected {
       color: @base0B;
