@@ -122,6 +122,11 @@ Implemented Phase 8 workflow keys:
 | `<leader>nr` | `:Obsidian rename` | Rename note/link |
 | `<leader>sr` | `:GrugFar` | Workspace search/replace |
 | `<leader>sR` | `:GrugFarWithin` | Buffer search/replace |
+| `<leader>ls` / `<leader>lw` | `:FzfLua lsp_document_symbols` / `:FzfLua lsp_workspace_symbols` | Fuzzy document and workspace symbol search; requires an attached LSP with symbol support |
+| `<leader>fs` | `:FzfLua treesitter` | Current-buffer Treesitter symbol search when no LSP is attached |
+| `<leader>lci` / `<leader>lco` | `:FzfLua lsp_incoming_calls` / `:FzfLua lsp_outgoing_calls` | Incoming and outgoing LSP call hierarchy for servers that support it |
+| `<leader>lk` | NVF LSP signature help | Buffer-local signature help without shadowing document-symbol search |
+| `<leader>lS` / `<leader>xs` | NVF document symbols / `:Trouble symbols` | Alternate document-symbol list and persistent symbol outline |
 | `<leader>xw` / `<leader>xd` / `<leader>xR` | `:Trouble ...` | Workspace diagnostics, document diagnostics, references |
 | `<leader>xq` / `<leader>xl` / `<leader>xs` | `:Trouble ...` | Quickfix, location list, symbols |
 | `<leader>gd` / `<leader>gD` | `:DiffviewOpen` / `:DiffviewClose` | Diff review open/close |
@@ -164,6 +169,7 @@ Privacy boundary: CodeCompanion does not provide the retired bridge's pre-send s
 Start with the smallest scope that reproduces the issue.
 
 - Language server missing: confirm the affected profile has activated, run `:LspInfo`, and verify the tool appears in the required-tools table above. For project-local tools, enter the project devshell or package-manager environment first.
+- Symbol search unavailable: use `<leader>ls` for fuzzy document symbols and `<leader>lw` for workspace symbols after an LSP attaches. Workspace results may take several seconds during initial indexing. Use `<leader>fs` for a Treesitter-backed current-buffer fallback, `<leader>lS` for NVF's document-symbol list, or `<leader>xs` for the Trouble symbol outline. Call hierarchy on `<leader>lci` and `<leader>lco` depends on server support.
 - Duplicate diagnostics: check the owning language module and disable overlapping project plugins before adding a second NVF source. Nix should stay on `nixd` only by default; Markdown should stay on markdown-oxide rather than also enabling Marksman.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
 - Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.

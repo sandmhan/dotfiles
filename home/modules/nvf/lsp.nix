@@ -1,7 +1,6 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
 {
@@ -11,6 +10,7 @@
         lsp = {
           enable = true;
           inlayHints.enable = true;
+          mappings.signatureHelp = "<leader>lk";
           servers = {
             # CPP
             clangd.enable = true;
