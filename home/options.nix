@@ -30,6 +30,7 @@ in
       enableAudioTools = mkEnableOption "audio management tools";
       enableBluetoothTools = mkEnableOption "Bluetooth management";
       enableNetworkTools = mkEnableOption "network management GUI tools";
+      enableKDEConnect = mkEnableOption "KDE Connect phone integration";
       enableScreenshotTools = mkEnableOption "screenshot and screen recording tools (grim, slurp, swappy, wf-recorder)";
       enable3DPrinting = mkEnableOption "3D printing tools (FreeCAD, OrcaSlicer, OpenSCAD)";
 

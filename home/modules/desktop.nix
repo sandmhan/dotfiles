@@ -12,6 +12,7 @@ in
   imports = [
     ./wm.nix
     ./browser.nix
+    ./kdeconnect.nix
     ./moonlight.nix
     ./sunshine.nix
     ./screenshot.nix

@@ -334,6 +334,13 @@ in
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # KDE Connect uses Home Manager for the user service and package; the
+  # NixOS module only owns the required TCP/UDP firewall ranges (1714-1764).
+  programs.kdeconnect = {
+    enable = true;
+    package = null;
+  };
+
   # Tailscale mesh VPN — Gaia acts as subnet router for phone access
   homelab.tailscale = {
     enable = true;
