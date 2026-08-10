@@ -39,7 +39,8 @@ assert_lsp_keymaps() {
   expr=$(cat <<'NIX'
 let
   flake = builtins.getFlake "path:__REPO_ROOT__";
-  keymaps = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim.keymaps;
+  vim = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim;
+  keymaps = vim.keymaps;
   hasMapping = key: action: desc:
     builtins.any
       (mapping:
@@ -54,7 +55,8 @@ if
   && hasMapping "<leader>lR" "<cmd>lua vim.lsp.buf.rename()<cr>" "LSP rename"
   && hasMapping "<leader>li" "<cmd>lua vim.lsp.buf.implementation()<cr>" "LSP implementation"
   && hasMapping "<leader>lt" "<cmd>lua vim.lsp.buf.type_definition()<cr>" "LSP type definition"
-  && hasMapping "<leader>lk" "<cmd>lua vim.lsp.buf.signature_help()<cr>" "LSP signature help"
+  && vim.lsp.mappings.signatureHelp == "<leader>lk"
+  && !(builtins.any (mapping: mapping.key == "<leader>lk") keymaps)
 then
   "true"
 else

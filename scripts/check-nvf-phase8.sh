@@ -136,6 +136,7 @@ if
   && trouble.mappings.quickfix == "<leader>xq"
   && trouble.mappings.locList == "<leader>xl"
   && trouble.mappings.symbols == "<leader>xs"
+  && vim.lsp.mappings.signatureHelp == "<leader>lk"
   && utility.grug-far-nvim.enable
   && utility.diffview-nvim.enable
   && utility.sleuth.enable
@@ -157,6 +158,11 @@ if
   && has "<leader>nr" "<cmd>Obsidian rename<cr>"
   && has "<leader>sr" "<cmd>GrugFar<cr>"
   && has "<leader>sR" "<cmd>GrugFarWithin<cr>"
+  && has "<leader>fs" "<cmd>FzfLua treesitter<cr>"
+  && has "<leader>ls" "<cmd>FzfLua lsp_document_symbols<cr>"
+  && has "<leader>lw" "<cmd>FzfLua lsp_workspace_symbols<cr>"
+  && has "<leader>lci" "<cmd>FzfLua lsp_incoming_calls<cr>"
+  && has "<leader>lco" "<cmd>FzfLua lsp_outgoing_calls<cr>"
   && has "<leader>gd" "<cmd>DiffviewOpen<cr>"
   && has "<leader>gD" "<cmd>DiffviewClose<cr>"
   && has "<leader>gh" "<cmd>DiffviewFileHistory %<cr>"
@@ -172,6 +178,7 @@ assert_phase8_no_new_duplicate_keymaps() {
   keys = [
     "<leader>nn" "<leader>no" "<leader>nq" "<leader>ns" "<leader>nb" "<leader>nl" "<leader>nf" "<leader>nt" "<leader>nr"
     "<leader>sr" "<leader>sR"
+    "<leader>fs" "<leader>ls" "<leader>lw" "<leader>lci" "<leader>lco"
     "<leader>gd" "<leader>gD" "<leader>gh" "<leader>gH" "<leader>gt"
   ];
   count = key: builtins.length (builtins.filter (mapping: mapping.key == key) keymaps);
@@ -204,6 +211,8 @@ assert_phase8_docs_sync() {
     && grep -q 'SQL and Dart/Flutter support' docs/neovim-ide.md \
     && grep -q '<leader>n' docs/neovim-ide.md \
     && grep -q '<leader>s' docs/neovim-ide.md \
+    && grep -q '<leader>lci' docs/neovim-ide.md \
+    && grep -q 'Treesitter-backed current-buffer fallback' docs/neovim-ide.md \
     && grep -q 'pubspec.yaml' docs/neovim-ide.md \
     && grep -q 'bash scripts/check-nvf-phase8.sh' docs/neovim-ide.md \
     && ! grep -q 'Rust, Go, Lua, and SQL workflows.*not implemented' docs/neovim-ide.md
@@ -215,11 +224,13 @@ assert_phase8_ticket_and_evidence_sync() {
     && grep -q '^| NVF | 034 |$' docs/tickets/index.md \
     && grep -Fq '| [NVF-033](NVF-033.md) | Add NVF Phase 8 polyglot workflow support | task | done | NVF Phase 8 |' docs/tickets/index.md \
     && grep -Fq 'NVF Phase 8 Polyglot Workflow Evidence' docs/test/evidence/README.md \
+    && grep -Fq 'NVF Symbol Search and Call Hierarchy Evidence' docs/test/evidence/README.md \
+    && [[ -f docs/test/evidence/nvf-symbol-search-2026-08-09.md ]] \
     && grep -q 'bash scripts/check-nvf-phase8.sh' docs/test/evidence/nvf-phase8-polyglot-workflows-2026-06-15.md
 }
 
 assert_phase8_runtime_commands() {
-  local tmpdir build_log markdown_log nvim_bin
+  local tmpdir build_log markdown_log nvim_bin symbol_dir symbol_log
   tmpdir="$(mktemp -d)"
   build_log="$tmpdir/build.log"
   trap 'rm -rf "${tmpdir:-}"; trap - RETURN' RETURN
@@ -243,6 +254,8 @@ assert_phase8_runtime_commands() {
 
   nvim_bin="$tmpdir/nvim/bin/nvim"
   markdown_log="$tmpdir/markdown.log"
+  symbol_dir="$tmpdir/symbol-workspace"
+  symbol_log="$tmpdir/symbol.log"
   "$nvim_bin" --headless -c 'if exists(":Obsidian") != 2 | cquit | endif' -c 'qa!' || return 1
   "$nvim_bin" --headless \
     -c 'if exists(":GrugFar") != 2 | cquit | endif' \
@@ -268,6 +281,48 @@ assert_phase8_runtime_commands() {
     return 1
   fi
 
+  mkdir -p "$symbol_dir"
+  cat >"$symbol_dir/pyproject.toml" <<'EOF'
+[project]
+name = "nvf-symbol-check"
+version = "0.1.0"
+requires-python = ">=3.11"
+EOF
+  cat >"$symbol_dir/main.py" <<'EOF'
+class Greeter:
+    def greet(self, name: str) -> str:
+        return make_message(name)
+
+
+def make_message(name: str) -> str:
+    return f"Hello, {name}"
+
+
+def top_level() -> str:
+    greeter = Greeter()
+    return greeter.greet("NVF")
+EOF
+  cat >"$symbol_dir/other.py" <<'EOF'
+from main import Greeter
+
+
+def workspace_helper() -> Greeter:
+    return Greeter()
+EOF
+
+  if ! "$nvim_bin" --headless "$symbol_dir/main.py" \
+    -c "luafile $repo_root/scripts/check-nvf-symbol-search.lua" \
+    -c 'messages' \
+    -c 'qa!' >"$symbol_log" 2>&1; then
+    cat "$symbol_log" >&2
+    return 1
+  fi
+
+  if ! grep -Fq 'NVF_SYMBOL_SEARCH_RUNTIME_OK' "$symbol_log"; then
+    cat "$symbol_log" >&2
+    return 1
+  fi
+
   rm -rf "$tmpdir"
   trap - RETURN
   return 0
@@ -281,7 +336,7 @@ check 'workspace hardening includes Phase 8 root markers' assert_phase8_hardenin
 check 'tmux uses smart-splits integration without unconditional pane-navigation binds' assert_phase8_tmux_smart_splits
 check 'README and Neovim operations guide document Phase 8 imports and behavior' assert_phase8_docs_sync
 check 'NVF-033 ticket and Phase 8 evidence are indexed' assert_phase8_ticket_and_evidence_sync
-check 'built terminalman NVF package exposes workflow commands and keeps both Markdown LSPs without a navic conflict' assert_phase8_runtime_commands
+check 'built terminalman NVF package exposes workflow commands, effective symbol mappings, and conflict-free Markdown LSPs' assert_phase8_runtime_commands
 
 if ((failures > 0)); then
   exit 1

@@ -1,7 +1,6 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
 {
@@ -111,6 +110,12 @@
             action = "<cmd>FzfLua grep_cword<cr>";
             desc = "Grep word under cursor";
           }
+          {
+            key = "<leader>fs";
+            mode = [ "n" ];
+            action = "<cmd>FzfLua treesitter<cr>";
+            desc = "Treesitter buffer symbols";
+          }
           # fzf-lua git
           {
             key = "<leader>gs";
@@ -162,6 +167,18 @@
             desc = "LSP workspace symbols";
           }
           {
+            key = "<leader>lci";
+            mode = [ "n" ];
+            action = "<cmd>FzfLua lsp_incoming_calls<cr>";
+            desc = "LSP incoming calls";
+          }
+          {
+            key = "<leader>lco";
+            mode = [ "n" ];
+            action = "<cmd>FzfLua lsp_outgoing_calls<cr>";
+            desc = "LSP outgoing calls";
+          }
+          {
             key = "<leader>la";
             mode = [ "n" ];
             action = "<cmd>FzfLua lsp_code_actions<cr>";
@@ -190,12 +207,6 @@
             mode = [ "n" ];
             action = "<cmd>lua vim.lsp.buf.type_definition()<cr>";
             desc = "LSP type definition";
-          }
-          {
-            key = "<leader>lk";
-            mode = [ "n" ];
-            action = "<cmd>lua vim.lsp.buf.signature_help()<cr>";
-            desc = "LSP signature help";
           }
           {
             key = "<leader>xx";
