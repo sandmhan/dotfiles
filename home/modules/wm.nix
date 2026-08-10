@@ -54,7 +54,6 @@ in
           "memory"
           "cpu"
           "battery"
-          "tray"
           "network"
         ]
         ++ lib.optionals cfg.features.enableKDEConnect [
@@ -153,11 +152,6 @@ in
           interval = 30;
           format = " {}%";
           max-length = 10;
-        };
-
-        tray = {
-          icon-size = 24;
-          spacing = 8;
         };
 
         clock = {
