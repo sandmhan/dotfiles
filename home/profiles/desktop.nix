@@ -32,6 +32,7 @@
       enableAudioTools = true;
       enableBluetoothTools = true;
       enableNetworkTools = true;
+      enableKDEConnect = true;
       enableScreenshotTools = true;
       enable3DPrinting = true;
 

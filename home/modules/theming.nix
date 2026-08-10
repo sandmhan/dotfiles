@@ -357,6 +357,7 @@ let
     #memory,
     #cpu,
     #battery,
+    #custom-kdeconnect,
     #custom-tailscale {
       padding: 0 8px;
     }
@@ -429,10 +430,12 @@ let
       padding: 0 8px;
     }
 
+    #custom-kdeconnect.connected,
     #custom-tailscale.connected {
       color: @base0B;
     }
 
+    #custom-kdeconnect.disconnected,
     #custom-tailscale.disconnected {
       color: @base03;
     }

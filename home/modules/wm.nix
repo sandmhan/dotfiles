@@ -1,10 +1,13 @@
 # based off https://git.sr.ht/~hervyqa/swayhome/tree/HEAD/item/home/wayland/sway.nix
 {
+  config,
   pkgs,
   lib,
   ...
 }:
 let
+  cfg = config.myHome;
+
   # Navigation
   left = "h";
   down = "j";
@@ -53,6 +56,11 @@ in
           "battery"
           "tray"
           "network"
+        ]
+        ++ lib.optionals cfg.features.enableKDEConnect [
+          "custom/kdeconnect"
+        ]
+        ++ [
           "custom/tailscale"
         ];
 
