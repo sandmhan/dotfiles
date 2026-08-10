@@ -172,6 +172,61 @@
             fi
           '';
 
+      mkSandvimMarkdownRuntimeCheck =
+        pkgs: finalPackage:
+        pkgs.runCommand "sandvim-markdown-runtime"
+          {
+            nativeBuildInputs = [
+              pkgs.coreutils
+              pkgs.git
+              pkgs.gnugrep
+            ];
+          }
+          ''
+            set -euo pipefail
+
+            export HOME="$TMPDIR/home"
+            export XDG_CACHE_HOME="$TMPDIR/cache"
+            export XDG_CONFIG_HOME="$TMPDIR/config"
+            export XDG_DATA_HOME="$TMPDIR/data"
+            export XDG_STATE_HOME="$TMPDIR/state"
+            # The workspace guard intentionally treats /build as generated output;
+            # use the sandbox-private /tmp so LSP clients remain enabled.
+            workspace="/tmp/sandvim-markdown-runtime-workspace"
+            mkdir -p \
+              "$HOME" \
+              "$XDG_CACHE_HOME" \
+              "$XDG_CONFIG_HOME" \
+              "$XDG_DATA_HOME" \
+              "$XDG_STATE_HOME" \
+              "$workspace/.git" \
+              "$workspace/.obsidian" \
+              "$workspace/attachments" \
+              "$workspace/templates" \
+              "$out"
+            cp ${./tests/fixtures/markdown-obsidian-runtime.md} "$workspace/markdown-obsidian-runtime.md"
+            chmod u+w "$workspace/markdown-obsidian-runtime.md"
+
+            cd "$workspace"
+            export SANDVIM_MARKDOWN_FIXTURE="$workspace/markdown-obsidian-runtime.md"
+            if ! timeout 240s ${finalPackage}/bin/nvim \
+              --headless -n -i NONE "$SANDVIM_MARKDOWN_FIXTURE" \
+              -c "luafile ${./scripts/check-nvf-markdown-runtime.lua}" \
+              -c messages \
+              -c 'qa!' >"$out/markdown-runtime.log" 2>&1; then
+              cat "$out/markdown-runtime.log" >&2
+              exit 1
+            fi
+            if ! grep -Fq 'NVF_MARKDOWN_RUNTIME_OK' "$out/markdown-runtime.log"; then
+              cat "$out/markdown-runtime.log" >&2
+              exit 1
+            fi
+            if grep -Fq 'nvim-navic: Failed to attach' "$out/markdown-runtime.log"; then
+              cat "$out/markdown-runtime.log" >&2
+              exit 1
+            fi
+          '';
+
       mkSandvimJavaRuntimeCheck =
         pkgs: finalPackage:
         let
@@ -378,11 +433,24 @@
         let
           pkgs = nixpkgs.legacyPackages.x86_64-linux;
           consumers = mkSandvimExternalConsumers "x86_64-linux";
+          markdownConsumer = mkSandvimExternalConsumer {
+            system = "x86_64-linux";
+            preset = "minimal";
+            modules = [
+              {
+                programs.sandvim.packs = {
+                  notes = true;
+                  languages.documentation = true;
+                };
+              }
+            ];
+          };
         in
         {
           sandvimExternalConsumer = consumers.activationPackages.standard;
           sandvimMinimalConsumer = consumers.activationPackages.minimal;
           sandvimMinimalRuntime = mkSandvimMinimalRuntimeCheck pkgs consumers.finalPackages.minimal;
+          sandvimMarkdownRuntime = mkSandvimMarkdownRuntimeCheck pkgs markdownConsumer.config.programs.nvf.finalPackage;
           sandvimJavaRuntime = mkSandvimJavaRuntimeCheck pkgs consumers.finalPackages.full;
           sandvimStartupProfile = mkSandvimStartupProfileCheck pkgs {
             minimalPackage = consumers.finalPackages.minimal;

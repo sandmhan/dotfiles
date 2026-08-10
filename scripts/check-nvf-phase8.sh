@@ -32,12 +32,17 @@ nix_bool_expr() {
 
 assert_phase8_modules_exist_and_imported() {
   local default_nix="home/modules/nvf/default.nix"
-  local infra systems data_mobile debugging git workflow notes
+  local documentation nix_pack infra systems data_mobile debugging git workflow notes
 
+  [[ -f home/modules/nvf/documentation.nix ]] || return 1
+  [[ -f home/modules/nvf/languages-nix.nix ]] || return 1
   [[ -f home/modules/nvf/languages-systems.nix ]] || return 1
   [[ -f home/modules/nvf/languages-data-mobile.nix ]] || return 1
   [[ -f home/modules/nvf/workflow.nix ]] || return 1
+  [[ ! -e home/modules/nvf/languages.nix ]] || return 1
 
+  documentation="$(grep -n '^[[:space:]]*./documentation\.nix$' "$default_nix" | cut -d: -f1)"
+  nix_pack="$(grep -n '^[[:space:]]*./languages-nix\.nix$' "$default_nix" | cut -d: -f1)"
   infra="$(grep -n '^[[:space:]]*./languages-infra\.nix$' "$default_nix" | cut -d: -f1)"
   systems="$(grep -n '^[[:space:]]*./languages-systems\.nix$' "$default_nix" | cut -d: -f1)"
   data_mobile="$(grep -n '^[[:space:]]*./languages-data-mobile\.nix$' "$default_nix" | cut -d: -f1)"
@@ -46,9 +51,9 @@ assert_phase8_modules_exist_and_imported() {
   workflow="$(grep -n '^[[:space:]]*./workflow\.nix$' "$default_nix" | cut -d: -f1)"
   notes="$(grep -n '^[[:space:]]*./notes\.nix$' "$default_nix" | cut -d: -f1)"
 
-  [[ -n "$infra" && -n "$systems" && -n "$data_mobile" && -n "$debugging" ]] || return 1
+  [[ -n "$documentation" && -n "$nix_pack" && -n "$infra" && -n "$systems" && -n "$data_mobile" && -n "$debugging" ]] || return 1
   [[ -n "$git" && -n "$workflow" && -n "$notes" ]] || return 1
-  ((infra < systems && systems < data_mobile && data_mobile < debugging)) || return 1
+  ((documentation < nix_pack && nix_pack < infra && infra < systems && systems < data_mobile && data_mobile < debugging)) || return 1
   ((git < workflow && workflow < notes)) || return 1
 }
 
@@ -120,11 +125,17 @@ in
 if
   langs.markdown.lsp.servers == [ "markdown-oxide" ]
   && langs.markdown.format.type == [ "mdformat" ]
+  && langs.markdown.extraDiagnostics.enable
+  && langs.markdown.extraDiagnostics.types == [ "markdownlint-cli2" ]
+  && langs.markdown.extensions.render-markdown-nvim.setupOpts.completions.blink.enabled
+  && langs.nix.lsp.servers == [ "nixd" ]
   && ((lspServers.marksman.enable or false) == false)
   && ((lspServers."markdown-oxide".enable or false) == true)
   && notes.todo-comments.enable
   && notes.obsidian.enable
   && builtins.hasAttr "workspaces" notes.obsidian.setupOpts
+  && notes.obsidian.setupOpts.attachments.folder == "attachments"
+  && notes.obsidian.setupOpts.templates.folder == "templates"
   && (notes.obsidian.setupOpts.legacy_commands or true) == false
   && !(builtins.hasAttr "completion" notes.obsidian.setupOpts)
   && !(lib.strings.hasInfix "color" flutterToolsSetup)
@@ -156,6 +167,9 @@ if
   && has "<leader>nf" "<cmd>Obsidian follow_link<cr>"
   && has "<leader>nt" "<cmd>Obsidian tags<cr>"
   && has "<leader>nr" "<cmd>Obsidian rename<cr>"
+  && has "<leader>np" "<cmd>Obsidian paste_img<cr>"
+  && has "<leader>nx" "<cmd>Obsidian toggle_checkbox<cr>"
+  && has "<leader>nT" "<cmd>Obsidian template<cr>"
   && has "<leader>sr" "<cmd>GrugFar<cr>"
   && has "<leader>sR" "<cmd>GrugFarWithin<cr>"
   && has "<leader>fs" "<cmd>FzfLua treesitter<cr>"
@@ -176,7 +190,7 @@ assert_phase8_no_new_duplicate_keymaps() {
   flake = builtins.getFlake "path:__REPO_ROOT__";
   keymaps = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim.keymaps;
   keys = [
-    "<leader>nn" "<leader>no" "<leader>nq" "<leader>ns" "<leader>nb" "<leader>nl" "<leader>nf" "<leader>nt" "<leader>nr"
+    "<leader>nn" "<leader>no" "<leader>nq" "<leader>ns" "<leader>nb" "<leader>nl" "<leader>nf" "<leader>nt" "<leader>nr" "<leader>np" "<leader>nx" "<leader>nT"
     "<leader>sr" "<leader>sR"
     "<leader>fs" "<leader>ls" "<leader>lw" "<leader>lci" "<leader>lco"
     "<leader>gd" "<leader>gD" "<leader>gh" "<leader>gH" "<leader>gt"
@@ -202,7 +216,9 @@ assert_phase8_tmux_smart_splits() {
 }
 
 assert_phase8_docs_sync() {
-  grep -Fq '| `languages-systems.nix` | Rust, Go, and Lua' README.md \
+  grep -Fq '| `documentation.nix` | Markdown, Typst' README.md \
+    && grep -Fq '| `languages-nix.nix` | Nix IDE ownership' README.md \
+    && grep -Fq '| `languages-systems.nix` | Rust, Go, and Lua' README.md \
     && grep -Fq '| `languages-data-mobile.nix` | SQL and Dart/Flutter' README.md \
     && grep -Fq '| `workflow.nix` | Professional diagnostics' README.md \
     && grep -q 'markdown-oxide' docs/neovim-ide.md \

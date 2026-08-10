@@ -57,6 +57,8 @@ assert_phase9_option_schema() {
     cfg.packs.tidal
     cfg.packs.workflow
     cfg.packs.languages.general
+    cfg.packs.languages.documentation
+    cfg.packs.languages.nix
     cfg.packs.languages.python
     cfg.packs.languages.web
     cfg.packs.languages.infrastructure
@@ -128,6 +130,8 @@ assert_phase9_preset_truth_table() {
     packs.tidal
     packs.workflow
     packs.languages.general
+    packs.languages.documentation
+    packs.languages.nix
     packs.languages.python
     packs.languages.web
     packs.languages.infrastructure
@@ -138,13 +142,15 @@ assert_phase9_preset_truth_table() {
 in
 if
   builtins.all (value: value == false) (leaves minimal)
+  && standard.languages.general == false
   && builtins.all (value: value == true) [
     standard.ai
     standard.debugging
     standard.notes
     standard.tidal
     standard.workflow
-    standard.languages.general
+    standard.languages.documentation
+    standard.languages.nix
     standard.languages.python
     standard.languages.web
     standard.languages.infrastructure
@@ -152,7 +158,22 @@ if
     standard.languages.dataMobile
   ]
   && standard.languages.java == false
-  && builtins.all (value: value == true) (leaves full)
+  && full.languages.general == false
+  && builtins.all (value: value == true) [
+    full.ai
+    full.debugging
+    full.notes
+    full.tidal
+    full.workflow
+    full.languages.documentation
+    full.languages.nix
+    full.languages.python
+    full.languages.web
+    full.languages.infrastructure
+    full.languages.systems
+    full.languages.dataMobile
+    full.languages.java
+  ]
 then "true" else "false"'
 }
 
@@ -330,7 +351,7 @@ if
 then "true" else "false"'
 }
 
-assert_phase9_notes_require_general_language_pack() {
+assert_phase9_notes_require_documentation_pack() {
   local invalid_expr
   invalid_expr='let
   flake = builtins.getFlake "path:__REPO_ROOT__";
@@ -385,7 +406,7 @@ in
     ];
   }).config.programs.sandvim;
 in
-if cfg.packs.notes && cfg.packs.languages.general == false then "true" else "false"'
+if cfg.packs.notes && cfg.packs.languages.documentation == false then "true" else "false"'
 }
 
 assert_phase9_minimal_gates_optional_features() {
@@ -580,6 +601,7 @@ if
   builtins.hasAttr "sandvimExternalConsumer" checks
   && builtins.hasAttr "sandvimMinimalConsumer" checks
   && builtins.hasAttr "sandvimMinimalRuntime" checks
+  && builtins.hasAttr "sandvimMarkdownRuntime" checks
   && builtins.hasAttr "sandvimJavaRuntime" checks
   && builtins.hasAttr "sandvimStartupProfile" checks
   && builtins.hasAttr "sandvimMinimal" packages
@@ -631,8 +653,9 @@ assert_phase9_docs_sync() {
     && grep -q 'packages.<system>.sandvimMinimal' README.md \
     && grep -q 'scripts/profile-nvf.sh minimal|standard|full|all' README.md \
     && grep -q 'sandvimStartupProfile' README.md \
-    && grep -q '| `minimal` | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off |' docs/neovim-ide.md \
-    && grep -q 'notes` requires `programs.sandvim.packs.languages.general' docs/neovim-ide.md \
+    && grep -q '| `minimal` | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off |' docs/neovim-ide.md \
+    && grep -q 'notes` requires `programs.sandvim.packs.languages.documentation' docs/neovim-ide.md \
+    && grep -q 'sandvimMarkdownRuntime' docs/neovim-ide.md \
     && grep -q 'Java DAP remains off' docs/neovim-ide.md \
     && grep -q 'jdt-language-server' docs/neovim-ide.md \
     && grep -q 'do not call nested `nix` commands' docs/neovim-ide.md \
@@ -650,7 +673,7 @@ check 'Phase 9 explicit pack overrides beat preset defaults' assert_phase9_overr
 check 'Phase 9 Java module exists, is imported statically, and README inventory is synchronized' assert_phase9_import_inventory
 check 'Phase 9 Java support uses jdt-language-server, AStyle formatting, Treesitter, and no DAP' assert_phase9_java_configuration
 check 'Phase 9 Python-only and Java-only packs do not leak general LSP servers or packages' assert_phase9_pack_lsp_modularity
-check 'Phase 9 notes pack asserts that the general language pack is enabled' assert_phase9_notes_require_general_language_pack
+check 'Phase 9 notes pack asserts that the documentation language pack is enabled' assert_phase9_notes_require_documentation_pack
 check 'Phase 9 minimal preset gates optional modules and dead commands' assert_phase9_minimal_gates_optional_features
 check 'Phase 9 language DAP integrations require both language and debugging packs' assert_phase9_language_and_debugging_dap_gates
 check 'Phase 9 dotfiles adapter defaults local Sandvim users to full while external consumers stay standard' assert_phase9_local_adapter_full

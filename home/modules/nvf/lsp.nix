@@ -21,17 +21,22 @@ in
       };
     })
 
-    (lib.mkIf (cfg.enable && cfg.packs.languages.general) {
+    (lib.mkIf (cfg.enable && cfg.packs.languages.documentation) {
       programs.nvf.settings.vim.lsp = {
-        # General prose/code support owns shared spellchecking.
+        # Documentation prose support owns shared spellchecking.
         presets.harper.enable = true;
 
         servers = {
-          # Keep NVF default servers from overlapping the explicit general-pack
-          # owners in languages.nix.
-          nil_ls.enable = false;
+          # Keep NVF default servers from overlapping documentation.nix.
           marksman.enable = false;
         };
+      };
+    })
+
+    (lib.mkIf (cfg.enable && cfg.packs.languages.nix) {
+      programs.nvf.settings.vim.lsp.servers = {
+        # Keep NVF default servers from overlapping languages-nix.nix.
+        nil_ls.enable = false;
       };
     })
   ];

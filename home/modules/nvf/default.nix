@@ -12,7 +12,8 @@ in
     ./keymaps.nix
     ./visuals.nix
     ./lsp.nix
-    ./languages.nix
+    ./documentation.nix
+    ./languages-nix.nix
     ./languages-python.nix
     ./languages-web.nix
     ./languages-infra.nix

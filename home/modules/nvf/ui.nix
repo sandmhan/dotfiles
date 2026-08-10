@@ -28,7 +28,7 @@ in
         # only one breadcrumb source per buffer. Keep markdown-oxide as the
         # breadcrumb owner while obsidian-ls provides note-aware completion,
         # navigation, rename, references, and other LSP features.
-        pluginRC.navic-markdown-owner = lib.mkIf (cfg.packs.notes && cfg.packs.languages.general) {
+        pluginRC.navic-markdown-owner = lib.mkIf (cfg.packs.notes && cfg.packs.languages.documentation) {
           after = [ "breadcrumbs" ];
           before = [ ];
           data = ''

@@ -72,7 +72,7 @@ in
             desc = "Mini-File: Open directory of current file";
           }
         ]
-        ++ lib.optionals cfg.packs.languages.general [
+        ++ lib.optionals cfg.packs.languages.documentation [
           {
             key = "<leader>cp";
             mode = [ "n" ];

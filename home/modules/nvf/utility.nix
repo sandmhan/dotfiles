@@ -17,9 +17,9 @@ in
           # Jump navigation
           motion.flash-nvim.enable = true;
 
-          # Markdown and Nix helpers belong to the general language pack.
-          preview.markdownPreview.enable = cfg.packs.languages.general;
-          nix-develop.enable = cfg.packs.languages.general;
+          # Markdown and Nix helpers belong to their dedicated language packs.
+          preview.markdownPreview.enable = cfg.packs.languages.documentation;
+          nix-develop.enable = cfg.packs.languages.nix;
 
           # Color Picker/Renderer
           ccc.enable = true;

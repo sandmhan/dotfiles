@@ -237,14 +237,15 @@ Enable it with `programs.sandvim.enable = true;`. External consumers default to 
   programs.sandvim = {
     enable = true;
     preset = "minimal";
-    packs.languages.general = true;
+    packs.languages.documentation = true;
+    packs.languages.nix = true;
     packs.languages.python = true;
     packs.workflow = true;
   };
 }
 ```
 
-The flake exports reusable Neovim packages for both `x86_64-linux` and `aarch64-darwin`: `packages.<system>.sandvimMinimal`, `packages.<system>.sandvimStandard`, and `packages.<system>.sandvimFull`. Linux validation checks include `checks.x86_64-linux.sandvimExternalConsumer`, `sandvimMinimalConsumer`, `sandvimMinimalRuntime`, `sandvimJavaRuntime`, and `sandvimStartupProfile`. Run the profiler with `scripts/profile-nvf.sh minimal|standard|full|all`; it reports closure size and host-dependent startup samples.
+The flake exports reusable Neovim packages for both `x86_64-linux` and `aarch64-darwin`: `packages.<system>.sandvimMinimal`, `packages.<system>.sandvimStandard`, and `packages.<system>.sandvimFull`. Linux validation checks include `checks.x86_64-linux.sandvimExternalConsumer`, `sandvimMinimalConsumer`, `sandvimMinimalRuntime`, `sandvimMarkdownRuntime`, `sandvimJavaRuntime`, and `sandvimStartupProfile`. Run the profiler with `scripts/profile-nvf.sh minimal|standard|full|all`; it reports closure size and host-dependent startup samples.
 
 | File | Description |
 |------|-------------|
@@ -253,11 +254,12 @@ The flake exports reusable Neovim packages for both `x86_64-linux` and `aarch64-
 | `keymaps.nix` | Core key mappings, leader key, finder, Git, LSP, and diagnostics shortcuts |
 | `visuals.nix` | Visual plugins and presentation settings |
 | `lsp.nix` | Global LSP policy, inlay hints, signature help, and overlap suppression for pack-owned servers |
-| `languages.nix` | Shared/core language configs for Markdown, Nix, Typst, and C/C++ |
+| `documentation.nix` | Markdown, Typst, prose diagnostics, markdown preview/rendering, and documentation language tooling |
+| `languages-nix.nix` | Nix IDE ownership with nixd, nixfmt, Treesitter, and extra diagnostics |
 | `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
 | `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with typescript-language-server, prettier, eslint_d, vscode-json-language-server, and JS DAP |
 | `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
-| `languages-systems.nix` | Rust, Go, and Lua IDE ownership with LSP, Treesitter, formatting, and linting hooks |
+| `languages-systems.nix` | Rust, Go, and Lua IDE ownership plus C/C++ Clang compatibility with LSP, Treesitter, formatting, linting hooks, and legacy general support |
 | `languages-data-mobile.nix` | SQL and Dart/Flutter IDE ownership with SQL lint/format tools and PATH/devshell-owned Flutter SDK discovery; the NVF no-resolve patch is documented as disabled with the current pin |
 | `languages-java.nix` | Java IDE ownership for the full preset with jdt-language-server, Treesitter, and AStyle formatting; Java DAP remains disabled |
 | `debugging.nix` | Shared DAP UI and supplemental debug keymaps |
@@ -270,7 +272,7 @@ The flake exports reusable Neovim packages for both `x86_64-linux` and `aarch64-
 | `editing.nix` | Editing helpers such as comments, surround, autopairs, and undo tooling |
 | `git.nix` | Git integrations for signs, status, and conflict tooling |
 | `workflow.nix` | Professional diagnostics, search/replace, diff review, fast actions, code-action lightbulb, sleuth, and mini ergonomics |
-| `notes.nix` | TODO/FIXME/NOTE highlighting plus Obsidian Markdown note navigation |
+| `notes.nix` | TODO/FIXME/NOTE highlighting plus Obsidian Markdown note navigation, templates, attachment paths, and paste-image dependencies |
 | `tidal.nix` | Haskell/Tidal language support and live-coding commands |
 | `toggles.nix` | UI/editor toggles |
 | `ui.nix` | Statusline, messages, breadcrumbs, bufferline, and related UI modules |

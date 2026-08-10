@@ -60,7 +60,7 @@ in
               desc = "Toggle inlay hints";
             }
           ]
-          ++ lib.optionals cfg.packs.languages.general [
+          ++ lib.optionals cfg.packs.languages.documentation [
             # Toggle markdown rendering (render-markdown-nvim plugin)
             {
               key = "<leader>uc";

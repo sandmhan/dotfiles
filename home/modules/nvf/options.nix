@@ -25,6 +25,8 @@ let
       workflow = false;
       languages = {
         general = false;
+        documentation = false;
+        nix = false;
         python = false;
         web = false;
         infrastructure = false;
@@ -41,7 +43,9 @@ let
       tidal = true;
       workflow = true;
       languages = {
-        general = true;
+        general = false;
+        documentation = true;
+        nix = true;
         python = true;
         web = true;
         infrastructure = true;
@@ -58,7 +62,9 @@ let
       tidal = true;
       workflow = true;
       languages = {
-        general = true;
+        general = false;
+        documentation = true;
+        nix = true;
         python = true;
         web = true;
         infrastructure = true;
@@ -97,7 +103,9 @@ in
       workflow = packOption "Enable workflow plugins such as Trouble, grug-far, and diffview.";
 
       languages = {
-        general = packOption "Enable general language support for Markdown, Nix, Typst, and Clang.";
+        general = packOption "Deprecated compatibility umbrella for Markdown/Typst documentation, Nix, and Clang support. Prefer documentation, nix, and systems.";
+        documentation = packOption "Enable Markdown and Typst documentation language support.";
+        nix = packOption "Enable Nix language support.";
         python = packOption "Enable Python language support.";
         web = packOption "Enable web language support.";
         infrastructure = packOption "Enable infrastructure language support.";
@@ -106,14 +114,28 @@ in
         java = packOption "Enable Java language support.";
       };
     };
+
+    notes = {
+      attachmentsFolder = lib.mkOption {
+        type = types.str;
+        default = "attachments";
+        description = "Obsidian attachment folder used by paste-image workflows.";
+      };
+
+      templatesFolder = lib.mkOption {
+        type = types.str;
+        default = "templates";
+        description = "Obsidian template folder used by note template workflows.";
+      };
+    };
   };
 
   config = lib.mkMerge [
     {
       assertions = [
         {
-          assertion = !cfg.enable || !cfg.packs.notes || cfg.packs.languages.general;
-          message = "programs.sandvim.packs.notes requires programs.sandvim.packs.languages.general so Obsidian and Markdown LSP features share one owner.";
+          assertion = !cfg.enable || !cfg.packs.notes || cfg.packs.languages.documentation;
+          message = "programs.sandvim.packs.notes requires programs.sandvim.packs.languages.documentation so Obsidian and Markdown LSP features share one owner.";
         }
       ];
 
@@ -126,6 +148,10 @@ in
 
         languages = {
           general = lib.mkDefault selectedDefaults.languages.general;
+          documentation = lib.mkDefault (
+            selectedDefaults.languages.documentation || cfg.packs.languages.general
+          );
+          nix = lib.mkDefault (selectedDefaults.languages.nix || cfg.packs.languages.general);
           python = lib.mkDefault selectedDefaults.languages.python;
           web = lib.mkDefault selectedDefaults.languages.web;
           infrastructure = lib.mkDefault selectedDefaults.languages.infrastructure;
