@@ -1,11 +1,13 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf cfg.enable {
     programs.nvf = {
       settings.vim = {
         # Statusline
@@ -26,7 +28,7 @@
         # only one breadcrumb source per buffer. Keep markdown-oxide as the
         # breadcrumb owner while obsidian-ls provides note-aware completion,
         # navigation, rename, references, and other LSP features.
-        pluginRC.navic-markdown-owner = {
+        pluginRC.navic-markdown-owner = lib.mkIf (cfg.packs.notes && cfg.packs.languages.general) {
           after = [ "breadcrumbs" ];
           before = [ ];
           data = ''

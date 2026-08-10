@@ -1,11 +1,13 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf cfg.enable {
     programs.nvf = {
       settings.vim = {
         # File Explorer
@@ -15,11 +17,9 @@
           # Jump navigation
           motion.flash-nvim.enable = true;
 
-          # Markdown Previewer
-          preview.markdownPreview.enable = true;
-
-          # Development Assistance
-          nix-develop.enable = true;
+          # Markdown and Nix helpers belong to the general language pack.
+          preview.markdownPreview.enable = cfg.packs.languages.general;
+          nix-develop.enable = cfg.packs.languages.general;
 
           # Color Picker/Renderer
           ccc.enable = true;

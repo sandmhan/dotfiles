@@ -3,8 +3,12 @@
   config,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+  hasLspPack = cfg.packs.tidal || builtins.any (pack: pack) (builtins.attrValues cfg.packs.languages);
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf cfg.enable {
     programs.nvf = {
       settings.vim = {
         globals = {
@@ -67,12 +71,16 @@
             action = ":lua MiniFiles.open(vim.api.nvim_buf_get_name(0))<cr>";
             desc = "Mini-File: Open directory of current file";
           }
+        ]
+        ++ lib.optionals cfg.packs.languages.general [
           {
             key = "<leader>cp";
             mode = [ "n" ];
             action = "<cmd>MarkdownPreview<cr>";
             desc = "MarkdownPreview: Render the current markdown file";
           }
+        ]
+        ++ [
           # fzf-lua keymaps
           {
             key = "<leader><leader>";
@@ -141,6 +149,8 @@
             action = "<cmd>FzfLua git_files<cr>";
             desc = "Git files";
           }
+        ]
+        ++ lib.optionals hasLspPack [
           # fzf-lua LSP
           {
             key = "<leader>lr";

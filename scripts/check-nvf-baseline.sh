@@ -27,11 +27,19 @@ nix_eval_raw() {
 }
 
 assert_nix_lsp_owner() {
-  local nixd nil
-  nixd="$(nix_eval_json .#homeConfigurations.terminalman.config.programs.nvf.settings.vim.lsp.servers.nixd.enable)"
-  nil="$(nix_eval_json .#homeConfigurations.terminalman.config.programs.nvf.settings.vim.lsp.servers.nil_ls.enable)"
+  local expr result
+  expr=$(cat <<'NIX'
+let
+  flake = builtins.getFlake "path:__REPO_ROOT__";
+  servers = flake.homeConfigurations.terminalman.config.programs.nvf.settings.vim.lsp.servers;
+in
+if servers.nixd.enable && servers.nil_ls.enable == false then "true" else "false"
+NIX
+)
+  expr="${expr//__REPO_ROOT__/$repo_root}"
+  result="$(nix_eval_raw --impure --expr "$expr")"
 
-  [[ "$nixd" == "true" && "$nil" == "false" ]]
+  [[ "$result" == "true" ]]
 }
 
 assert_lsp_keymaps() {

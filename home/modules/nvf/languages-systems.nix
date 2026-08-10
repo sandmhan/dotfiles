@@ -3,8 +3,11 @@
   config,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.languages.systems) {
     programs.nvf.settings.vim.languages = {
       rust = {
         enable = true;

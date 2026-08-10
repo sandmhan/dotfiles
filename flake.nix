@@ -35,7 +35,6 @@
 
   outputs =
     {
-      self,
       nixpkgs,
       nixpkgsFreecad,
       nixpkgsCodex,
@@ -87,27 +86,207 @@
           ...
         }:
         {
-          config.programs.sandvim.enable = lib.mkDefault config.myHome.features.enableNixvim;
+          config.programs.sandvim = {
+            enable = lib.mkDefault config.myHome.features.enableNixvim;
+            preset = lib.mkDefault "full";
+          };
         };
 
-      sandvimExternalConsumerSmoke =
-        system:
-        (home-manager.lib.homeManagerConfiguration {
+      mkSandvimExternalConsumer =
+        {
+          system,
+          preset ? "standard",
+          modules ? [ ],
+        }:
+        home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
           modules = [
             sandvimHomeManagerModule
             {
               home = {
-                username = "sandvim-smoke";
-                homeDirectory = "/home/sandvim-smoke";
+                username = "sandvim-${preset}";
+                homeDirectory = "/home/sandvim-${preset}";
                 stateVersion = "24.11";
               };
 
               news.display = "silent";
-              programs.sandvim.enable = true;
+              programs.sandvim = {
+                enable = true;
+                inherit preset;
+              };
             }
-          ];
-        }).activationPackage;
+          ]
+          ++ modules;
+        };
+
+      mkSandvimExternalConsumers =
+        system:
+        let
+          configurations = nixpkgs.lib.genAttrs [
+            "minimal"
+            "standard"
+            "full"
+          ] (preset: mkSandvimExternalConsumer { inherit system preset; });
+        in
+        {
+          inherit configurations;
+          activationPackages = nixpkgs.lib.mapAttrs (
+            _: configuration: configuration.activationPackage
+          ) configurations;
+          finalPackages = nixpkgs.lib.mapAttrs (
+            _: configuration: configuration.config.programs.nvf.finalPackage
+          ) configurations;
+        };
+
+      mkSandvimMinimalRuntimeCheck =
+        pkgs: finalPackage:
+        pkgs.runCommand "sandvim-minimal-runtime"
+          {
+            nativeBuildInputs = [
+              pkgs.coreutils
+              pkgs.git
+              pkgs.gnugrep
+            ];
+          }
+          ''
+            set -euo pipefail
+
+            export HOME="$TMPDIR/home"
+            export XDG_CACHE_HOME="$TMPDIR/cache"
+            export XDG_CONFIG_HOME="$TMPDIR/config"
+            export XDG_DATA_HOME="$TMPDIR/data"
+            export XDG_STATE_HOME="$TMPDIR/state"
+            mkdir -p "$HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$out"
+
+            nvim="${finalPackage}/bin/nvim"
+            if ! timeout 120s "$nvim" --headless -n -i NONE \
+              -c "luafile ${./scripts/check-nvf-minimal-runtime.lua}" \
+              -c messages \
+              -c 'qa!' >"$out/minimal-runtime.log" 2>&1; then
+              cat "$out/minimal-runtime.log" >&2
+              exit 1
+            fi
+            if ! grep -Fq 'NVF_MINIMAL_RUNTIME_OK' "$out/minimal-runtime.log"; then
+              cat "$out/minimal-runtime.log" >&2
+              exit 1
+            fi
+          '';
+
+      mkSandvimJavaRuntimeCheck =
+        pkgs: finalPackage:
+        let
+          javaSource = pkgs.writeText "Greeter.java" ''
+            package dev.sandvim;
+
+            public class Greeter {
+                public String greet(String name) {
+                    return makeMessage(name);
+                }
+
+                private String makeMessage(String name) {
+                    return "Hello, " + name;
+                }
+            }
+          '';
+        in
+        pkgs.runCommand "sandvim-java-runtime"
+          {
+            nativeBuildInputs = [
+              pkgs.coreutils
+              pkgs.git
+              pkgs.gnugrep
+            ];
+          }
+          ''
+            set -euo pipefail
+
+            export HOME="$TMPDIR/home"
+            export XDG_CACHE_HOME="$TMPDIR/cache"
+            export XDG_CONFIG_HOME="$TMPDIR/config"
+            export XDG_DATA_HOME="$TMPDIR/data"
+            export XDG_STATE_HOME="$TMPDIR/state"
+            workspace="$(mktemp -d /tmp/sandvim-java-runtime.XXXXXX)"
+            mkdir -p \
+              "$HOME" \
+              "$XDG_CACHE_HOME" \
+              "$XDG_CONFIG_HOME" \
+              "$XDG_DATA_HOME" \
+              "$XDG_STATE_HOME" \
+              "$workspace/.git" \
+              "$workspace/src/main/java/dev/sandvim" \
+              "$out"
+            cp ${javaSource} "$workspace/src/main/java/dev/sandvim/Greeter.java"
+
+            cd "$workspace"
+            if ! timeout 240s ${finalPackage}/bin/nvim \
+              --headless -n -i NONE src/main/java/dev/sandvim/Greeter.java \
+              -c "luafile ${./scripts/check-nvf-java-runtime.lua}" \
+              -c messages \
+              -c 'qa!' >"$out/java-runtime.log" 2>&1; then
+              cat "$out/java-runtime.log" >&2
+              exit 1
+            fi
+            if ! grep -Fq 'NVF_JAVA_RUNTIME_OK' "$out/java-runtime.log"; then
+              cat "$out/java-runtime.log" >&2
+              exit 1
+            fi
+          '';
+
+      mkSandvimStartupProfileCheck =
+        pkgs:
+        {
+          minimalPackage,
+          fullPackage,
+        }:
+        pkgs.runCommand "sandvim-startup-profile"
+          {
+            nativeBuildInputs = [
+              pkgs.gawk
+              pkgs.git
+            ];
+          }
+          ''
+            set -euo pipefail
+
+            mkdir -p "$out"
+
+            run_startup() {
+              label="$1"
+              nvim="$2"
+              budget_ms="$3"
+              export HOME="$TMPDIR/$label-home"
+              export XDG_CACHE_HOME="$TMPDIR/$label-cache"
+              export XDG_CONFIG_HOME="$TMPDIR/$label-config"
+              export XDG_DATA_HOME="$TMPDIR/$label-data"
+              export XDG_STATE_HOME="$TMPDIR/$label-state"
+              mkdir -p "$HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME"
+
+              log="$out/$label-startuptime.log"
+              stdout_log="$out/$label-startuptime.stdout.log"
+              timeout 120s "$nvim" --headless -n -i NONE --startuptime "$log" -c 'qa!' >"$stdout_log" 2>&1
+              if ! elapsed_ms="$(awk '
+                /^[0-9]+[.][0-9]+/ { elapsed = $1; seen = 1 }
+                END { if (!seen) exit 1; printf "%.0f", elapsed }
+              ' "$log")"; then
+                cat "$log" >&2
+                printf 'no startup timing rows found for %s\n' "$label" >&2
+                exit 1
+              fi
+              {
+                printf 'profile=%s\n' "$label"
+                printf 'elapsed_ms=%s\n' "$elapsed_ms"
+                printf 'budget_ms=%s\n' "$budget_ms"
+                printf 'budget_note=%s\n' 'CI guardrail is intentionally generous versus observed 149-169ms warm local full starts to avoid flaky cold-cache failures.'
+              } >"$out/$label-summary.txt"
+              if [ "$elapsed_ms" -gt "$budget_ms" ]; then
+                cat "$out/$label-summary.txt" >&2
+                exit 1
+              fi
+            }
+
+            run_startup minimal "${minimalPackage}/bin/nvim" 1000
+            run_startup full "${fullPackage}/bin/nvim" 2000
+          '';
 
       # User settings per-machine/platform
       linuxUserSettings = baseUserSettings // {
@@ -177,7 +356,39 @@
         default = sandvimHomeManagerModule;
       };
 
-      checks.x86_64-linux.sandvimExternalConsumer = sandvimExternalConsumerSmoke "x86_64-linux";
+      packages =
+        nixpkgs.lib.genAttrs
+          [
+            "x86_64-linux"
+            "aarch64-darwin"
+          ]
+          (
+            system:
+            let
+              consumers = mkSandvimExternalConsumers system;
+            in
+            {
+              sandvimMinimal = consumers.finalPackages.minimal;
+              sandvimStandard = consumers.finalPackages.standard;
+              sandvimFull = consumers.finalPackages.full;
+            }
+          );
+
+      checks.x86_64-linux =
+        let
+          pkgs = nixpkgs.legacyPackages.x86_64-linux;
+          consumers = mkSandvimExternalConsumers "x86_64-linux";
+        in
+        {
+          sandvimExternalConsumer = consumers.activationPackages.standard;
+          sandvimMinimalConsumer = consumers.activationPackages.minimal;
+          sandvimMinimalRuntime = mkSandvimMinimalRuntimeCheck pkgs consumers.finalPackages.minimal;
+          sandvimJavaRuntime = mkSandvimJavaRuntimeCheck pkgs consumers.finalPackages.full;
+          sandvimStartupProfile = mkSandvimStartupProfileCheck pkgs {
+            minimalPackage = consumers.finalPackages.minimal;
+            fullPackage = consumers.finalPackages.full;
+          };
+        };
 
       nixosConfigurations = {
         # Desktop — Framework 13 AMD (daily driver)

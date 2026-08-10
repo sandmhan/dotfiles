@@ -1,11 +1,13 @@
 {
   lib,
   config,
-  pkgs,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.languages.general) {
     programs.nvf = {
       settings.vim = {
         languages = {
@@ -60,7 +62,7 @@
             };
 
             dap = {
-              enable = true;
+              enable = cfg.packs.debugging;
               debugger = [ "lldb" ];
             };
 

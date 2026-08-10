@@ -5,6 +5,7 @@
   ...
 }:
 let
+  cfg = config.programs.sandvim;
   inherit (lib.meta) getExe';
 
   hlsWrapper = getExe' pkgs.haskellPackages.haskell-language-server "haskell-language-server-wrapper";
@@ -66,7 +67,7 @@ let
   '';
 in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.tidal) {
     programs.nvf.settings.vim = {
       languages.haskell = {
         enable = true;

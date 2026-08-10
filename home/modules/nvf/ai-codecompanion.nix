@@ -9,7 +9,7 @@ let
   inherit (lib.generators) mkLuaInline;
 in
 {
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.ai) {
     home.packages = [ pkgs.codex-acp ];
 
     programs.nvf.settings.vim = {

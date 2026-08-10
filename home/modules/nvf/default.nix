@@ -18,6 +18,7 @@ in
     ./languages-infra.nix
     ./languages-systems.nix
     ./languages-data-mobile.nix
+    ./languages-java.nix
     ./debugging.nix
     ./hardening.nix
     ./ai-codecompanion.nix

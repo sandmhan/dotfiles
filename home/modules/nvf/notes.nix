@@ -4,10 +4,11 @@
   ...
 }:
 let
+  cfg = config.programs.sandvim;
   inherit (lib.generators) mkLuaInline;
 in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.notes) {
     programs.nvf = {
       settings.vim = {
         notes = {
