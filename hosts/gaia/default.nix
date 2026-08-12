@@ -169,6 +169,7 @@ in
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
+    ../../systemModules/google-glass.nix
     ../../systemModules/kinect-v2.nix
     ../../systemModules/sops.nix
     ../../systemModules/tailscale.nix
