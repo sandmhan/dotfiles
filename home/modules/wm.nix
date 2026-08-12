@@ -15,14 +15,214 @@ let
   right = "l";
   modifier = "Mod1";
 
+  # Legcord can keep a main Electron process alive after its renderer dies. Later
+  # launches then connect to that stale singleton and only display a blank window.
+  legcordLauncher = pkgs.writeShellApplication {
+    name = "legcord-launch";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.glibc.bin
+      pkgs.procps
+      pkgs.util-linux
+    ];
+    text = ''
+      if [[ "''${1:-}" == "--wait-for-network" ]]; then
+        shift
+        network_ready=false
+        deadline=$((SECONDS + 30))
+        while (( SECONDS < deadline )); do
+          if timeout 2 getent ahosts discord.com >/dev/null 2>&1; then
+            network_ready=true
+            break
+          fi
+          sleep 1
+        done
+
+        if [[ "$network_ready" != true ]]; then
+          printf '%s\n' "Legcord startup skipped: discord.com did not resolve within 30 seconds" >&2
+          exit 1
+        fi
+      fi
+
+      runtime_dir="''${XDG_RUNTIME_DIR:-}"
+      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/legcord"
+      app_pattern='/share/lib/legcord/resources/app[.]asar'
+      crashpad_pattern='chrome_crashpad_handler'
+
+      for argument in "$@"; do
+        case "$argument" in
+          --user-data-dir | --user-data-dir=*)
+            printf '%s\n' "legcord-launch does not support overriding the Legcord user-data directory" >&2
+            exit 2
+            ;;
+        esac
+      done
+
+      if [[ -z "$runtime_dir" || ! -d "$runtime_dir" || -L "$runtime_dir" || ! -O "$runtime_dir" ]]; then
+        printf '%s\n' "Legcord startup skipped: XDG_RUNTIME_DIR is unavailable or unsafe" >&2
+        exit 1
+      fi
+      runtime_mode=$(stat --format='%a' "$runtime_dir")
+      if (( (8#$runtime_mode & 077) != 0 )); then
+        printf '%s\n' "Legcord startup skipped: XDG_RUNTIME_DIR permissions are too broad" >&2
+        exit 1
+      fi
+
+      legcord_main_pids() {
+        local argument
+        local main_pid
+        local previous_argument
+        local user_data_dir
+        while IFS= read -r main_pid; do
+          [[ -r "/proc/$main_pid/cmdline" ]] || continue
+          previous_argument=""
+          user_data_dir=""
+          while IFS= read -r -d "" argument; do
+            if [[ "$previous_argument" == "--user-data-dir" ]]; then
+              user_data_dir="$argument"
+              break
+            fi
+            case "$argument" in
+              --user-data-dir=*)
+                user_data_dir="''${argument#--user-data-dir=}"
+                break
+                ;;
+            esac
+            previous_argument="$argument"
+          done < "/proc/$main_pid/cmdline"
+          if [[ -z "$user_data_dir" || "$user_data_dir" == "$config_dir" ]]; then
+            printf '%s\n' "$main_pid"
+          fi
+        done < <(pgrep --uid "$UID" --full -- "$app_pattern" || true)
+      }
+
+      legcord_has_renderer() {
+        local renderer_pid
+        while IFS= read -r renderer_pid; do
+          if grep --fixed-strings --line-regexp --null-data --quiet \
+            -- "--user-data-dir=$config_dir" "/proc/$renderer_pid/cmdline" 2>/dev/null; then
+            return 0
+          fi
+        done < <(pgrep --uid "$UID" --full -- '[ -]-type=renderer' || true)
+        return 1
+      }
+
+      wait_for_renderer() {
+        local attempts="$1"
+        local attempt
+        for ((attempt = 0; attempt < attempts; attempt++)); do
+          if legcord_has_renderer; then
+            return 0
+          fi
+          sleep 0.1
+        done
+        return 1
+      }
+
+      stop_stale_legcord() {
+        local -a main_pids
+        mapfile -t main_pids < <(legcord_main_pids)
+        if (( ''${#main_pids[@]} > 0 )); then
+          kill -- "''${main_pids[@]}" 2>/dev/null || true
+        fi
+        for _ in {1..50}; do
+          mapfile -t main_pids < <(legcord_main_pids)
+          if (( ''${#main_pids[@]} == 0 )); then
+            break
+          fi
+          sleep 0.1
+        done
+        mapfile -t main_pids < <(legcord_main_pids)
+        if (( ''${#main_pids[@]} > 0 )); then
+          kill -KILL -- "''${main_pids[@]}" 2>/dev/null || true
+        fi
+        while IFS= read -r crashpad_pid; do
+          if grep --fixed-strings --line-regexp --null-data --quiet \
+            -- "--database=$config_dir/Crashpad" "/proc/$crashpad_pid/cmdline" 2>/dev/null; then
+            kill -- "$crashpad_pid" 2>/dev/null || true
+          fi
+        done < <(pgrep --uid "$UID" --full -- "$crashpad_pattern" || true)
+      }
+
+      cleanup_singleton() {
+        rm -f \
+          "$config_dir/SingletonCookie" \
+          "$config_dir/SingletonLock" \
+          "$config_dir/SingletonSocket"
+      }
+
+      # Serialize stale detection and replacement startup. A healthy instance has
+      # a renderer for this user-data directory and should receive normal Electron
+      # singleton forwarding instead of being restarted.
+      lock_file="$runtime_dir/legcord-launch.lock"
+      if [[ -L "$lock_file" || ( -e "$lock_file" && ! -f "$lock_file" ) ]]; then
+        printf '%s\n' "Legcord startup skipped: unsafe launcher lock file" >&2
+        exit 1
+      fi
+      umask 077
+      exec 9>"$lock_file"
+      if ! flock --timeout 60 9; then
+        printf '%s\n' "Legcord startup skipped: another launcher did not release its lock" >&2
+        exit 1
+      fi
+
+      if [[ -n "$(legcord_main_pids)" ]]; then
+        if wait_for_renderer 50; then
+          flock --unlock 9
+          exec ${lib.getExe pkgs.legcord} "$@" 9>&-
+        fi
+        stop_stale_legcord
+      fi
+
+      cleanup_singleton
+      ${lib.getExe pkgs.legcord} "$@" 9>&- &
+      legcord_pid=$!
+
+      if wait_for_renderer 300; then
+        flock --unlock 9
+        wait "$legcord_pid"
+        exit $?
+      fi
+
+      kill "$legcord_pid" 2>/dev/null || true
+      stop_stale_legcord
+      cleanup_singleton
+      flock --unlock 9
+      wait "$legcord_pid" 2>/dev/null || true
+      printf '%s\n' "Legcord failed to create a renderer within 30 seconds" >&2
+      exit 1
+    '';
+  };
+
 in
 {
   home = {
-    packages = with pkgs; [
-      autotiling
-      nwg-displays # GUI monitor management
-      networkmanager
-    ];
+    packages =
+      (with pkgs; [
+        autotiling
+        nwg-displays # GUI monitor management
+        networkmanager
+      ])
+      ++ lib.optionals cfg.profiles.enableSocial [ legcordLauncher ];
+  };
+
+  # Override the package-provided entry so every explicit open recovers from a
+  # stale Electron singleton instead of forwarding to it.
+  xdg.dataFile."applications/legcord.desktop" = lib.mkIf cfg.profiles.enableSocial {
+    text = ''
+      [Desktop Entry]
+      Categories=Network;InstantMessaging;Chat
+      Comment=Lightweight, alternative desktop client for Discord
+      Exec=${lib.getExe legcordLauncher} %U
+      GenericName=Internet Messenger
+      Icon=legcord
+      MimeType=x-scheme-handler/discord;
+      Name=Legcord
+      StartupWMClass=Legcord
+      Terminal=false
+      Type=Application
+      Version=1.5
+    '';
   };
 
   programs.waybar = {
@@ -394,7 +594,9 @@ in
         { command = lib.getExe pkgs.waybar; }
         { command = lib.getExe pkgs.alacritty; }
         #{ command = lib.getExe pkgs.qutebrowser; }
-        { command = lib.getExe pkgs.legcord; }
+      ]
+      ++ lib.optionals cfg.profiles.enableSocial [
+        { command = "${lib.getExe legcordLauncher} --wait-for-network"; }
       ];
 
       assigns = {
