@@ -2,6 +2,7 @@
 # Observe-only remote-community Android lab on Proxmox VM111.
 {
   config,
+  pkgs,
   ...
 }:
 {
@@ -51,7 +52,61 @@
     };
   };
 
-  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 443 ];
+
+  systemd.services.remote-community-tailscale-serve = {
+    description = "Publish remote-community through tailnet-only HTTPS";
+    wantedBy = [ "multi-user.target" ];
+    after = [
+      "network-online.target"
+      "remote-community.service"
+      "tailscaled.service"
+    ];
+    wants = [ "network-online.target" ];
+    requires = [
+      "remote-community.service"
+      "tailscaled.service"
+    ];
+
+    script = ''
+      for _ in $(${pkgs.coreutils}/bin/seq 1 60); do
+        backend="$(${pkgs.tailscale}/bin/tailscale status --json 2>/dev/null \
+          | ${pkgs.jq}/bin/jq -r .BackendState 2>/dev/null || true)"
+        if [ "$backend" = Running ]; then
+          ${pkgs.tailscale}/bin/tailscale serve reset
+          exec ${pkgs.tailscale}/bin/tailscale serve --bg --yes --https=443 \
+            http://127.0.0.1:${toString config.services.remote-community.port}
+        fi
+        ${pkgs.coreutils}/bin/sleep 2
+      done
+      echo "Tailscale did not reach Running state" >&2
+      exit 1
+    '';
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStop = "${pkgs.tailscale}/bin/tailscale serve reset";
+      Restart = "on-failure";
+      RestartSec = "10s";
+      TimeoutStartSec = "150s";
+      UMask = "0077";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      RestrictAddressFamilies = [ "AF_UNIX" ];
+      LockPersonality = true;
+      SystemCallArchitectures = "native";
+      CapabilityBoundingSet = "";
+      AmbientCapabilities = "";
+    };
+
+    unitConfig = {
+      StartLimitIntervalSec = 300;
+      StartLimitBurst = 5;
+    };
+  };
 
   assertions = [
     {
@@ -71,11 +126,9 @@
         && config.networking.firewall.allowedUDPPorts == [ config.services.tailscale.port ]
         && config.networking.firewall.allowedTCPPortRanges == [ ]
         && config.networking.firewall.allowedUDPPortRanges == [ ]
-        &&
-          config.networking.firewall.trustedInterfaces == [
-            "tailscale0"
-            "lo"
-          ];
+        && config.networking.firewall.trustedInterfaces == [ "lo" ]
+        && config.networking.firewall.interfaces.tailscale0.allowedTCPPorts == [ 443 ]
+        && config.networking.firewall.interfaces.tailscale0.allowedUDPPorts == [ ];
       message = "remote-community may expose SSH and Tailscale transport only; Rust, ADB, and emulator listeners must remain loopback-only.";
     }
   ];

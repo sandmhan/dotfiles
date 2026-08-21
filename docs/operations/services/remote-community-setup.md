@@ -15,7 +15,8 @@ Stage 2 integrates the private `remote-community` flake, encrypted runtime polic
 - MAC address: `BC:24:11:FA:CE:FD`
 - Resources: 4 cores, 8 GiB maximum RAM with a 4 GiB balloon minimum, 50 GiB disk, CPU type `host`, nested KVM enabled
 - SSH: `ssh sandmhan@10.0.0.13`
-- Firewall: TCP 22 plus Tailscale UDP 41641; keep plaintext 8080, ADB, and emulator ports closed
+- Firewall: LAN TCP 22, Tailscale UDP 41641, and tailnet-interface TCP 443; keep plaintext 8080, ADB, and emulator ports closed
+- Tailnet HTTPS: `https://remote-community.taila92b61.ts.net`
 
 The first unballooned closure transfer exhausted the 15 GiB Proxmox node and the host OOM killer stopped VM111. VM111 now retains the requested 8 GiB maximum with a 4 GiB balloon minimum. Do not restart VM105 or remove ballooning while VM111 is running without re-evaluating node memory capacity.
 
@@ -78,21 +79,21 @@ Expected results: `sys.boot_completed` becomes `1` and `ro.build.version.sdk` re
 
 ### 6. Direct Tailscale enrollment and HTTPS
 
-VM111 declares a Tailscale client with no exit-node or subnet-route advertisement. Its UDP transport port is allowed, `tailscale0` is trusted, and the Rust service remains on loopback.
+VM111 declares a Tailscale client with no exit-node or subnet-route advertisement. Its UDP transport port is allowed, `tailscale0` permits only TCP 443, and the Rust service remains on loopback. The node was enrolled interactively on 2026-08-21 with key expiry disabled; MagicDNS and HTTPS certificates are enabled.
 
-After deployment, enroll interactively without reusable auth-key material:
+The enrollment command used no reusable auth-key material:
 
 ```bash
 sudo tailscale up --hostname=remote-community --accept-routes=false
 ```
 
-Approve the one-time URL, then disable key expiry for this server in the Tailscale admin console. After confirming MagicDNS and HTTPS certificates are enabled, publish only the loopback service:
+A hardened `remote-community-tailscale-serve.service` waits for the tailnet, resets stale Serve/Funnel state, publishes only the loopback service, retries bounded startup failures, and clears Serve state when disabled. The equivalent operator command is:
 
 ```bash
 sudo tailscale serve --bg --https=443 http://127.0.0.1:8080
 ```
 
-Do not expose plaintext port 8080. Configure OwnTracks only with the resulting `.ts.net` HTTPS URL, TLS verification, the provisioned credential IDs, and strong device secrets. Do not commit real URLs, usernames, passwords, coordinates, or screenshots.
+Tailscale reports this endpoint as tailnet-only, with Funnel disabled, and presents a valid public certificate for `remote-community.taila92b61.ts.net`. Do not expose plaintext port 8080. Configure OwnTracks only with this HTTPS URL, TLS verification, the provisioned credential IDs, and strong device secrets. Do not commit usernames, passwords, coordinates, or screenshots.
 
 ## Safety boundary
 
