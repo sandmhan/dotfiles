@@ -15,7 +15,7 @@ Stage 2 integrates the private `remote-community` flake, encrypted runtime polic
 - MAC address: `BC:24:11:FA:CE:FD`
 - Resources: 4 cores, 8 GiB maximum RAM with a 4 GiB balloon minimum, 50 GiB disk, CPU type `host`, nested KVM enabled
 - SSH: `ssh sandmhan@10.0.0.13`
-- Firewall: inherited SSH only; keep 8080, ADB, and emulator ports closed
+- Firewall: TCP 22 plus Tailscale UDP 41641; keep plaintext 8080, ADB, and emulator ports closed
 
 The first unballooned closure transfer exhausted the 15 GiB Proxmox node and the host OOM killer stopped VM111. VM111 now retains the requested 8 GiB maximum with a 4 GiB balloon minimum. Do not restart VM105 or remove ballooning while VM111 is running without re-evaluating node memory capacity.
 
@@ -24,8 +24,8 @@ The first unballooned closure transfer exhausted the 15 GiB Proxmox node and the
 ### 1. Reserve DHCP and DNS
 
 1. The pfSense DHCP reservation for `BC:24:11:FA:CE:FD` at `10.0.0.13` is active.
-2. Add a DNS Resolver host override for `remote-community.homelab.local` to `10.0.0.13`, or enable registration of static DHCP mappings in Unbound. Direct pfSense DNS verification currently returns no A record.
-3. Confirm both the reserved address and forward DNS before configuring phone clients.
+2. The DNS Resolver host override for `remote-community.homelab.local` resolves to `10.0.0.13` from pfSense.
+3. Reconfirm both the reserved address and forward DNS after future network changes.
 
 ### 2. Build and deploy stage 2
 
@@ -76,9 +76,23 @@ adb shell getprop ro.build.version.sdk
 
 Expected results: `sys.boot_completed` becomes `1` and `ro.build.version.sdk` reports API 35. Keep ADB local to the VM; never enable ADB-over-TCP or open firewall ports for emulator access.
 
-### 6. OwnTracks private TLS later
+### 6. Direct Tailscale enrollment and HTTPS
 
-OwnTracks ingestion remains blocked on the private-TLS choice. Prefer enrolling VM111 directly into the existing tailnet and using a Tailscale HTTPS name, or deploy a private CA only after confirming both mobile clients trust it. Do not expose plaintext port 8080. Configure clients only with private URLs, TLS verification, the provisioned credential IDs, and strong device secrets. Do not commit real URLs, usernames, passwords, coordinates, or screenshots.
+VM111 declares a Tailscale client with no exit-node or subnet-route advertisement. Its UDP transport port is allowed, `tailscale0` is trusted, and the Rust service remains on loopback.
+
+After deployment, enroll interactively without reusable auth-key material:
+
+```bash
+sudo tailscale up --hostname=remote-community --accept-routes=false
+```
+
+Approve the one-time URL, then disable key expiry for this server in the Tailscale admin console. After confirming MagicDNS and HTTPS certificates are enabled, publish only the loopback service:
+
+```bash
+sudo tailscale serve --bg --https=443 http://127.0.0.1:8080
+```
+
+Do not expose plaintext port 8080. Configure OwnTracks only with the resulting `.ts.net` HTTPS URL, TLS verification, the provisioned credential IDs, and strong device secrets. Do not commit real URLs, usernames, passwords, coordinates, or screenshots.
 
 ## Safety boundary
 

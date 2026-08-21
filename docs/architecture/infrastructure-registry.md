@@ -50,7 +50,7 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 |---------|----------|----------|------------|-------|-----|------|-------|---------|--------|
 | **Desktop** | gaia | — | `[Laptop IP]` | 8 | 16GB | 500GB | — | `deployed` | Direct access |
 | **Agent Sandbox** | agent-sandbox | 105 | `10.0.0.5` | 4 | 8GB | 24GB | 22 | `stopped` | Stopped to free Dell node capacity for VM111; `ssh agent@10.0.0.5` when running |
-| **Remote Community** | remote-community | 111 | `10.0.0.13` reserved for `BC:24:11:FA:CE:FD`; DNS override pending | 4 | 8GB max, 4GB balloon minimum | 50GB | 22 | `stage 2 deployed` | SOPS policy and loopback Rust service ready; two devices provisioned; authenticated API 35 emulator manually running with loopback-only ADB/console; no app ports exposed |
+| **Remote Community** | remote-community | 111 | `10.0.0.13` reserved for `BC:24:11:FA:CE:FD`; DNS override configured | 4 | 8GB max, 4GB balloon minimum | 50GB | 22,41641/udp | `stage 2 deployed` | Loopback Rust service ready; direct Tailscale client configured pending interactive enrollment; authenticated API 35 emulator manually running; no plaintext app, ADB, or emulator ports exposed |
 | **NixOS Builder** | nixos-builder | 200 | `10.0.0.7` | 6 | 12GB | 100GB | 22, 9100 | `deployed` | `ssh sandmhan@10.0.0.7` |
 | **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
