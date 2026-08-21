@@ -20,6 +20,8 @@
         ../secrets/homeassistant/secrets.yaml
       else if (config.networking.hostName == "fitness") then
         ../secrets/fitness/secrets.yaml
+      else if (config.networking.hostName == "remote-community") then
+        ../secrets/remote-community/secrets.yaml
       else if (config.networking.hostName == "lxc-homeassistant") then
         ../secrets/homeassistant/secrets.yaml
       else if (config.networking.hostName == "media") then

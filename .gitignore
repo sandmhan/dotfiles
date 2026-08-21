@@ -30,6 +30,7 @@ local.nix
 secrets.nix
 
 # Pi session artifacts
+.pi/mission-control/
 .pi/mission-runs/
 .pi/subagent-sessions/
 

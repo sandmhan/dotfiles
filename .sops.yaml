@@ -16,6 +16,7 @@ keys:
   - &vpn_key age1vvqask3tgv0sv09ehhnwgkr2vqx93h6p59k7r632fapn2wvvr3ls0c07kx
   - &monitor_key age1...   # Monitoring stack (VM or LXC) — PLACEHOLDER
   - &fitness_key age1r6rqt4nfk7uxte7q37a2jvu2yq8jat2tn7n9xpmq9r94v9vzt4pq2negje # Fitness VM (106)
+  - &remote_community_key age16yfurc94dhwzgz5c7c063vsfgw8gr0nryetzz7s07ugnghe9ag8qfdc9pd # Remote Community VM (111)
 
 creation_rules:
   # Desktop (gaia) secrets
@@ -76,6 +77,13 @@ creation_rules:
     - age:
       - *admin_age
       - *fitness_key
+
+  # Remote Community policy (coordinates encrypted for VM111 only)
+  - path_regex: secrets/remote-community/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+    - age:
+      - *admin_age
+      - *remote_community_key
 
   # User-specific secrets (personal settings, git config)
   - path_regex: secrets/user/[^/]+\.(yaml|json|env|ini)$
