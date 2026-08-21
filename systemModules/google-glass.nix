@@ -9,19 +9,19 @@ let
 
     ${pkgs.iproute2}/bin/ip rule del \
       priority 5260 \
-      to 10.0.0.175/32 \
+      to 10.0.0.12/32 \
       table main 2>/dev/null || true
 
     ${pkgs.iproute2}/bin/ip rule add \
       priority 5260 \
-      to 10.0.0.175/32 \
+      to 10.0.0.12/32 \
       table main
   '';
 
   glassLanRouteStop = pkgs.writeShellScript "glass-lan-route-stop" ''
     ${pkgs.iproute2}/bin/ip rule del \
       priority 5260 \
-      to 10.0.0.175/32 \
+      to 10.0.0.12/32 \
       table main 2>/dev/null || true
   '';
 in
@@ -73,7 +73,7 @@ in
       iptables -A nixos-fw \
         -i wlp192s0 \
         -p tcp \
-        -s 10.0.0.175/32 \
+        -s 10.0.0.12/32 \
         -d 10.0.0.3/32 \
         --dport 35900 \
         -m conntrack --ctstate NEW \
