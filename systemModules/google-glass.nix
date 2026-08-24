@@ -49,9 +49,9 @@ in
   };
 
   networking.firewall = {
-    # Keep strict reverse-path filtering. The /32 policy rule above makes the
-    # Glass source resolve through the directly attached Wi-Fi route.
-    checkReversePath = true;
+    # Prefer strict reverse-path filtering. Tailscale clients may lower this to
+    # loose mode for policy routing; the /32 rule above still keeps Glass local.
+    checkReversePath = lib.mkDefault true;
 
     # Drop Tailscale traffic in raw PREROUTING, before Tailscale's ts-input
     # chain can accept its trusted interface. Keep this idempotent on reload.
