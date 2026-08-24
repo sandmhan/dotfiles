@@ -345,6 +345,7 @@ in
   # Tailscale mesh VPN — Gaia acts as subnet router for phone access
   homelab.tailscale = {
     enable = true;
+    acceptRoutes = false; # Prefer Gaia's directly connected LAN over competing subnet routes
     advertiseRoutes = [
       "10.0.0.0/24" # Homelab network (flat — all services)
       # TODO: Add "10.0.20.0/24" once services VLAN is deployed
