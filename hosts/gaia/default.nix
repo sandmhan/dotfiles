@@ -200,6 +200,8 @@ in
 
   boot.extraModprobeConfig = ''
     options v4l2loopback devices=1 video_nr=2 card_label="RTSP_Camera" exclusive_caps=1
+    # Avoid MediaTek MT7925 Bluetooth firmware corruption across hibernation.
+    options btusb enable_autosuspend=0
   '';
 
   # Enable Amd microcode updates
