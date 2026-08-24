@@ -15,6 +15,385 @@ let
   right = "l";
   modifier = "Mod1";
 
+  glassDisplay = pkgs.writeShellApplication {
+    name = "glass-display";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.jq
+      pkgs.sway
+    ];
+    text = ''
+      output="HEADLESS-1"
+      workspaces=(7 8 9)
+
+      get_outputs() {
+        swaymsg --raw --type get_outputs
+      }
+
+      output_is_known() {
+        get_outputs | jq --exit-status --arg output "$output" \
+          '.[] | select(.name == $output)' >/dev/null
+      }
+
+      output_is_active() {
+        get_outputs | jq --exit-status --arg output "$output" \
+          '.[] | select(.name == $output and .active)' >/dev/null
+      }
+
+      output_is_configured() {
+        get_outputs | jq --exit-status --arg output "$output" '
+          .[] | select(
+            .name == $output and
+            .active and
+            .current_mode.width == 640 and
+            .current_mode.height == 360 and
+            .current_mode.refresh == 60000 and
+            .scale == 1
+          )
+        ' >/dev/null
+      }
+
+      focused_context() {
+        swaymsg --raw --type get_workspaces |
+          jq --raw-output '.[] | select(.focused) | [.output, .name] | @tsv'
+      }
+
+      fallback_output() {
+        get_outputs | jq --raw-output --arg output "$output" '
+          ([.[] | select(.active and .name != $output and .focused)][0].name) //
+          ([.[] | select(.active and .name != $output)][0].name) //
+          empty
+        '
+      }
+
+      move_glass_workspaces() {
+        local destination="$1"
+        local workspace
+        for workspace in "''${workspaces[@]}"; do
+          swaymsg --quiet workspace number "$workspace" || return 1
+          swaymsg --quiet move workspace to output "$destination" || return 1
+        done
+      }
+
+      restore_focus() {
+        local output_name="$1"
+        local workspace="$2"
+        local glass_workspace
+        for glass_workspace in "''${workspaces[@]}"; do
+          if [[ "$workspace" == "$glass_workspace" ]]; then
+            workspace=""
+            break
+          fi
+        done
+        swaymsg --quiet focus output "$output_name" || return 1
+        if [[ -n "$workspace" ]]; then
+          swaymsg --quiet workspace "$workspace" || return 1
+        fi
+      }
+
+      enable_display() {
+        local context
+        local previous_output
+        local previous_workspace
+        context=$(focused_context)
+        IFS=$'\t' read -r previous_output previous_workspace <<< "$context"
+
+        if output_is_known; then
+          if ! output_is_active; then
+            swaymsg --quiet "output $output enable"
+          fi
+        else
+          swaymsg --quiet create_output
+        fi
+
+        for _ in {1..20}; do
+          if output_is_active; then
+            swaymsg --quiet "output $output enable mode 640x360@60Hz scale 1 power on"
+            if ! output_is_configured; then
+              restore_focus "$previous_output" "$previous_workspace" || true
+              printf '%s\n' "Failed to configure $output at 640x360@60Hz scale 1" >&2
+              return 1
+            fi
+            if ! move_glass_workspaces "$output"; then
+              restore_focus "$previous_output" "$previous_workspace" || true
+              printf '%s\n' "Failed to move all Glass workspaces to $output" >&2
+              return 1
+            fi
+            if ! restore_focus "$previous_output" "$previous_workspace"; then
+              printf '%s\n' "Glass workspaces moved, but previous focus could not be restored" >&2
+              return 1
+            fi
+            printf '%s\n' "$output enabled for workspaces 7, 8, and 9"
+            return 0
+          fi
+          sleep 0.1
+        done
+
+        printf '%s\n' "Failed to enable $output" >&2
+        return 1
+      }
+
+      disable_display() {
+        local context
+        local destination
+        local previous_output
+        local previous_workspace
+        local restore_output
+
+        if ! output_is_active; then
+          printf '%s\n' "$output is already disabled"
+          return 0
+        fi
+
+        context=$(focused_context)
+        IFS=$'\t' read -r previous_output previous_workspace <<< "$context"
+        destination=$(fallback_output)
+        if [[ -z "$destination" ]]; then
+          printf '%s\n' "Cannot disable $output without another active output" >&2
+          return 1
+        fi
+
+        if ! move_glass_workspaces "$destination"; then
+          restore_focus "$previous_output" "$previous_workspace" || true
+          printf '%s\n' "Failed to move all Glass workspaces to $destination" >&2
+          return 1
+        fi
+
+        restore_output="$previous_output"
+        if [[ "$restore_output" == "$output" ]]; then
+          restore_output="$destination"
+        fi
+        if ! restore_focus "$restore_output" "$previous_workspace"; then
+          printf '%s\n' "Glass workspaces moved, but previous focus could not be restored" >&2
+          return 1
+        fi
+
+        swaymsg --quiet output "$output" disable
+        printf '%s\n' "$output disabled; workspaces 7, 8, and 9 moved to $destination"
+      }
+
+      show_status() {
+        if output_is_active; then
+          get_outputs | jq --raw-output --arg output "$output" '
+            .[] | select(.name == $output) |
+            "\(.name) is enabled at \(.current_mode.width)x\(.current_mode.height)@\(.current_mode.refresh / 1000)Hz scale \(.scale)"
+          '
+          swaymsg --raw --type get_workspaces |
+            jq --raw-output --arg output "$output" '
+              [.[] | select(.output == $output) | .name] |
+              "workspaces on display: " + (if length == 0 then "none" else join(", ") end)
+            '
+        else
+          printf '%s\n' "$output is disabled"
+        fi
+      }
+
+      case "''${1:-toggle}" in
+        on)
+          enable_display
+          ;;
+        off)
+          disable_display
+          ;;
+        toggle)
+          if output_is_active; then
+            disable_display
+          else
+            enable_display
+          fi
+          ;;
+        status)
+          show_status
+          ;;
+        *)
+          printf '%s\n' "Usage: glass-display [on|off|toggle|status]" >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
+
+  glassVnc = pkgs.writeShellApplication {
+    name = "glass-vnc";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.openssl
+      pkgs.systemd
+      pkgs.wayvnc
+    ];
+    text = ''
+      unit="glass-vnc.service"
+      output="HEADLESS-1"
+      listen_address="10.0.0.3:35900"
+      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/wayvnc-glass"
+      password_file="$config_dir/password"
+      runtime_dir="''${XDG_RUNTIME_DIR:-}/wayvnc-glass"
+      config_file="$runtime_dir/wayvnc.ini"
+      certificate_file="$runtime_dir/certificate.pem"
+      private_key_file="$runtime_dir/private-key.pem"
+      control_socket="''${XDG_RUNTIME_DIR:-}/wayvnc-glass-wifi.ctl"
+
+      usage() {
+        printf '%s\n' "Usage: glass-vnc [start|stop|restart|status]"
+      }
+
+      validate_password() {
+        local metadata
+        local password_fd
+        local user_id
+
+        if [[ ! -d "$config_dir" || -L "$config_dir" || ! -O "$config_dir" ]]; then
+          printf '%s\n' "Glass VNC credential directory is unavailable or unsafe: $config_dir" >&2
+          printf '%s\n' "Restore the password already enrolled on Glass; do not generate a replacement while Glass has no input path." >&2
+          return 1
+        fi
+        if [[ "$(stat --format='%a' "$config_dir")" != 700 ]]; then
+          printf '%s\n' "Glass VNC credential directory must have mode 0700: $config_dir" >&2
+          return 1
+        fi
+        if [[ -L "$password_file" ]] || ! exec {password_fd}<"$password_file"; then
+          printf '%s\n' "Glass VNC credential is unavailable or unsafe: $password_file" >&2
+          printf '%s\n' "Restore the password already enrolled on Glass; do not generate a replacement while Glass has no input path." >&2
+          return 1
+        fi
+
+        user_id=$(id --user)
+        metadata=$(stat --dereference --format='%F:%u:%a' "/proc/$$/fd/$password_fd")
+        if [[ "$metadata" != "regular file:$user_id:600" ]]; then
+          exec {password_fd}<&-
+          printf '%s\n' "Glass VNC credential must be a user-owned regular file with mode 0600: $password_file" >&2
+          return 1
+        fi
+        password=$(cat <&"$password_fd")
+        exec {password_fd}<&-
+        if [[ ! "$password" =~ ^[A-Za-z0-9+/]{8}$ ]]; then
+          printf '%s\n' "Glass VNC credential must contain exactly eight Base64 characters." >&2
+          return 1
+        fi
+      }
+
+      validate_runtime() {
+        if [[ -z "''${XDG_RUNTIME_DIR:-}" || ! -d "$XDG_RUNTIME_DIR" || -L "$XDG_RUNTIME_DIR" || ! -O "$XDG_RUNTIME_DIR" ]]; then
+          printf '%s\n' "XDG_RUNTIME_DIR is unavailable or unsafe." >&2
+          return 1
+        fi
+        install -d -m 0700 "$runtime_dir"
+      }
+
+      prepare_runtime() {
+        validate_password
+        validate_runtime
+        if [[ -S "$control_socket" ]] && wayvncctl --socket "$control_socket" version >/dev/null 2>&1; then
+          printf '%s\n' "Another WayVNC process already owns $control_socket" >&2
+          return 1
+        fi
+        rm -f "$control_socket"
+        cleanup_runtime
+        ${glassDisplay}/bin/glass-display on
+
+        umask 077
+        openssl req -x509 -newkey rsa:2048 -nodes -days 30 \
+          -subj '/CN=gaia-glass-wayvnc' \
+          -keyout "$private_key_file" \
+          -out "$certificate_file" \
+          >/dev/null 2>&1
+        chmod 0600 "$private_key_file"
+
+        config_tmp=$(mktemp "$runtime_dir/.wayvnc.ini.XXXXXX")
+        {
+          printf '%s\n' \
+            'enable_auth=true' \
+            'allow_broken_crypto=true' \
+            'relax_encryption=true' \
+            "password=$password" \
+            "certificate_file=$certificate_file" \
+            "private_key_file=$private_key_file"
+        } > "$config_tmp"
+        chmod 0600 "$config_tmp"
+        mv -f "$config_tmp" "$config_file"
+        config_tmp=""
+      }
+
+      cleanup_runtime() {
+        rm -f "''${config_tmp:-}" "$config_file" "$certificate_file" "$private_key_file"
+        if [[ "''${owns_control_socket:-false}" == true ]]; then
+          rm -f "$control_socket"
+        fi
+      }
+
+      run_server() {
+        config_tmp=""
+        owns_control_socket=false
+        trap cleanup_runtime EXIT
+        prepare_runtime
+        owns_control_socket=true
+        wayvnc \
+          --config "$config_file" \
+          --disable-input \
+          --output "$output" \
+          --max-fps=15 \
+          --socket "$control_socket" \
+          --log-level=info \
+          "$listen_address" &
+        wayvnc_pid=$!
+        terminate() {
+          kill "$wayvnc_pid" 2>/dev/null || true
+        }
+        trap terminate INT TERM HUP
+        wait "$wayvnc_pid"
+      }
+
+      wait_until_ready() {
+        for _ in {1..50}; do
+          if systemctl --user is-active --quiet "$unit" && \
+            wayvncctl --socket "$control_socket" version >/dev/null 2>&1; then
+            return 0
+          fi
+          sleep 0.1
+        done
+        printf '%s\n' "$unit did not become ready" >&2
+        systemctl --user status --no-pager "$unit" >&2 || true
+        return 1
+      }
+
+      show_status() {
+        if systemctl --user is-active --quiet "$unit"; then
+          printf '%s\n' "$unit is active"
+          wayvncctl --socket "$control_socket" client-list || true
+        else
+          printf '%s\n' "$unit is inactive"
+        fi
+        ${glassDisplay}/bin/glass-display status
+      }
+
+      case "''${1:-status}" in
+        start)
+          validate_password
+          systemctl --user start "$unit"
+          wait_until_ready
+          ;;
+        stop)
+          systemctl --user stop "$unit"
+          ;;
+        restart)
+          validate_password
+          systemctl --user restart "$unit"
+          wait_until_ready
+          ;;
+        status)
+          show_status
+          ;;
+        run)
+          run_server
+          ;;
+        *)
+          usage >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
+
   # Legcord can keep a main Electron process alive after its renderer dies. Later
   # launches then connect to that stale singleton and only display a blank window.
   legcordLauncher = pkgs.writeShellApplication {
@@ -203,7 +582,24 @@ in
         nwg-displays # GUI monitor management
         networkmanager
       ])
+      ++ [
+        glassDisplay
+        glassVnc
+      ]
       ++ lib.optionals cfg.profiles.enableSocial [ legcordLauncher ];
+  };
+
+  systemd.user.services.glass-vnc = {
+    Unit = {
+      Description = "Source-restricted view-only WayVNC display for Google Glass";
+      After = [ config.wayland.systemd.target ];
+      PartOf = [ config.wayland.systemd.target ];
+      ConditionEnvironment = "SWAYSOCK";
+    };
+    Service = {
+      ExecStart = "${glassVnc}/bin/glass-vnc run";
+      Restart = "no";
+    };
   };
 
   # Override the package-provided entry so every explicit open recovers from a
@@ -462,6 +858,21 @@ in
       };
 
       defaultWorkspace = "workspace number 1";
+
+      # Route the final three workspaces to the Google Glass headless output
+      # whenever it is enabled by the glass-display helper.
+      workspaceOutputAssign =
+        map
+          (workspace: {
+            workspace = toString workspace;
+            output = "HEADLESS-1";
+          })
+          [
+            7
+            8
+            9
+          ];
+
       input = {
         "type:touchpad" = {
           click_method = "clickfinger";
