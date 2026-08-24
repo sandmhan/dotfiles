@@ -26,6 +26,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    remoteCommunity = {
+      url = "git+ssh://git@github.com/sandmhan/remote-community.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -43,6 +47,7 @@
       stylix,
       nvf,
       sops-nix,
+      remoteCommunity,
       zen-browser,
       ...
     }:
@@ -583,6 +588,17 @@
           hostname = "vpn";
           modules = [
             ./hosts/vpn
+            sops-nix.nixosModules.sops
+          ];
+        };
+
+        # Remote Community — observe-only Android lab VM, no public app/ADB ports
+        remote-community = mkNixosSystem {
+          hostname = "remote-community";
+          modules = [
+            ./hosts/remote-community
+            remoteCommunity.nixosModules.remote-community
+            remoteCommunity.nixosModules.android-emulator
             sops-nix.nixosModules.sops
           ];
         };

@@ -314,6 +314,26 @@
         "type": "github"
       }
     },
+    "remoteCommunity": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1787341850,
+        "narHash": "sha256-Pzq9TQS0Z6wV+6EjjPGiphu4V940zzCI1XdyPBQRSwY=",
+        "ref": "refs/heads/main",
+        "rev": "af184b7ae64b33a58fe5262139b91e4237b1c730",
+        "revCount": 4,
+        "type": "git",
+        "url": "ssh://git@github.com/sandmhan/remote-community.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/sandmhan/remote-community.git"
+      }
+    },
     "root": {
       "inputs": {
         "home-manager": "home-manager",
@@ -322,6 +342,7 @@
         "nixpkgsCodex": "nixpkgsCodex",
         "nixpkgsFreecad": "nixpkgsFreecad",
         "nvf": "nvf",
+        "remoteCommunity": "remoteCommunity",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "zen-browser": "zen-browser"
