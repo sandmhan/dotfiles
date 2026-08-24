@@ -35,16 +35,17 @@ assert_phase2_module_files_exist() {
 
 assert_phase2_import_order() {
   local default_nix="home/modules/nvf/default.nix"
-  local languages_line python_line web_line infra_line completion_line
+  local documentation_line nix_line python_line web_line infra_line completion_line
 
-  languages_line="$(grep -n '^[[:space:]]*./languages\.nix$' "$default_nix" | cut -d: -f1)"
+  documentation_line="$(grep -n '^[[:space:]]*./documentation\.nix$' "$default_nix" | cut -d: -f1)"
+  nix_line="$(grep -n '^[[:space:]]*./languages-nix\.nix$' "$default_nix" | cut -d: -f1)"
   python_line="$(grep -n '^[[:space:]]*./languages-python\.nix$' "$default_nix" | cut -d: -f1)"
   web_line="$(grep -n '^[[:space:]]*./languages-web\.nix$' "$default_nix" | cut -d: -f1)"
   infra_line="$(grep -n '^[[:space:]]*./languages-infra\.nix$' "$default_nix" | cut -d: -f1)"
   completion_line="$(grep -n '^[[:space:]]*./completion\.nix$' "$default_nix" | cut -d: -f1)"
 
-  [[ -n "$languages_line" && -n "$python_line" && -n "$web_line" && -n "$infra_line" && -n "$completion_line" ]] || return 1
-  (( languages_line < python_line && python_line < web_line && web_line < infra_line && infra_line < completion_line ))
+  [[ -n "$documentation_line" && -n "$nix_line" && -n "$python_line" && -n "$web_line" && -n "$infra_line" && -n "$completion_line" ]] || return 1
+  (( documentation_line < nix_line && nix_line < python_line && python_line < web_line && web_line < infra_line && infra_line < completion_line ))
 }
 
 assert_terminalman_phase2_languages() {
@@ -120,7 +121,7 @@ assert_phase2_docs_updated() {
 }
 
 check 'Phase 2 NVF module files exist' assert_phase2_module_files_exist
-check 'Phase 2 NVF modules are imported immediately after languages.nix' assert_phase2_import_order
+check 'Phase 2 NVF modules follow documentation and Nix language owners' assert_phase2_import_order
 check 'terminalman enables Python, web, infrastructure, and effective ESLint linter mappings' assert_terminalman_phase2_languages
 check 'README, operations guide, and evidence index document Phase 2 modules' assert_phase2_docs_updated
 

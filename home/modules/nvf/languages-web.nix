@@ -4,8 +4,11 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.languages.web) {
     programs.nvf = {
       settings.vim = {
         languages = {
@@ -55,7 +58,7 @@
 
         # JavaScript/TypeScript DAP ownership only. Project test commands remain
         # CLI-owned; shared DAP UI and supplemental keymaps live in debugging.nix.
-        debugger.nvim-dap = {
+        debugger.nvim-dap = lib.mkIf cfg.packs.debugging {
           enable = true;
           sources.js-debugger = ''
             local dap = require("dap")

@@ -3,37 +3,41 @@
   config,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+  hasLspPack = cfg.packs.tidal || builtins.any (pack: pack) (builtins.attrValues cfg.packs.languages);
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
-    programs.nvf = {
-      settings.vim = {
-        lsp = {
-          enable = true;
-          inlayHints.enable = true;
-          mappings.signatureHelp = "<leader>lk";
-          servers = {
-            # CPP
-            clangd.enable = true;
+  config = lib.mkMerge [
+    (lib.mkIf (cfg.enable && !hasLspPack) {
+      programs.nvf.settings.vim.lsp.enable = lib.mkForce false;
+    })
 
-            # Nix
-            nixd.enable = true;
-            nil_ls.enable = false;
+    (lib.mkIf (cfg.enable && hasLspPack) {
+      programs.nvf.settings.vim.lsp = {
+        enable = true;
+        inlayHints.enable = true;
+        mappings.signatureHelp = "<leader>lk";
+      };
+    })
 
-            # Typst
-            tinymist.enable = true;
+    (lib.mkIf (cfg.enable && cfg.packs.languages.documentation) {
+      programs.nvf.settings.vim.lsp = {
+        # Documentation prose support owns shared spellchecking.
+        presets.harper.enable = true;
 
-            # Markdown/Obsidian notes
-            marksman.enable = false;
-            markdown-oxide.enable = true;
-          };
-
-          # Spellchecking
-          presets.harper = {
-            enable = true;
-          };
+        servers = {
+          # Keep NVF default servers from overlapping documentation.nix.
+          marksman.enable = false;
         };
       };
-    };
+    })
 
-  };
+    (lib.mkIf (cfg.enable && cfg.packs.languages.nix) {
+      programs.nvf.settings.vim.lsp.servers = {
+        # Keep NVF default servers from overlapping languages-nix.nix.
+        nil_ls.enable = false;
+      };
+    })
+  ];
 }

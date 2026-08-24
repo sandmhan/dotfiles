@@ -1,15 +1,23 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }:
 let
+  cfg = config.programs.sandvim;
   inherit (lib.generators) mkLuaInline;
 in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.notes) {
     programs.nvf = {
       settings.vim = {
+        # Keep paste-image helpers on the wrapped Neovim PATH, including when
+        # consumers use the exported standalone Sandvim packages.
+        extraPackages =
+          lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.xclip ]
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [ pkgs.pngpaste ];
+
         notes = {
           # Highlight TODO, FIXME, NOTE, HACK, etc.
           todo-comments.enable = true;
@@ -32,6 +40,9 @@ in
                 }
               '';
               picker.name = "fzf-lua";
+              # obsidian-ls owns note-aware completion/navigation alongside Obsidian.nvim commands.
+              attachments.folder = cfg.notes.attachmentsFolder;
+              templates.folder = cfg.notes.templatesFolder;
             };
           };
         };
@@ -90,6 +101,24 @@ in
             mode = [ "n" ];
             action = "<cmd>Obsidian rename<cr>";
             desc = "Notes rename";
+          }
+          {
+            key = "<leader>np";
+            mode = [ "n" ];
+            action = "<cmd>Obsidian paste_img<cr>";
+            desc = "Notes paste image";
+          }
+          {
+            key = "<leader>nx";
+            mode = [ "n" ];
+            action = "<cmd>Obsidian toggle_checkbox<cr>";
+            desc = "Notes toggle checkbox";
+          }
+          {
+            key = "<leader>nT";
+            mode = [ "n" ];
+            action = "<cmd>Obsidian template<cr>";
+            desc = "Notes insert template";
           }
         ];
       };

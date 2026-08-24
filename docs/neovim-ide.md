@@ -1,7 +1,7 @@
 ---
 title: Neovim IDE Operations Guide
 status: accepted
-updated: 2026-06-15
+updated: 2026-08-09
 ---
 
 # Neovim IDE Operations Guide
@@ -14,37 +14,64 @@ The Home Manager NVF configuration is composed from `home/modules/nvf/default.ni
 
 This repository's local profiles preserve the existing `myHome` interface through a flake-local adapter, which maps `myHome.features.enableNixvim` to `programs.sandvim.enable`. The reusable Sandvim module itself does not depend on `home/options.nix` or `config.myHome`.
 
-### Portable API and smoke test
+### Portable API, presets, and smoke tests
 
-The public Sandvim option API is intentionally minimal while the module remains hosted in this dotfiles flake pending extraction:
+The public Sandvim option API is `programs.sandvim.enable`, `programs.sandvim.preset`, and explicit `programs.sandvim.packs.*` overrides from `home/modules/nvf/options.nix`. External consumers import `dotfiles.homeManagerModules.sandvim`, set `programs.sandvim.enable = true`, and do not need this repo's local profiles, Stylix module, or `myHome` options.
 
-- `programs.sandvim.enable` enables the NVF-backed editor, including the CodeCompanion Codex ACP chat workflow, polyglot language modules, Obsidian note navigation, workflow plugins, and smart-splits tmux-aware navigation.
+| Preset | AI | Debugging | Notes | Tidal | Workflow | Legacy general | Documentation | Nix | Python | Web | Infrastructure | Systems | Data/mobile | Java |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `minimal` | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off | Off |
+| `standard` | On | On | On | On | On | Off | On | On | On | On | On | On | On | Off |
+| `full` | On | On | On | On | On | Off | On | On | On | On | On | On | On | On |
 
-External consumers import `dotfiles.homeManagerModules.sandvim` in their Home Manager module list and set `programs.sandvim.enable = true`. They do not need this repo's local profiles, Stylix module, or `myHome` options.
+`minimal` keeps core editor behavior plus workspace hardening only. `standard` is the external-consumer default and backward-compatible historical set without Java. `full` adds Java to the standard set.
 
-The flake check `checks.x86_64-linux.sandvimExternalConsumer` is the repo-native portability smoke test. It builds a minimal external-consumer Home Manager activation package using only `homeManagerModules.sandvim`, `programs.sandvim.enable = true`, and the required `home.*` identity/state options:
+Local dotfiles profiles use a flake-local adapter that maps `myHome.features.enableNixvim` to `programs.sandvim.enable` and defaults those local users to `programs.sandvim.preset = "full"`. External consumers remain on `standard` unless they select another preset.
+
+The pack leaves are:
+
+- `programs.sandvim.packs.ai`
+- `programs.sandvim.packs.debugging`
+- `programs.sandvim.packs.notes`
+- `programs.sandvim.packs.tidal`
+- `programs.sandvim.packs.workflow`
+- `programs.sandvim.packs.languages.general` (deprecated compatibility umbrella for documentation, Nix, and Clang defaults)
+- `programs.sandvim.packs.languages.documentation`
+- `programs.sandvim.packs.languages.nix`
+- `programs.sandvim.packs.languages.python`
+- `programs.sandvim.packs.languages.web`
+- `programs.sandvim.packs.languages.infrastructure`
+- `programs.sandvim.packs.languages.systems`
+- `programs.sandvim.packs.languages.dataMobile`
+- `programs.sandvim.packs.languages.java`
+
+Explicit pack settings override preset defaults. `programs.sandvim.packs.notes` requires `programs.sandvim.packs.languages.documentation` because Obsidian and Markdown LSP features share one owner. The deprecated `programs.sandvim.packs.languages.general` compatibility umbrella stays available for external users: when explicitly enabled it defaults documentation and Nix support on and still enables Clang, while explicit `documentation` or `nix` overrides win. Notes expose `programs.sandvim.notes.attachmentsFolder` and `programs.sandvim.notes.templatesFolder`, defaulting to `attachments` and `templates`. The Tidal pack owns its Haskell language server and participates in shared LSP policy even when no grouped language pack is selected. Language DAP integrations are gated by both the language pack and `programs.sandvim.packs.debugging`; for example Python DAP requires the Python and debugging packs. Java DAP remains off.
+
+The repo-native portability checks are:
 
 ```bash
 nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimMinimalConsumer
 ```
 
-Supported editor language and workflow coverage today is intentionally limited to the modules already imported by `default.nix`:
+Supported editor language and workflow coverage today is intentionally limited to the modules already imported by `default.nix` and enabled by the selected packs:
 
-- Markdown and Obsidian-style notes with markdown-oxide, mdformat, markdown/markdown-inline Treesitter, rendered/preview workflows, wiki-link/backlink navigation, and dynamic current-directory workspaces.
-- Nix with `nixd` as the default language server and `nixfmt` formatting.
-- Typst with Tinymist and Typstyle.
-- C/C++ with Clang tooling and the existing DAP settings.
+- Markdown and Obsidian-style notes from `home/modules/nvf/documentation.nix` and `home/modules/nvf/notes.nix`, with markdown-oxide, markdownlint-cli2 structural lint, Harper prose diagnostics, mdformat, markdown/markdown-inline Treesitter, render-markdown Blink completion, rendered/preview workflows, wiki-link/backlink navigation, and dynamic current-directory workspaces.
+- Nix with `nixd` as the default language server and `nixfmt` formatting from `home/modules/nvf/languages-nix.nix`.
+- Typst with Tinymist and Typstyle from `home/modules/nvf/documentation.nix`.
+- C/C++ with Clang tooling and the existing DAP settings from `home/modules/nvf/languages-systems.nix`; it is enabled by systems support or the deprecated general compatibility umbrella.
 - Python with basedpyright, Ruff formatting/linting, and debugpy from `home/modules/nvf/languages-python.nix`.
 - JavaScript/TypeScript with `typescript-language-server`, prettier, eslint_d, and JS debug adapter ownership from `home/modules/nvf/languages-web.nix`.
 - JSON with `vscode-json-language-server` and `jsonfmt` from `home/modules/nvf/languages-web.nix`.
 - Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML support from `home/modules/nvf/languages-infra.nix`.
 - Rust, Go, and Lua support from `home/modules/nvf/languages-systems.nix`, including rust-analyzer/rustfmt/crates.nvim, gopls/gofmt/golangci-lint, and lua-language-server/lazydev/stylua/luacheck.
 - SQL and Dart/Flutter support from `home/modules/nvf/languages-data-mobile.nix`, including SQLS/sqlfluff and Dart LSP/flutter-tools with the Flutter SDK resolved from PATH or a project devshell rather than bundled in every profile. `enableNoResolvePatch` is intentionally disabled because NVF's current patch fails against the pinned flutter-tools.nvim source; prefer a non-Nix Flutter SDK on PATH until the NVF/input pin is updated.
+- Java support from `home/modules/nvf/languages-java.nix` is available in the `full` Sandvim preset with jdt-language-server, Treesitter, and AStyle formatting; Java DAP remains disabled. Sandvim does not bundle project JDKs, Maven or Gradle plugins, Google Java Format, Checkstyle, Java test runners, or Java DAP profiles.
 - DAP UI and supplemental debug keymaps from `home/modules/nvf/debugging.nix`; IDE-integrated test runners are intentionally not configured.
 - Workspace hardening from `home/modules/nvf/hardening.nix`: root discovery commands, explicit local trust policy, large/generated-file guards, diagnostic throttling, expanded polyglot root markers, and an on-demand gitleaks secret scan task.
 - Workflow tooling from `home/modules/nvf/workflow.nix`: Trouble diagnostics, GrugFar search/replace, Diffview review, fastaction, code-action lightbulb, mini.align/splitjoin/move, and vim-sleuth.
 - Smart split and tmux pane navigation from `home/modules/nvf/utility.nix` plus the tmux-side `smart-splits.tmux` integration in `home/modules/terminal.nix`.
-- CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when `programs.sandvim.enable` is enabled.
+- CodeCompanion.nvim from `home/modules/nvf/ai-codecompanion.nix` as the only in-editor AI tool, using Codex ACP through `codex-acp` with ChatGPT authentication when the AI pack is enabled.
 - Haskell/Tidal live-coding support from `home/modules/nvf/tidal.nix`.
 
 Behavior not listed above is optional, project-local, or planned. IDE-integrated test runners, per-project task runners, and broader language-specific debug profiles remain project-local until their modules and tickets land.
@@ -55,10 +82,10 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 
 | Area | Implemented editor owner | Required or expected tools |
 |---|---|---|
-| Markdown/Obsidian | `languages.nix`, `notes.nix`, `ui.nix` | markdown-oxide, mdformat with GFM/frontmatter/footnote plugins, markdown/markdown-inline Treesitter, render-markdown-nvim/markdown preview, and obsidian.nvim; markdown-oxide owns nvim-navic breadcrumbs while obsidian-ls remains attached for note-aware LSP features |
-| Nix | `languages.nix`, `lsp.nix` | `nixd`, `nixfmt`; keep `nil_ls` disabled unless a ticket documents a split |
-| Typst | `languages.nix` | Tinymist and Typstyle |
-| C/C++ | `languages.nix` | Clangd plus the configured LLDB DAP adapter |
+| Markdown/Obsidian | `documentation.nix`, `notes.nix`, `ui.nix` | markdown-oxide, markdownlint-cli2 structural lint, Harper prose diagnostics, mdformat with GFM/frontmatter/footnote plugins, markdown/markdown-inline Treesitter, render-markdown-nvim Blink completions/markdown preview, and obsidian.nvim; markdown-oxide owns nvim-navic breadcrumbs while obsidian-ls remains attached for note-aware LSP features |
+| Nix | `languages-nix.nix`, `lsp.nix` | `nixd`, `nixfmt`; keep `nil_ls` disabled unless a ticket documents a split |
+| Typst | `documentation.nix` | Tinymist and Typstyle |
+| C/C++ | `languages-systems.nix` | Clangd plus the configured LLDB DAP adapter; enabled by systems support or legacy general compatibility |
 | Python | `languages-python.nix` | basedpyright, Ruff, and debugpy; run pytest from the project CLI/devshell when needed |
 | JavaScript/TypeScript | `languages-web.nix` | `typescript-language-server`, prettier, eslint_d, and vscode-js-debug; run Jest/Vitest/package-manager tests from the project CLI when needed |
 | JSON | `languages-web.nix` | vscode-json-language-server and jsonfmt |
@@ -72,7 +99,8 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Lua | `languages-systems.nix` | lua-language-server, lazydev.nvim, stylua, luacheck |
 | SQL | `languages-data-mobile.nix` | sqls, sqlfluff with `ansi` dialect defaults; project config may override dialect/lint policy outside the editor |
 | Dart/Flutter | `languages-data-mobile.nix` | Dart LSP from Nix; flutter-tools resolves `flutter` from PATH/devshell because `flutterPackage = null` keeps the shared wrapper lightweight; `enableNoResolvePatch` stays disabled until NVF's patch applies to the pinned flutter-tools.nvim source |
-| Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps; Rust, Go, and Dart DAP are disabled by default |
+| Java | `languages-java.nix` | Enabled by the `full` preset with jdt-language-server, Treesitter, and AStyle formatting; Java DAP is disabled. Project-owned JDK, build, lint, and test conventions stay in the repository or devshell that owns the Java project |
+| Debugging | `debugging.nix`, language modules | DAP UI, debugpy, vscode-js-debug, and supplemental debug keymaps; Rust, Go, Dart, and Java DAP are disabled by default |
 | Workspace safety | `hardening.nix` | root marker policy, disabled local config/modelines, generated-file guards, gitleaks scan wrapper |
 | Workflow tooling | `workflow.nix` | Trouble, grug-far.nvim, diffview.nvim, fastaction.nvim, nvim-lightbulb, mini.align/splitjoin/move, and vim-sleuth |
 | Tmux/Vim navigation | `utility.nix`, `terminal.nix` | smart-splits.nvim and the packaged `smart-splits.tmux` script |
@@ -80,11 +108,85 @@ Most tools are provided by NVF or by Nix packages referenced from the Home Manag
 | Standalone AI CLIs | `home/modules/ai-*.nix` | Claude, Codex, and Pi remain Home Manager CLI/TUI tools outside Neovim |
 | Tidal/Haskell | `tidal.nix` | haskell-language-server, haskell-tools, `tidal.nvim`, `tidal-ghci` from the project or bundled fallback |
 
+### Markdown and Obsidian format policy
+
+- Conform runs NVF's packaged `mdformat` environment with GFM, YAML frontmatter, footnote, and wikilink plugins. It preserves Obsidian callouts, embeds, comments, and block IDs; normal formatting may align table columns and move footnote definitions to the end of the document.
+- `markdownlint-cli2` owns structural linting. Sandvim supplies a base MD025 setting that permits the common Obsidian combination of a frontmatter `title` and one Markdown H1. Repository- or vault-local markdownlint files are still discovered and may override the base policy.
+- Harper owns prose and spelling diagnostics, while markdown-oxide owns document/link intelligence. Do not add Vale, Marksman, or another Markdown formatter globally without first defining which existing owner it replaces.
+- `render-markdown.nvim` uses its pinned GitHub and Obsidian callout, checkbox, table, and wikilink rendering defaults and registers callout/checkbox completion with Blink. Browser preview supports Mermaid, PlantUML, and KaTeX; use the Obsidian application when exact Obsidian-flavored rendering is required.
+- `<leader>np` uses `wl-paste` from the existing Wayland clipboard provider, `xclip` on Linux/X11, `pngpaste` on Darwin, or Obsidian's PowerShell path on WSL. Attachments and templates default to vault-relative `attachments/` and `templates/` and can be changed through the Sandvim note options.
+
+## Java support boundaries
+
+`home/modules/nvf/languages-java.nix` enables NVF Java support only when `programs.sandvim.packs.languages.java = true`, which is included by the `full` preset. The module configures:
+
+- `jdt-language-server` for LSP attachment.
+- Java Treesitter highlighting.
+- AStyle formatting through the Nix-provided `astyle` package.
+- `dap.enable = false`.
+
+Java projects own their JDK choice, build tool, test commands, and quality gates through repository files, CI, or a devshell. Sandvim does not claim Java DAP, IDE-integrated Java test running, Maven or Gradle plugin management, Google Java Format, Checkstyle, or project SDK bundling.
+
+The Java runtime flake check uses a tiny isolated Java workspace with a local `.git` root marker to validate that JDTLS attaches and exposes symbols without network access. It is not a Maven or Gradle integration test and does not install project dependencies.
+
+## Flake packages and checks
+
+The flake exports prebuilt Sandvim Neovim packages for supported external-consumer presets:
+
+| Attribute | Systems | Description |
+|---|---|---|
+| `packages.<system>.sandvimMinimal` | `x86_64-linux`, `aarch64-darwin` | Minimal preset final Neovim package |
+| `packages.<system>.sandvimStandard` | `x86_64-linux`, `aarch64-darwin` | Standard preset final Neovim package |
+| `packages.<system>.sandvimFull` | `x86_64-linux`, `aarch64-darwin` | Full preset final Neovim package |
+
+Linux flake checks are exported under `checks.x86_64-linux`:
+
+| Check | Purpose |
+|---|---|
+| `sandvimExternalConsumer` | Standard external-consumer Home Manager activation package |
+| `sandvimMinimalConsumer` | Minimal external-consumer Home Manager activation package |
+| `sandvimMinimalRuntime` | Hermetic minimal Neovim runtime harness |
+| `sandvimMarkdownRuntime` | Hermetic documentation-only Markdown/Obsidian runtime harness using minimal + documentation + notes and a tracked fixture |
+| `sandvimJavaRuntime` | Hermetic Java/JDTLS attachment and symbol harness |
+| `sandvimStartupProfile` | Hermetic startup-budget smoke check |
+
+The runtime/profile checks run inside Nix builders and do not call nested `nix` commands from `runCommand` bodies. Build the checks from the outer Nix invocation:
+
+```bash
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimMinimalRuntime
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimMarkdownRuntime
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimJavaRuntime
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimStartupProfile
+```
+
+## Performance profiling
+
+Use `scripts/profile-nvf.sh` to compare closure size and startup samples without activating a profile:
+
+```bash
+scripts/profile-nvf.sh minimal
+scripts/profile-nvf.sh standard
+scripts/profile-nvf.sh full
+scripts/profile-nvf.sh all
+```
+
+The script builds the selected final package, reports `nix path-info -Sh` closure size, and records Neovim `--startuptime` samples. Startup timings are host-, cache-, storage-, and load-dependent. Treat the closure delta, not startup timing, as the primary feature-pack benefit.
+
+Current observed 3-run sample from 2026-08-09:
+
+| Preset | Closure | Startup min | Startup median | Startup max |
+|---|---:|---:|---:|---:|
+| `minimal` | 304.9 MiB | 57 ms | 58 ms | 101 ms |
+| `standard` | 13.7 GiB | 93 ms | 116 ms | 153 ms |
+| `full` | 14.4 GiB | 80 ms | 85 ms | 87 ms |
+
+The startup-profile flake check enforces broad budgets of 1000 ms for `minimal` and 2000 ms for `full`; these budgets catch regressions but are not a guarantee for every machine.
+
 ## Phase 0 decisions
 
 - The approved improvement report is the canonical plan for the NVF IDE rollout.
 - Nix LSP ownership is singular by default: `nixd` is enabled and `nil_ls` is disabled unless a later ticket documents a deliberate split.
-- `home/modules/nvf/languages.nix` remains the shared/core language module. Python, web, infrastructure, debugging, hardening, and AI use focused modules before being imported by `default.nix`; future language or workflow work should follow that pattern.
+- `home/modules/nvf/documentation.nix` owns Markdown and Typst; `home/modules/nvf/languages-nix.nix` owns Nix; `home/modules/nvf/languages-systems.nix` owns Clang, Rust, Go, and Lua. Future language or workflow work should follow that focused-module pattern.
 - The keymap taxonomy from the report is adopted as the namespace policy. Mapping descriptions are the current WhichKey label source and must stay synchronized with implemented keys.
 - Tidal live-coding mappings are buffer-local under `<localleader>t*`, leaving global `<leader>t*` chords available for explicit workspace tasks.
 
@@ -120,6 +222,9 @@ Implemented Phase 8 workflow keys:
 | `<leader>nf` | `:Obsidian follow_link` | Follow wiki/Markdown link |
 | `<leader>nt` | `:Obsidian tags` | Tag picker |
 | `<leader>nr` | `:Obsidian rename` | Rename note/link |
+| `<leader>np` | `:Obsidian paste_img` | Paste clipboard image to `programs.sandvim.notes.attachmentsFolder` |
+| `<leader>nx` | `:Obsidian toggle_checkbox` | Toggle Markdown task checkbox |
+| `<leader>nT` | `:Obsidian template` | Insert a note template from `programs.sandvim.notes.templatesFolder` |
 | `<leader>sr` | `:GrugFar` | Workspace search/replace |
 | `<leader>sR` | `:GrugFarWithin` | Buffer search/replace |
 | `<leader>ls` / `<leader>lw` | `:FzfLua lsp_document_symbols` / `:FzfLua lsp_workspace_symbols` | Fuzzy document and workspace symbol search; requires an attached LSP with symbol support |
@@ -174,7 +279,7 @@ Start with the smallest scope that reproduces the issue.
 - Slow or noisy workspaces: inspect `:NvfWorkspaceRoot`, `:NvfWorkspacePolicy`, `:echo b:nvf_workspace_guard`, and `nvim --startuptime /tmp/nvim-startuptime.log +qa` before changing global defaults.
 - Debug adapter failures: reproduce with the matching CLI command outside Neovim when possible, then inspect `:DapShowLog` and `:messages`. The editor does not install project dependencies or run project tests.
 - CodeCompanion unavailable: confirm `programs.sandvim.enable` is true for the active profile, run `:CodeCompanionChat`, and verify `codex-acp` is on `PATH`. Do not use `:CodeCompanionCmd` or inline/action-palette prompts with the Codex ACP adapter unless a supported HTTP adapter is configured separately.
-- Obsidian navigation unavailable: confirm `:Obsidian` exists, check that the buffer is inside the intended workspace root, and use `:NvfWorkspaceRoot` to inspect the dynamic current-directory workspace. A non-fatal `client.opts is deprecated` warning during `:checkhealth render-markdown` is currently upstream-owned: pinned `render-markdown.nvim` checks `obsidian.get_client().opts`, while pinned `obsidian.nvim` v3.16.0 wants `Obsidian.opts`.
+- Obsidian navigation unavailable: confirm `:Obsidian` exists, check that the buffer is inside the intended workspace root, and use `:NvfWorkspaceRoot` to inspect the dynamic current-directory workspace. For image paste failures, verify `wl-paste`, `xclip`, `pngpaste`, or PowerShell is available for the current platform and that the configured attachment directory is writable. A non-fatal `client.opts is deprecated` warning during `:checkhealth render-markdown` is currently upstream-owned: pinned `render-markdown.nvim` checks `obsidian.get_client().opts`, while pinned `obsidian.nvim` v3.16.0 wants `Obsidian.opts`.
 - Flutter tooling unavailable: enter the project devshell or otherwise put `flutter` on PATH before opening Neovim. Sandvim intentionally sets `flutterPackage = null` and does not bundle the full Flutter SDK. Because NVF's no-resolve patch currently fails to apply to the pinned flutter-tools.nvim source, use a non-Nix Flutter SDK on PATH or revisit `enableNoResolvePatch` after updating NVF/flutter-tools.
 - Tmux navigation issues: confirm the activated tmux config contains `run-shell .../smart-splits.tmux` and no unconditional `bind -n C-h select-pane` bindings. In Neovim, smart-splits owns `<C-h/j/k/l>` and tmux falls back to pane selection only outside Vim-aware panes.
 - Codex ACP authentication failures: complete the Codex/ChatGPT login flow outside Neovim first. This configuration uses `auth_method = "chatgpt"` and does not read `OPENAI_API_KEY` from Nix.
@@ -202,7 +307,7 @@ Inside Neovim, inspect `:LspInfo`, `:checkhealth`, `:TSModuleInfo`, `:DapShowLog
 ## Adding or changing a language
 
 1. Open a ticket tied to the NVF report or a follow-up maintenance finding. State the filetypes, LSP, formatter, linter, debug ownership, CLI validation commands, keymaps, and affected profiles.
-2. Add focused module code under `home/modules/nvf/` when the language is large enough to own separately. Keep `languages.nix` for shared/core coverage.
+2. Add focused module code under `home/modules/nvf/` when the language is large enough to own separately. Keep documentation and Nix ownership in `documentation.nix` and `languages-nix.nix` rather than reintroducing a shared `languages.nix`.
 3. Import the module from `home/modules/nvf/default.nix` in a deterministic position near related language or workflow modules.
 4. Update the README NVF module inventory in the same change. The table must contain exactly the same imported modules as `default.nix`, with accurate descriptions.
 5. Update this guide with implemented behavior only, including required tools, project-local CI parity, troubleshooting, validation evidence, and any explicitly planned follow-ups.
@@ -222,9 +327,12 @@ bash scripts/check-nvf-phase5.sh
 bash scripts/check-nvf-phase6.sh
 bash scripts/check-nvf-phase7.sh
 bash scripts/check-nvf-phase8.sh
+bash scripts/check-nvf-phase9.sh
+bash scripts/check-nvf-phase10.sh
 nixfmt home/modules/nvf/*.nix flake.nix home/modules/terminal.nix
 nix flake show --no-write-lock-file
 nix build --no-write-lock-file .#checks.x86_64-linux.sandvimExternalConsumer
+nix build --no-write-lock-file .#checks.x86_64-linux.sandvimMarkdownRuntime
 nix build --dry-run --no-write-lock-file .#homeConfigurations.terminalman.activationPackage
 nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage
 ```

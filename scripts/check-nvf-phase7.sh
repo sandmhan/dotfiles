@@ -25,7 +25,7 @@ nix_eval_raw() {
 assert_phase7_codecompanion_module_exists() {
   [[ -f home/modules/nvf/ai-codecompanion.nix ]] \
     && grep -q 'codecompanion-nvim' home/modules/nvf/ai-codecompanion.nix \
-    && grep -q 'config = lib.mkIf cfg.enable' home/modules/nvf/ai-codecompanion.nix \
+    && grep -q 'config = lib.mkIf (cfg.enable && cfg.packs.ai)' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'pkgs.codex-acp' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'auth_method = "chatgpt"' home/modules/nvf/ai-codecompanion.nix \
     && grep -q 'default = { "codex-acp" }' home/modules/nvf/ai-codecompanion.nix \

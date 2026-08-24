@@ -4,8 +4,11 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.programs.sandvim;
+in
 {
-  config = lib.mkIf config.programs.sandvim.enable {
+  config = lib.mkIf (cfg.enable && cfg.packs.languages.python) {
     programs.nvf = {
       settings.vim = {
         languages.python = {
@@ -30,7 +33,7 @@
           extraDiagnostics.enable = false;
 
           dap = {
-            enable = true;
+            enable = cfg.packs.debugging;
             debugger = [ "debugpy" ];
           };
         };

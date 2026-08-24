@@ -12,12 +12,14 @@ in
     ./keymaps.nix
     ./visuals.nix
     ./lsp.nix
-    ./languages.nix
+    ./documentation.nix
+    ./languages-nix.nix
     ./languages-python.nix
     ./languages-web.nix
     ./languages-infra.nix
     ./languages-systems.nix
     ./languages-data-mobile.nix
+    ./languages-java.nix
     ./debugging.nix
     ./hardening.nix
     ./ai-codecompanion.nix

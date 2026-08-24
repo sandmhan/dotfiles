@@ -23,3 +23,5 @@ For editor/NVF behavior changes, evidence should list the exact commands run, Ho
 - [NVF Phase 8 Polyglot Workflow Evidence](./nvf-phase8-polyglot-workflows-2026-06-15.md) — Rust, Go, Lua, SQL, Dart/Flutter, Obsidian notes, workflow plugins, and smart-splits tmux navigation.
 - [NVF Markdown Deprecation Cleanup Evidence](./nvf-markdown-deprecations-2026-07-24.md) — Obsidian completion and flutter-tools document-color deprecation cleanup.
 - [NVF Symbol Search and Call Hierarchy Evidence](./nvf-symbol-search-2026-08-09.md) — effective LSP symbol mappings, Treesitter fallback, and incoming/outgoing call-hierarchy runtime validation.
+- [NVF Feature Packs, Java Runtime, and Profiling Evidence](./nvf-feature-packs-java-runtime-2026-08-09.md) — Sandvim presets, Java runtime harness, flake checks, and profiling observations.
+- [NVF Markdown and Obsidian Runtime Evidence](./nvf-markdown-obsidian-runtime-2026-08-09.md) — split documentation/Nix packs, explicit Markdown diagnostics, Obsidian paths/keymaps, and the Markdown runtime harness.
