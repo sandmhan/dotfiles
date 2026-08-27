@@ -44,6 +44,12 @@ in
       description = "Accept routes advertised by other Tailscale nodes";
     };
 
+    acceptDNS = mkOption {
+      type = types.nullOr types.bool;
+      default = null;
+      description = "Whether to accept tailnet DNS settings, including MagicDNS; null leaves the preference unmanaged";
+    };
+
     useRoutingFeatures = mkOption {
       type = types.enum [
         "none"
@@ -83,6 +89,8 @@ in
         ++ optionals cfg.acceptRoutes [
           "--accept-routes"
         ];
+      extraSetFlags =
+        if cfg.acceptDNS == null then [ ] else [ "--accept-dns=${boolToString cfg.acceptDNS}" ];
     };
 
     # IP forwarding for subnet routing / exit node
