@@ -344,9 +344,10 @@ in
     package = null;
   };
 
-  # Tailscale mesh VPN — Gaia acts as subnet router for phone access
+  # Tailscale client; the dedicated VPN VM advertises homelab subnet routes.
   homelab.tailscale = {
     enable = true;
+    acceptDNS = false; # Avoid stale MagicDNS forwarding after suspend or hibernate
     acceptRoutes = false; # Prefer Gaia's directly connected LAN over competing subnet routes
   };
 
