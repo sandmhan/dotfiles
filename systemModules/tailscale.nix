@@ -89,8 +89,13 @@ in
         ++ optionals cfg.acceptRoutes [
           "--accept-routes"
         ];
-      extraSetFlags =
-        if cfg.acceptDNS == null then [ ] else [ "--accept-dns=${boolToString cfg.acceptDNS}" ];
+      extraSetFlags = [
+        "--accept-routes=${boolToString cfg.acceptRoutes}"
+        "--advertise-routes=${concatStringsSep "," cfg.advertiseRoutes}"
+      ]
+      ++ optionals (cfg.acceptDNS != null) [
+        "--accept-dns=${boolToString cfg.acceptDNS}"
+      ];
     };
 
     # IP forwarding for subnet routing / exit node
