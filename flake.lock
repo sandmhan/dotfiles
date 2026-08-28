@@ -321,11 +321,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1787864549,
-        "narHash": "sha256-ztyoVdYnCMsBzbnPp/E78uE44XrURjIgSDKZjJ0Z3eA=",
+        "lastModified": 1787892194,
+        "narHash": "sha256-0cGBV/7wZoekobjJjvpVoyWIhUoYN9d4tsRIWD3Hxiw=",
         "ref": "refs/heads/main",
-        "rev": "fb0b98a1c741b90366dfe999de103efc15c85a83",
-        "revCount": 9,
+        "rev": "08560b9bf0f006c8ac9fa1d9d994c56fed52717f",
+        "revCount": 15,
         "type": "git",
         "url": "ssh://git@github.com/sandmhan/remote-community.git"
       },

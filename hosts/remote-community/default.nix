@@ -31,7 +31,7 @@
     # emulator remains manual-start pending final UI and resource verification.
     remote-community-android-emulator = {
       enable = true;
-      enableAtBoot = false;
+      enableAtBoot = true;
     };
 
     # Observe-only ingestion stays on loopback. Tailscale Serve is the only
@@ -40,6 +40,9 @@
       enable = true;
       listenAddress = "127.0.0.1";
       policyCredentialFile = config.sops.secrets.remote-community-policy.path;
+      actuatorAdbSocket = "localfilesystem:/run/remote-community-android-adb/adb.sock";
+      actuatorAndroidSerial = "127.0.0.1:5555";
+      actuatorSupplementaryGroups = [ "rc-android" ];
       openFirewall = false;
     };
 
@@ -53,6 +56,15 @@
   };
 
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 443 ];
+
+  # The nested Android emulator runs inside a ballooned 4 GiB guest. A local
+  # swap file prevents cold-boot package optimization from exhausting memory.
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 4096;
+    }
+  ];
 
   systemd.services.remote-community-tailscale-serve = {
     description = "Publish remote-community through tailnet-only HTTPS";
@@ -117,8 +129,8 @@
       message = "remote-community must remain observe-only on loopback behind Tailscale Serve.";
     }
     {
-      assertion = !config.services.remote-community-android-emulator.enableAtBoot;
-      message = "remote-community Android emulator must remain manual-start pending final UI authentication and resource verification.";
+      assertion = config.services.remote-community-android-emulator.enableAtBoot;
+      message = "remote-community Android emulator must start automatically for the approved UI actuator.";
     }
     {
       assertion =

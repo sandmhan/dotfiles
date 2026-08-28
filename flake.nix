@@ -600,6 +600,9 @@
             remoteCommunity.nixosModules.remote-community
             remoteCommunity.nixosModules.android-emulator
             sops-nix.nixosModules.sops
+            {
+              services.remote-community.actuatorCommand = nixpkgs.lib.getExe remoteCommunity.packages.x86_64-linux.android-gate-actuator;
+            }
           ];
         };
 
