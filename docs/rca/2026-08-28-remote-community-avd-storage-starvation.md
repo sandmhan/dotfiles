@@ -65,6 +65,7 @@ The direct cause was unbounded back-to-back AVD I/O on a resource-constrained si
 - Enabled `onboot=1` for Matrix VM102 and started it once.
 - Verified Matrix locally and externally, Remote Community health/readiness, and ZFS health.
 - Exposed the physical host CPU to nested KVM. Android completed boot, but system_server remained too slow and repeatedly lost package/activity services under API 35 load; the emulator was stopped and returned to manual-start while ingestion remained active.
+- Atomically restored and tested the pre-refresh VM111 AVD once. It reproduced the same `boot_completed=1` with unresponsive framework services and reduced Proxmox headroom below 1 GiB, ruling out the refreshed AVD as the cause of that runtime limitation. The refreshed AVD was then restored without another data copy.
 
 ## Prevention
 
