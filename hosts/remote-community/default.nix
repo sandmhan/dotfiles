@@ -31,7 +31,9 @@
     # emulator remains manual-start pending final UI and resource verification.
     remote-community-android-emulator = {
       enable = true;
-      enableAtBoot = true;
+      # The Dell node cannot keep API 35 system_server responsive while Matrix
+      # retains its required headroom. Keep the lab installed but manual-start.
+      enableAtBoot = false;
     };
 
     # Observe-only ingestion stays on loopback. Tailscale Serve is the only
@@ -129,8 +131,10 @@
       message = "remote-community must remain observe-only on loopback behind Tailscale Serve.";
     }
     {
-      assertion = config.services.remote-community-android-emulator.enableAtBoot;
-      message = "remote-community Android emulator must start automatically for the approved UI actuator.";
+      assertion =
+        config.services.remote-community-android-emulator.enable
+        && !config.services.remote-community-android-emulator.enableAtBoot;
+      message = "remote-community Android emulator must remain installed but manual-start on the constrained Dell node.";
     }
     {
       assertion =

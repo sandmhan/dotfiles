@@ -61,7 +61,7 @@ Device secrets are generated and retained outside Git under `~/.config/remote-co
 
 Use the upstream secure AVD migration procedure in `/home/sandmhan/repos/remote-community/docs/android-lab.md`. Transfer only a stopped, cold AVD into `/var/lib/remote-community-emulator`; do not copy lock, temporary, snapshot, or cache files.
 
-The authenticated AVD and its existing ADB trust key were migrated over verified SSH on 2026-08-21. Android reached API 35 boot completion, the myQ Community package remained installed, and ADB/emulator listeners remained host-private. The emulator and private Unix-socket ADB units now start automatically for the approved actuator. The 2026-08-28 AVD refresh caused single-disk storage starvation; future refreshes must use the rate-limited transfer and atomic same-filesystem install documented upstream, never a second full local copy.
+The authenticated AVD and its existing ADB trust key were migrated over verified SSH on 2026-08-21. Android reached API 35 boot completion, the myQ Community package remained installed, and ADB/emulator listeners remained host-private. The private Unix-socket ADB service starts automatically, but the emulator is manual-start: the Dell CPU cannot keep API 35 system_server responsive alongside Matrix within the host safety margin. The 2026-08-28 AVD refresh caused single-disk storage starvation; future refreshes must use the rate-limited transfer and atomic same-filesystem install documented upstream, never a second full local copy.
 
 ### 5. Verify emulator boot locally only
 

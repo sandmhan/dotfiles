@@ -63,8 +63,8 @@ The direct cause was unbounded back-to-back AVD I/O on a resource-constrained si
 - Atomically renamed the intact staging AVD into the service state directory; no second data copy was performed.
 - Kept the damaged AVD quarantined instead of deleting it under load.
 - Enabled `onboot=1` for Matrix VM102 and started it once.
-- Verified Matrix locally and externally, Remote Community health/readiness, ZFS health, and Android boot.
-- Exposed the physical host CPU to the nested emulator to avoid API 35 package-manager watchdog failure during RSA signature parsing.
+- Verified Matrix locally and externally, Remote Community health/readiness, and ZFS health.
+- Exposed the physical host CPU to nested KVM. Android completed boot, but system_server remained too slow and repeatedly lost package/activity services under API 35 load; the emulator was stopped and returned to manual-start while ingestion remained active.
 
 ## Prevention
 
