@@ -5,7 +5,7 @@ status: draft
 
 # Remote Community Setup Runbook
 
-Stage 2 integrates the private `remote-community` flake, encrypted runtime policy, and loopback-only observe service into VM111. It provides no public application access, ADB-over-TCP, emulator ports, or actuation.
+This runbook integrates the private `remote-community` flake, encrypted runtime policy, loopback-only ingestion, and owner-approved constrained Android actuator into VM111. It provides no public application access, ADB-over-TCP, emulator ports, or client-selected action route.
 
 ## Current target
 
@@ -61,7 +61,7 @@ Device secrets are generated and retained outside Git under `~/.config/remote-co
 
 Use the upstream secure AVD migration procedure in `/home/sandmhan/repos/remote-community/docs/android-lab.md`. Transfer only a stopped, cold AVD into `/var/lib/remote-community-emulator`; do not copy lock, temporary, snapshot, or cache files.
 
-The authenticated AVD and its existing ADB trust key were migrated over verified SSH on 2026-08-21. Android reached API 35 boot completion, the myQ Community package remained installed, and ADB/emulator listeners were loopback-only. The emulator is manually running, while the unit remains `enableAtBoot=false` pending final UI authentication verification and resource observation.
+The authenticated AVD and its existing ADB trust key were migrated over verified SSH on 2026-08-21. Android reached API 35 boot completion, the myQ Community package remained installed, and ADB/emulator listeners remained host-private. The emulator and private Unix-socket ADB units now start automatically for the approved actuator. The 2026-08-28 AVD refresh caused single-disk storage starvation; future refreshes must use the rate-limited transfer and atomic same-filesystem install documented upstream, never a second full local copy.
 
 ### 5. Verify emulator boot locally only
 
@@ -97,4 +97,4 @@ Tailscale reports this endpoint as tailnet-only, with Funnel disabled, and prese
 
 ## Safety boundary
 
-This service remains observe-only. It must not unlock, actuate, automate the Android app, reverse engineer private endpoints, or expose any access-action route. Any future actuation design requires a separate security review and ADR before implementation.
+Phone ingestion remains unable to choose a gate, action, cadence, or duration, and no `/open`, `/unlock`, or equivalent route exists. ADR 0006 permits only the reviewed two-label Android actuator after a persisted proximity `WouldTrigger`, through the trusted local command configured by Nix. Do not generalize that exception, reverse engineer private endpoints, add arbitrary Android controls, or claim that UI handoff proves physical gate outcome.

@@ -50,9 +50,9 @@ nixos-rebuild dry-build --flake .#[CONFIG_NAME]
 |---------|----------|----------|------------|-------|-----|------|-------|---------|--------|
 | **Desktop** | gaia | — | `[Laptop IP]` | 8 | 16GB | 500GB | — | `deployed` | Direct access |
 | **Agent Sandbox** | agent-sandbox | 105 | `10.0.0.5` | 4 | 8GB | 24GB | 22 | `stopped` | Stopped to free Dell node capacity for VM111; `ssh agent@10.0.0.5` when running |
-| **Remote Community** | remote-community | 111 | `10.0.0.13` reserved; `remote-community.taila92b61.ts.net` | 4 | 8GB max, 4GB balloon minimum | 50GB | 22,41641/udp,443/tailnet | `stage 2 deployed` | Direct Tailscale HTTPS proxies to loopback Rust service; authenticated API 35 emulator is manual-start; no plaintext app, ADB, or emulator ports exposed |
+| **Remote Community** | remote-community | 111 | `10.0.0.13` reserved; `remote-community.taila92b61.ts.net` | 4 | 8GB max, 4GB balloon minimum | 50GB | 22,41641/udp,443/tailnet | `actuator MVP deployed` | Direct Tailscale HTTPS proxies to loopback Rust service; authenticated API 35 emulator and private Unix-socket ADB are enabled; no plaintext app, ADB, or emulator ports exposed; see the 2026-08-28 AVD storage-starvation RCA |
 | **NixOS Builder** | nixos-builder | 200 | `10.0.0.7` | 6 | 12GB | 100GB | 22, 9100 | `deployed` | `ssh sandmhan@10.0.0.7` |
-| **Matrix Server** | matrix | 102 | `10.0.0.6` | 2 | 4GB | 40GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev` |
+| **Matrix Server** | matrix | 102 | `10.0.0.6` | 1 | 1GB | 24.4GB | 80,443,8448,9800 | `deployed` | `https://matrix.sandmhan.dev`; Proxmox name remains historical, and `onboot=1` was enabled after the 2026-08-28 outage |
 | **Matrix Agent Bridge** | matrix (co-located) | 102 | `10.0.0.6` | — | — | — | 9800 | `configured` | Webhook: `http://10.0.0.6:9800/health` |
 | **Fitness (wger)** | fitness | 106 | `10.0.0.167` | 2 | 2GB | 15GB | 80,8000,9100,9101 | `deployed` | `http://10.0.0.167/` — Login: `admin` / `adminadmin` |
 | **Tailscale Router** | vpn | 110 | `10.0.0.168` | 1 | 1GB | 20GB | 41641 | `deployed` | `ssh sandmhan@100.120.234.19` (Tailscale only — LAN unreachable, see known issues) |
