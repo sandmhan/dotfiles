@@ -474,7 +474,7 @@
             sops-nix.nixosModules.sops
           ];
           specialArgs = {
-            inherit systemSettings;
+            inherit systemSettings remoteCommunity;
             userSettings = linuxUserSettings;
           };
         };

@@ -2,9 +2,60 @@
 # Observe-only remote-community Android lab on Proxmox VM111.
 {
   config,
+  lib,
   pkgs,
   ...
 }:
+let
+  gaiaActuatorKnownHosts = pkgs.writeText "gaia-actuator-known-hosts" ''
+    gaia-actuator ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIcLYq9fnYqD/7x0u6ULnlXWK0++ZIdTF80AAZe6Aqyo
+  '';
+  gaiaSshActuator = pkgs.writeShellScriptBin "remote-community-gaia-actuator" ''
+    set -eu
+
+    if [ "$#" -ne 1 ]; then
+      exit 2
+    fi
+    case "$1" in
+      'Back Gate Controller') token=back_gate ;;
+      'Main Entrance') token=main_entrance ;;
+      *) exit 2 ;;
+    esac
+
+    key="''${CREDENTIALS_DIRECTORY:?}/gaia-actuator-ssh-key"
+    test -r "$key"
+
+    exec ${pkgs.coreutils}/bin/timeout --kill-after=5s 85s \
+      ${pkgs.openssh}/bin/ssh \
+      -F /dev/null \
+      -o BatchMode=yes \
+      -o ConnectionAttempts=1 \
+      -o ConnectTimeout=5 \
+      -o ServerAliveInterval=5 \
+      -o ServerAliveCountMax=1 \
+      -o IdentitiesOnly=yes \
+      -o IdentityAgent=none \
+      -o PreferredAuthentications=publickey \
+      -o PasswordAuthentication=no \
+      -o KbdInteractiveAuthentication=no \
+      -o GSSAPIAuthentication=no \
+      -o StrictHostKeyChecking=yes \
+      -o UserKnownHostsFile=${gaiaActuatorKnownHosts} \
+      -o GlobalKnownHostsFile=/dev/null \
+      -o HostKeyAlias=gaia-actuator \
+      -o HostKeyAlgorithms=ssh-ed25519 \
+      -o ControlMaster=no \
+      -o ControlPersist=no \
+      -o ClearAllForwardings=yes \
+      -o ForwardAgent=no \
+      -o ForwardX11=no \
+      -o RequestTTY=no \
+      -o PermitLocalCommand=no \
+      -i "$key" \
+      sandmhan@100.82.221.90 \
+      "$token"
+  '';
+in
 {
   imports = [
     ../server/default.nix
@@ -25,6 +76,15 @@
     key = "policy";
     mode = "0400";
   };
+  sops.secrets.gaia-actuator-ssh-key = {
+    key = "gaia-actuator-ssh-key";
+    mode = "0400";
+  };
+
+  # Keep the forced-command SSH adapter installed for rejection/authentication
+  # tests while the actual Rust handoff remains disabled pending a supervised
+  # one-gate canary.
+  environment.systemPackages = [ gaiaSshActuator ];
 
   services = {
     # The authenticated AVD has been migrated and verified to boot, but the
@@ -42,9 +102,10 @@
       enable = true;
       listenAddress = "127.0.0.1";
       policyCredentialFile = config.sops.secrets.remote-community-policy.path;
-      actuatorAdbSocket = "localfilesystem:/run/remote-community-android-adb/adb.sock";
-      actuatorAndroidSerial = "127.0.0.1:5555";
-      actuatorSupplementaryGroups = [ "rc-android" ];
+      actuatorCommand = lib.mkForce null;
+      actuatorAdbSocket = null;
+      actuatorAndroidSerial = null;
+      actuatorSupplementaryGroups = [ ];
       openFirewall = false;
     };
 
@@ -66,6 +127,10 @@
       device = "/swapfile";
       size = 4096;
     }
+  ];
+
+  systemd.services.remote-community.serviceConfig.LoadCredential = lib.mkAfter [
+    "gaia-actuator-ssh-key:${config.sops.secrets.gaia-actuator-ssh-key.path}"
   ];
 
   systemd.services.remote-community-tailscale-serve = {

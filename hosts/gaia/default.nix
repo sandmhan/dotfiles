@@ -7,9 +7,36 @@
   pkgs,
   lib,
   systemSettings,
+  remoteCommunity,
   ...
 }:
 let
+  gaiaRemoteCommunityActuator = remoteCommunity.packages.x86_64-linux.android-gate-actuator;
+  gaiaRemoteCommunityDispatcher = pkgs.writeShellScript "gaia-remote-community-dispatcher" ''
+    set -eu
+
+    case "''${SSH_ORIGINAL_COMMAND-}" in
+      back_gate)
+        label='Back Gate Controller'
+        ;;
+      main_entrance)
+        label='Main Entrance'
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
+
+    uid="$(${pkgs.coreutils}/bin/id -u)"
+    exec ${pkgs.coreutils}/bin/env -i \
+      HOME=/home/sandmhan \
+      USER=sandmhan \
+      LOGNAME=sandmhan \
+      XDG_RUNTIME_DIR="/run/user/$uid" \
+      ${pkgs.coreutils}/bin/timeout --kill-after=5s 75s \
+      ${gaiaRemoteCommunityActuator}/bin/android-gate-actuator "$label"
+  '';
+
   gaiaFanCommon = ''
     set -eu
 
@@ -583,6 +610,9 @@ in
     isNormalUser = true;
     description = "sandmhan";
     hashedPasswordFile = config.sops.secrets.user-password.path;
+    openssh.authorizedKeys.keys = [
+      ''restrict,from="100.122.240.66",command="${gaiaRemoteCommunityDispatcher}" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFcYKszcC6Mmh6JFQXrEzPg2a53ahR3nPhocoN+CGtnG remote-community-vm111-forced-actuator''
+    ];
     extraGroups = [
       "networkmanager"
       "video"
