@@ -81,9 +81,8 @@ in
     mode = "0400";
   };
 
-  # Keep the forced-command SSH adapter installed for rejection/authentication
-  # tests while the actual Rust handoff remains disabled pending a supervised
-  # one-gate canary.
+  # The supervised one-gate transport canary completed successfully. Keep the
+  # constrained SSH adapter installed as the Rust trusted-command handoff.
   environment.systemPackages = [ gaiaSshActuator ];
 
   services = {
@@ -96,13 +95,14 @@ in
       enableAtBoot = false;
     };
 
-    # Observe-only ingestion stays on loopback. Tailscale Serve is the only
-    # planned phone-facing proxy; never expose the plaintext port directly.
+    # Ingestion and the constrained trusted-command handoff stay on loopback.
+    # Tailscale Serve is the only planned phone-facing proxy; never expose the
+    # plaintext port directly.
     remote-community = {
       enable = true;
       listenAddress = "127.0.0.1";
       policyCredentialFile = config.sops.secrets.remote-community-policy.path;
-      actuatorCommand = lib.mkForce null;
+      actuatorCommand = lib.mkForce "${gaiaSshActuator}/bin/remote-community-gaia-actuator";
       actuatorAdbSocket = null;
       actuatorAndroidSerial = null;
       actuatorSupplementaryGroups = [ ];
@@ -135,7 +135,9 @@ in
 
   systemd.services.remote-community-tailscale-serve = {
     description = "Publish remote-community through tailnet-only HTTPS";
-    wantedBy = [ "multi-user.target" ];
+    # Keep phone ingestion paused while the Gaia transport is installed and
+    # negatively tested. Start this unit manually for the supervised MVP run.
+    wantedBy = lib.mkForce [ ];
     after = [
       "network-online.target"
       "remote-community.service"
