@@ -211,73 +211,26 @@ sudo nixos-rebuild switch --flake .#gaia
 
 ---
 
-## Neovim Configuration (nvf)
+## Neovim Configuration (SandVim)
 
-The Neovim configuration uses [nvf](https://github.com/notashelf/nvf) and is modularized into separate files under `home/modules/nvf/`. The flake exports it as `homeManagerModules.sandvim` (also available as `homeManagerModules.default`) so other Home Manager flakes can consume it without this repo's `myHome` options. See `docs/neovim-ide.md` for the current IDE decisions, feature-pack matrix, portability status, and validation workflow.
+The Neovim configuration is maintained in the standalone public [SandVim](https://github.com/sandmhan/sandvim) flake. This dotfiles repository consumes the pinned remote input, re-exports its Home Manager module/packages/checks for compatibility, and keeps only the local adapter that maps `myHome.features.enableNixvim` to `programs.sandvim.enable` with the `full` preset.
 
-Portable use:
-
-```nix
-{
-  inputs.dotfiles.url = "github:<owner>/<repo>";
-
-  outputs = { dotfiles, ... }: {
-    # In a Home Manager module list:
-    # imports = [ dotfiles.homeManagerModules.sandvim ];
-  };
-}
-```
-
-Enable it with `programs.sandvim.enable = true;`. External consumers default to `programs.sandvim.preset = "standard"`, which preserves the historical non-Java feature set for backward compatibility. The dotfiles-local adapter maps `myHome.features.enableNixvim` to Sandvim and defaults local profiles to the `full` preset, which adds Java. Use `minimal` for core editor behavior plus hardening, or override individual packs explicitly:
+Direct consumers should depend on SandVim rather than this complete dotfiles repository:
 
 ```nix
-{
-  imports = [ dotfiles.homeManagerModules.sandvim ];
+inputs.sandvim = {
+  url = "github:sandmhan/sandvim/v0.1.0";
+  inputs.nixpkgs.follows = "nixpkgs";
+  inputs.home-manager.follows = "home-manager";
+};
 
-  programs.sandvim = {
-    enable = true;
-    preset = "minimal";
-    packs.languages.documentation = true;
-    packs.languages.nix = true;
-    packs.languages.python = true;
-    packs.workflow = true;
-  };
-}
+# In a Home Manager module list:
+sandvim.homeManagerModules.default
 ```
 
-The flake exports reusable Neovim packages for both `x86_64-linux` and `aarch64-darwin`: `packages.<system>.sandvimMinimal`, `packages.<system>.sandvimStandard`, and `packages.<system>.sandvimFull`. Linux validation checks include `checks.x86_64-linux.sandvimExternalConsumer`, `sandvimMinimalConsumer`, `sandvimMinimalRuntime`, `sandvimMarkdownRuntime`, `sandvimJavaRuntime`, and `sandvimStartupProfile`. Run the profiler with `scripts/profile-nvf.sh minimal|standard|full|all`; it reports closure size and host-dependent startup samples.
+SandVim exports `minimal`, `standard`, and `full` package presets for `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, and `aarch64-darwin`. Intel macOS consumers use `homeManagerModules.intelDarwin` with compatible Nixpkgs/Home Manager releases. See the upstream [consumer guide](https://github.com/sandmhan/sandvim/blob/main/docs/consumer-guide.md) and [operations guide](https://github.com/sandmhan/sandvim/blob/main/docs/neovim-ide.md).
 
-| File | Description |
-|------|-------------|
-| `default.nix` | Entry point, imports all modules behind `programs.sandvim.enable` |
-| `options.nix` | Portable `programs.sandvim.enable`, `preset`, and pack options plus editor options (clipboard, line numbers, tabs) |
-| `keymaps.nix` | Core key mappings, leader key, finder, Git, LSP, and diagnostics shortcuts |
-| `visuals.nix` | Visual plugins and presentation settings |
-| `lsp.nix` | Global LSP policy, inlay hints, signature help, and overlap suppression for pack-owned servers |
-| `documentation.nix` | Markdown, Typst, prose diagnostics, markdown preview/rendering, and documentation language tooling |
-| `languages-nix.nix` | Nix IDE ownership with nixd, nixfmt, Treesitter, and extra diagnostics |
-| `languages-python.nix` | Python IDE ownership with basedpyright, Ruff formatting/linting, and debugpy |
-| `languages-web.nix` | JavaScript, TypeScript, and JSON IDE ownership with typescript-language-server, prettier, eslint_d, vscode-json-language-server, and JS DAP |
-| `languages-infra.nix` | Infrastructure language ownership for Terraform/OpenTofu, HCL, YAML/Kubernetes/Compose, Dockerfile, Bash, and TOML |
-| `languages-systems.nix` | Rust, Go, and Lua IDE ownership plus C/C++ Clang compatibility with LSP, Treesitter, formatting, linting hooks, and legacy general support |
-| `languages-data-mobile.nix` | SQL and Dart/Flutter IDE ownership with SQL lint/format tools and PATH/devshell-owned Flutter SDK discovery; the NVF no-resolve patch is documented as disabled with the current pin |
-| `languages-java.nix` | Java IDE ownership for the full preset with jdt-language-server, Treesitter, and AStyle formatting; Java DAP remains disabled |
-| `debugging.nix` | Shared DAP UI and supplemental debug keymaps |
-| `hardening.nix` | Workspace root policy, large/generated-file guards, diagnostic throttling, and explicit secret-scan task hooks |
-| `ai-codecompanion.nix` | CodeCompanion.nvim chat workflow using Codex ACP through `codex-acp` with ChatGPT authentication enabled by the AI pack; HTTP-only command/inline workflows are not exposed |
-| `completion.nix` | Autocomplete stack (blink-cmp, snippets) |
-| `treesitter.nix` | Treesitter grammars and highlighting |
-| `utility.nix` | Utility plugins (mini.files, flash-nvim, markdown preview, nix-develop, whichKey) |
-| `finder.nix` | FZF-based search and navigation |
-| `editing.nix` | Editing helpers such as comments, surround, autopairs, and undo tooling |
-| `git.nix` | Git integrations for signs, status, and conflict tooling |
-| `workflow.nix` | Professional diagnostics, search/replace, diff review, fast actions, code-action lightbulb, sleuth, and mini ergonomics |
-| `notes.nix` | TODO/FIXME/NOTE highlighting plus Obsidian Markdown note navigation, templates, attachment paths, and paste-image dependencies |
-| `tidal.nix` | Haskell/Tidal language support and live-coding commands |
-| `toggles.nix` | UI/editor toggles |
-| `ui.nix` | Statusline, messages, breadcrumbs, bufferline, and related UI modules |
-
-When `home/modules/nvf/default.nix` imports change, update this inventory in the same patch and run `bash scripts/check-nvf-phase6.sh`. PR validation should call out README drift explicitly; stale or extra inventory rows should not be deferred to a later documentation cleanup.
+The local tmux configuration continues to own the tmux side of smart-splits integration. SandVim owns all Neovim modules, runtime checks, profiling, and editor documentation.
 
 ---
 
@@ -292,7 +245,7 @@ Claude Code is configured declaratively from `home/modules/ai-claude.nix` using 
 
 Activation replaces legacy Home Manager symlinks with regular files or directories. Existing regular files are preserved and made user-writable so Claude can update them at runtime. Because preserved files are mutable, later Nix default changes are not forced over local edits; remove the specific file or directory and run Home Manager again to re-bootstrap the current declarative default.
 
-Neovim AI is CodeCompanion-only in `home/modules/nvf/ai-codecompanion.nix`, using Codex ACP with ChatGPT authentication and no API key in Nix. Claude, Codex, and Pi remain available as standalone Home Manager tooling outside Neovim.
+Neovim AI is CodeCompanion-only in the standalone SandVim `modules/ai-codecompanion.nix` module, using Codex ACP with ChatGPT authentication and no API key in Nix. Claude, Codex, and Pi remain available as standalone Home Manager tooling outside Neovim.
 
 ## Codex Configuration
 

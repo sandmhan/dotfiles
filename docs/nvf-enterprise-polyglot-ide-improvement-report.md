@@ -1,5 +1,7 @@
 # NVF Enterprise Polyglot IDE Improvement Report
 
+> **Historical plan:** The implemented editor configuration now lives in the public [SandVim repository](https://github.com/sandmhan/sandvim). Paths and gap descriptions below record the pre-extraction design state and are not the current operations guide.
+
 ## Overview
 
 This report defines a phased plan for evolving the repository's current NVF/Neovim configuration into a documented, production-grade enterprise polyglot IDE. It documents the current implementation, identifies gaps against enterprise development workflows, assigns target ownership for language servers, formatters, linters, CLI test commands, debug adapters, and CI parity commands, and provides an implementation roadmap with validation commands. This is a planning and architecture document only; it does not implement configuration changes.

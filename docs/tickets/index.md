@@ -1,7 +1,7 @@
 ---
 title: Tickets
 status: accepted
-updated: 2026-06-15
+updated: 2026-09-08
 ---
 
 # Tickets
@@ -72,7 +72,7 @@ Tickets are grouped by project and phase. Existing Homelab tickets trace back to
 | [NVF-026](NVF-026.md) | Keep README synchronized with NVF imports | chore | done | NVF Phase 6 | [NVF-009](NVF-009.md), [NVF-013](NVF-013.md) |
 | [NVF-027](NVF-027.md) | Add editor validation evidence expectations | chore | done | NVF Phase 6 | [NVF-001](NVF-001.md) |
 | [NVF-028](NVF-028.md) | Review pinned plugins and language tool versions periodically | chore | done | NVF Phase 6 | [NVF-013](NVF-013.md) |
-| [NVF-030](NVF-030.md) | Extract NVF configuration as reusable flake input | task | open | NVF Phase 7 | [NVF-026](NVF-026.md), [NVF-027](NVF-027.md) |
+| [NVF-030](NVF-030.md) | Extract NVF configuration as reusable flake input | task | done | NVF Phase 7 | [NVF-026](NVF-026.md), [NVF-027](NVF-027.md) |
 | [NVF-031](NVF-031.md) | Improve NVF AI prompt workflow with mature plugin evaluation | task | done | NVF Phase 7 | [NVF-021](NVF-021.md), [NVF-022](NVF-022.md), [NVF-023](NVF-023.md), [NVF-024](NVF-024.md), [NVF-027](NVF-027.md) |
 | [NVF-032](NVF-032.md) | Restore NVF CodeCompanion Codex ACP workflow | task | done | NVF Phase 7 | [NVF-021](NVF-021.md), [NVF-022](NVF-022.md), [NVF-023](NVF-023.md), [NVF-024](NVF-024.md), [NVF-027](NVF-027.md), [NVF-031](NVF-031.md) |
 | [NVF-033](NVF-033.md) | Add NVF Phase 8 polyglot workflow support | task | done | NVF Phase 8 | [NVF-013](NVF-013.md), [NVF-018](NVF-018.md), [NVF-025](NVF-025.md), [NVF-026](NVF-026.md), [NVF-027](NVF-027.md), [NVF-032](NVF-032.md) |

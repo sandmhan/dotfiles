@@ -7,8 +7,9 @@ status: accepted
 
 Evidence from validations and historical runs. The agent VM local validation was moved here.
 
-For editor/NVF behavior changes, evidence should list the exact commands run, Home Manager dry-runs for affected profiles, runtime `nvim --headless "+checkhealth" "+qa"` or scoped checkhealth output when relevant, and README/operations-guide drift checks. Skipped validation must include an explicit reason and affected profile list.
+For SandVim input or integration changes, evidence should list the exact upstream checks run, Home Manager dry-runs for affected profiles, runtime `nvim --headless "+checkhealth" "+qa"` or scoped checkhealth output when relevant, and README/integration-guide drift checks. Skipped validation must include an explicit reason and affected profile list.
 
+- [SandVim Standalone Repository Migration Evidence](./nvf-sandvim-standalone-migration-2026-09-08.md)
 - [NVF Phase 0 and Phase 1 Baseline Evidence](./nvf-phase0-phase1-baseline-2026-05-31.md)
 - [NVF Phase 2 Enterprise Language Evidence](./nvf-phase2-enterprise-languages-2026-05-31.md)
 - [NVF Phase 3 Testing and Debugging Evidence](./nvf-phase3-testing-debugging-2026-05-31.md)
