@@ -213,13 +213,13 @@ sudo nixos-rebuild switch --flake .#gaia
 
 ## Neovim Configuration (SandVim)
 
-The Neovim configuration is maintained in the standalone public [SandVim](https://github.com/sandmhan/sandvim) flake. This dotfiles repository consumes the pinned remote input, re-exports its Home Manager module/packages/checks for compatibility, and keeps only the local adapter that maps `myHome.features.enableNixvim` to `programs.sandvim.enable` with the `full` preset.
+The Neovim configuration is maintained in the standalone public [SandVim](https://github.com/sandmhan/sandvim) flake. This dotfiles repository consumes the pinned remote input, re-exports its Home Manager module/packages/checks for compatibility, and keeps only the local adapter that maps `myHome.features.enableNixvim` to `programs.sandvim.enable` with the `full` preset. The adapter sets `programs.sandvim.colorScheme = "none"` so Stylix remains the single theme owner for personal profiles.
 
 Direct consumers should depend on SandVim rather than this complete dotfiles repository:
 
 ```nix
 inputs.sandvim = {
-  url = "github:sandmhan/sandvim/v0.1.0";
+  url = "github:sandmhan/sandvim/v0.2.0";
   inputs.nixpkgs.follows = "nixpkgs";
   inputs.home-manager.follows = "home-manager";
 };

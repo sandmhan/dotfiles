@@ -23,7 +23,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sandvim = {
-      url = "github:sandmhan/sandvim/v0.1.0";
+      url = "github:sandmhan/sandvim/v0.2.0";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
@@ -98,6 +98,8 @@
           config.programs.sandvim = {
             enable = lib.mkDefault config.myHome.features.enableNixvim;
             preset = lib.mkDefault "full";
+            # Stylix remains the single theme owner for dotfiles profiles.
+            colorScheme = lib.mkDefault "none";
           };
         };
 

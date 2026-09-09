@@ -458,16 +458,16 @@
         "nvf-x86-darwin": "nvf-x86-darwin"
       },
       "locked": {
-        "lastModified": 1788884009,
-        "narHash": "sha256-Dd3WxpEAs38eOkj1XJlCMgZaoIncCN0yKZeem74m/Fc=",
+        "lastModified": 1788902337,
+        "narHash": "sha256-50GN9dYv+u0Uz7Vvbf6SOWkDG8b/2j8r8iv8LdpiYiw=",
         "owner": "sandmhan",
         "repo": "sandvim",
-        "rev": "85a2ee4e8e00062bb0f6c8ecf96e27404d75c842",
+        "rev": "29c3ebfbe26a185e514422872bcf108647df073e",
         "type": "github"
       },
       "original": {
         "owner": "sandmhan",
-        "ref": "v0.1.0",
+        "ref": "v0.2.0",
         "repo": "sandvim",
         "type": "github"
       }

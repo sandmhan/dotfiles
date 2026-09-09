@@ -14,7 +14,8 @@ Published the NVF configuration as the public `github:sandmhan/sandvim` flake, m
 
 - Repository: `https://github.com/sandmhan/sandvim`
 - Initial extraction revision: `2f25d427b062ed045cf60624de0c4d429932a6c9`
-- Released and consumed version: `v0.1.0` at `85a2ee4e8e00062bb0f6c8ecf96e27404d75c842`
+- Initial consumed release: `v0.1.0` at `85a2ee4e8e00062bb0f6c8ecf96e27404d75c842`
+- Current consumed release: `v0.2.0` at `29c3ebfbe26a185e514422872bcf108647df073e`
 - Visibility: public
 - Anonymous `git ls-remote` and `nix flake metadata github:sandmhan/sandvim` — passed.
 - `nix flake show --all-systems --no-write-lock-file github:sandmhan/sandvim` — passed.
@@ -55,6 +56,20 @@ The remote-backed package then built and completed `nvim --headless "+checkhealt
 - `nix build --dry-run --no-write-lock-file .#homeConfigurations.sandmhan.activationPackage --show-trace` — passed.
 - `nix build --dry-run --no-write-lock-file .#homeConfigurations.wslman.activationPackage --show-trace` — passed.
 - `nix build --dry-run --no-write-lock-file .#homeConfigurations.macman.activationPackage --show-trace` — passed.
+
+## Theme ownership follow-up
+
+SandVim v0.2.0 made the standalone default explicit as Base16 Gruvbox dark hard. The dotfiles adapter sets `programs.sandvim.colorScheme = "none"` so Stylix remains the sole theme owner for personal profiles. With the pinned public v0.2.0 release, `terminalman` retained both its exact pre-upgrade package path and effective colors:
+
+```text
+package=/nix/store/qfdc8awwbl9r0fdchdy7s0cqak3jf8i5-nvf-with-helpers
+background=#1d2021
+foreground=#d5c4a1
+```
+
+The re-exported standalone minimal package used the new SandVim-owned theme and reported the same effective colors. Upstream theme option/runtime checks covered all four bundled Gruvbox variants. Public CI run [34279896577](https://github.com/sandmhan/sandvim/actions/runs/34279896577) passed comprehensive Linux checks and native default-theme minimal runtime checks on Linux, Intel macOS, and Apple Silicon macOS. See the upstream [theme validation evidence](https://github.com/sandmhan/sandvim/blob/v0.2.0/docs/test/evidence/gruvbox-theme-2026-09-08.md).
+
+The dotfiles all-system output evaluation, all four Home Manager profile dry-runs, proxied minimal/theme option/theme runtime checks, Nix formatting/lint, and diff checks passed without activation.
 
 ## Ownership result
 

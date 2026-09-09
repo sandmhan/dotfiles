@@ -16,7 +16,7 @@ This document covers only the integration boundary in this dotfiles repository.
 
 ```nix
 sandvim = {
-  url = "github:sandmhan/sandvim/v0.1.0";
+  url = "github:sandmhan/sandvim/v0.2.0";
   inputs.nixpkgs.follows = "nixpkgs";
   inputs.home-manager.follows = "home-manager";
   inputs.nvf.follows = "nvf";
@@ -33,10 +33,11 @@ Existing profiles retain the local `myHome` interface:
 config.programs.sandvim = {
   enable = lib.mkDefault config.myHome.features.enableNixvim;
   preset = lib.mkDefault "full";
+  colorScheme = lib.mkDefault "none";
 };
 ```
 
-This adapter belongs to the dotfiles repository because `myHome.features.enableNixvim` is a personal profile option. SandVim itself has no dependency on `myHome`, host settings, Stylix, secrets, or other dotfiles modules.
+This adapter belongs to the dotfiles repository because `myHome.features.enableNixvim` is a personal profile option. `colorScheme = "none"` prevents duplicate ownership: Stylix continues to inject the active dotfiles palette, while direct SandVim consumers and package outputs default to Gruvbox dark hard. SandVim itself has no dependency on `myHome`, host settings, Stylix, secrets, or other dotfiles modules.
 
 ## Ownership boundary
 
@@ -52,7 +53,7 @@ SandVim owns:
 This repository owns:
 
 - whether each personal profile enables SandVim;
-- the local default of the `full` preset;
+- the local default of the `full` preset and Stylix theme ownership;
 - terminal/tmux configuration, including loading `smart-splits.tmux`;
 - standalone Claude, Codex, and Pi tooling outside Neovim.
 
