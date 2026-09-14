@@ -125,6 +125,7 @@ in
     # Entertainment/Gaming
     ++ lib.optionals cfg.profiles.enableGaming [
       qbittorrent
+      steam
     ]
     # 3D printing tools
     ++ lib.optionals cfg.features.enable3DPrinting [
