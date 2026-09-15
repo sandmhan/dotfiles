@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.myHome;
+  legcordPatched = pkgs.callPackage ../packages/legcord { };
 in
 {
   imports = [
@@ -103,7 +104,7 @@ in
     ]
     # Social applications
     ++ lib.optionals cfg.profiles.enableSocial [
-      legcord
+      legcordPatched
       element-desktop
     ]
     # Security applications

@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.myHome;
+  legcordPatched = pkgs.callPackage ../packages/legcord { };
 
   # Navigation
   left = "h";
@@ -401,7 +402,9 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.glibc.bin
+      pkgs.jq
       pkgs.procps
+      pkgs.sway
       pkgs.util-linux
     ];
     text = ''
@@ -475,22 +478,25 @@ let
         done < <(pgrep --uid "$UID" --full -- "$app_pattern" || true)
       }
 
-      legcord_has_renderer() {
-        local renderer_pid
-        while IFS= read -r renderer_pid; do
-          if grep --fixed-strings --line-regexp --null-data --quiet \
-            -- "--user-data-dir=$config_dir" "/proc/$renderer_pid/cmdline" 2>/dev/null; then
+      legcord_has_window() {
+        local main_pid window_tree
+        window_tree="$(swaymsg --raw --type get_tree 2>/dev/null)" || return 1
+
+        while IFS= read -r main_pid; do
+          if jq --exit-status --argjson main_pid "$main_pid" \
+            '.. | objects | select(.pid? == $main_pid)' \
+            <<< "$window_tree" >/dev/null; then
             return 0
           fi
-        done < <(pgrep --uid "$UID" --full -- '[ -]-type=renderer' || true)
+        done < <(legcord_main_pids)
         return 1
       }
 
-      wait_for_renderer() {
+      wait_for_window() {
         local attempts="$1"
         local attempt
         for ((attempt = 0; attempt < attempts; attempt++)); do
-          if legcord_has_renderer; then
+          if legcord_has_window; then
             return 0
           fi
           sleep 0.1
@@ -531,7 +537,7 @@ let
       }
 
       # Serialize stale detection and replacement startup. A healthy instance has
-      # a renderer for this user-data directory and should receive normal Electron
+      # a Sway window for this user-data directory and should receive normal Electron
       # singleton forwarding instead of being restarted.
       lock_file="$runtime_dir/legcord-launch.lock"
       if [[ -L "$lock_file" || ( -e "$lock_file" && ! -f "$lock_file" ) ]]; then
@@ -546,18 +552,18 @@ let
       fi
 
       if [[ -n "$(legcord_main_pids)" ]]; then
-        if wait_for_renderer 50; then
+        if wait_for_window 50; then
           flock --unlock 9
-          exec ${lib.getExe pkgs.legcord} "$@" 9>&-
+          exec ${lib.getExe legcordPatched} "$@" 9>&-
         fi
         stop_stale_legcord
       fi
 
       cleanup_singleton
-      ${lib.getExe pkgs.legcord} "$@" 9>&- &
+      ${lib.getExe legcordPatched} "$@" 9>&- &
       legcord_pid=$!
 
-      if wait_for_renderer 300; then
+      if wait_for_window 300; then
         flock --unlock 9
         wait "$legcord_pid"
         exit $?
@@ -568,7 +574,7 @@ let
       cleanup_singleton
       flock --unlock 9
       wait "$legcord_pid" 2>/dev/null || true
-      printf '%s\n' "Legcord failed to create a renderer within 30 seconds" >&2
+      printf '%s\n' "Legcord failed to create a window within 30 seconds" >&2
       exit 1
     '';
   };

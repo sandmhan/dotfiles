@@ -1,0 +1,60 @@
+--- a/src/discord/screenshare.ts
++++ b/src/discord/screenshare.ts
+@@ -1,21 +1,55 @@
++import { readFileSync, rmSync, writeFileSync } from "node:fs";
++import { join } from "node:path";
+ import { type Streams, desktopCapturer, ipcMain, session } from "electron";
+ import { getConfig } from "../common/config.js";
+ import { mainWindows } from "./window.js";
+-
++
++let waylandCaptureRequest = 0;
++
+ export function registerCustomHandler(): void {
+     session.defaultSession.setDisplayMediaRequestHandler(
+         async (request, callback) => {
+             console.log(request);
++            const isWayland =
++                process.platform === "linux" && process.env.XDG_SESSION_TYPE?.toLowerCase() === "wayland";
++            const markerPath =
++                isWayland && process.env.XDG_RUNTIME_DIR
++                    ? join(process.env.XDG_RUNTIME_DIR, "legcord-screencast-request")
++                    : undefined;
++            let requestToken: string | undefined;
++            if (markerPath) {
++                try {
++                    requestToken = `${process.pid}-${Date.now()}-${++waylandCaptureRequest}`;
++                    const markerDeadline = Math.floor(Date.now() / 1000) + 30;
++                    writeFileSync(markerPath, `${process.pid}\n${requestToken}\n${markerDeadline}\n`, { mode: 0o600 });
++                } catch (error) {
++                    console.error("Unable to mark the Wayland capture request:", error);
++                }
++            }
++
+             const sources = await desktopCapturer
+                 .getSources({
+                     types: ["window", "screen"],
+                 })
+                 .catch((err) => console.error(err));
+ 
++            if (markerPath && requestToken) {
++                const cleanupMarker = setTimeout(() => {
++                    try {
++                        const currentToken = readFileSync(markerPath, "utf8").split("\n")[1];
++                        if (currentToken === requestToken) rmSync(markerPath, { force: true });
++                    } catch {}
++                }, 30_000);
++                cleanupMarker.unref();
++            }
+             if (!sources) return callback({});
+-            if (process.platform === "linux" && process.env.XDG_SESSION_TYPE?.toLowerCase() === "wayland") {
++            if (isWayland) {
+                 console.log("WebRTC Capturer detected, using native window picker.");
+                 if (sources[0] === undefined) return callback({});
++                // The portal already selected the only source exposed on Wayland.
++                // Vencord removes Legcord's second in-app picker, so waiting for its
++                // startScreenshare event leaves getDisplayMedia unresolved forever.
++                return callback({ video: sources[0] });
+             }
+             ipcMain.once("startScreenshare", (_event, id: string, name: string, audio: boolean) => {
+                 console.log(`ID: ${id}`);

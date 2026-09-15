@@ -11,6 +11,111 @@
   ...
 }:
 let
+  gaiaScreenShareChooser = pkgs.writeShellScript "gaia-screen-share-chooser" ''
+    set -eu
+
+    runtime_base="''${XDG_RUNTIME_DIR:-/run/user/$(${pkgs.coreutils}/bin/id -u)}"
+    runtime_dir="$runtime_base/xdpw-chooser"
+    marker_file="$runtime_base/legcord-screencast-request"
+    options_file="$(${pkgs.coreutils}/bin/mktemp "''${TMPDIR:-/tmp}/xdpw-options.XXXXXX")"
+    cache_file="$runtime_dir/cache"
+    cache_tmp="$runtime_dir/cache.$$"
+    completed_file="$runtime_dir/completed"
+    completed_tmp="$runtime_dir/completed.$$"
+    trap '${pkgs.coreutils}/bin/rm -f "$options_file" "$cache_tmp" "$completed_tmp"' EXIT
+
+    read_legcord_request() {
+      request_pid=""
+      request_token=""
+      request_deadline=""
+      [ -f "$marker_file" ] || return 1
+      {
+        IFS= read -r request_pid || true
+        IFS= read -r request_token || true
+        IFS= read -r request_deadline || true
+      } < "$marker_file"
+      case "$request_pid:$request_deadline" in
+        *[!0-9:]* | :* | *:) return 1 ;;
+      esac
+      [ -n "$request_token" ] || return 1
+      [ "$(${pkgs.coreutils}/bin/date +%s)" -le "$request_deadline" ] || return 1
+      [ -r "/proc/$request_pid/cmdline" ] || return 1
+      ${pkgs.gnugrep}/bin/grep --null-data --fixed-strings --quiet \
+        -- '/share/lib/legcord/resources/app.asar' "/proc/$request_pid/cmdline"
+    }
+
+    ${pkgs.coreutils}/bin/cat > "$options_file"
+    ${pkgs.coreutils}/bin/mkdir -p -m 700 "$runtime_dir"
+    umask 077
+    exec 9>"$runtime_dir/lock"
+    ${pkgs.util-linux}/bin/flock 9
+
+    active_token=""
+    if read_legcord_request; then
+      active_token="$request_token"
+    fi
+    completed_token=""
+    if [ -f "$completed_file" ]; then
+      IFS= read -r completed_token < "$completed_file" || true
+    fi
+    if [ "$completed_token" = "$active_token" ]; then
+      active_token=""
+    fi
+
+    cached_token=""
+    deadline=""
+    remaining=""
+    selected=""
+    if [ -f "$cache_file" ]; then
+      {
+        IFS= read -r cached_token || true
+        IFS= read -r deadline || true
+        IFS= read -r remaining || true
+        IFS= read -r selected || true
+      } < "$cache_file"
+    fi
+
+    now="$(${pkgs.coreutils}/bin/date +%s)"
+    case "$deadline:$remaining" in
+      *[!0-9:]* | :* | *:)
+        ;;
+      *)
+        if [ -n "$active_token" ] \
+          && [ "$cached_token" = "$active_token" ] \
+          && [ "$now" -le "$deadline" ] \
+          && [ "$remaining" -gt 0 ] \
+          && ${pkgs.gnugrep}/bin/grep -Fqx -- "$selected" "$options_file"; then
+          remaining=$((remaining - 1))
+          if [ "$remaining" -gt 0 ]; then
+            printf '%s\n%s\n%s\n%s\n' \
+              "$cached_token" "$deadline" "$remaining" "$selected" > "$cache_tmp"
+            ${pkgs.coreutils}/bin/mv -f "$cache_tmp" "$cache_file"
+          else
+            ${pkgs.coreutils}/bin/rm -f "$cache_file"
+            printf '%s\n' "$active_token" > "$completed_tmp"
+            ${pkgs.coreutils}/bin/mv -f "$completed_tmp" "$completed_file"
+          fi
+          ${pkgs.coreutils}/bin/sleep 0.5
+          printf '%s\n' "$selected"
+          exit 0
+        fi
+        ;;
+    esac
+
+    ${pkgs.coreutils}/bin/rm -f "$cache_file"
+    selected="$(${lib.getExe pkgs.rofi} -dmenu -i -p 'Share screen' < "$options_file")" || exit $?
+    [ -n "$selected" ] || exit 1
+
+    if [ -n "$active_token" ] \
+      && read_legcord_request \
+      && [ "$request_token" = "$active_token" ]; then
+      deadline=$(( $(${pkgs.coreutils}/bin/date +%s) + 8 ))
+      printf '%s\n%s\n2\n%s\n' "$active_token" "$deadline" "$selected" > "$cache_tmp"
+      ${pkgs.coreutils}/bin/mv -f "$cache_tmp" "$cache_file"
+    fi
+    printf '%s\n' "$selected"
+  '';
+
   gaiaRemoteCommunityActuator = remoteCommunity.packages.x86_64-linux.android-gate-actuator;
   gaiaRemoteCommunityDispatcher = pkgs.writeShellScript "gaia-remote-community-dispatcher" ''
     set -eu
@@ -442,6 +547,26 @@ in
   programs.sway = {
     enable = true;
     wrapperFeatures.gtk = true;
+  };
+
+  # xdg-desktop-portal-wlr 0.8.3 can permanently stop producing frames when
+  # Chromium/Electron temporarily holds every PipeWire buffer. Backport the
+  # merged upstream recovery fix until it reaches the pinned nixpkgs revision.
+  nixpkgs.overlays = [
+    (_final: prev: {
+      xdg-desktop-portal-wlr = prev.xdg-desktop-portal-wlr.overrideAttrs (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [ ./xdg-desktop-portal-wlr-buffer-starvation.patch ];
+      });
+    })
+  ];
+
+  # Electron opens three portal sessions for a normal Legcord window share.
+  # Reuse the first choice for that request only. Discord's live Change Stream
+  # flow opens overlapping requests and is intentionally unsupported here;
+  # stop and restart the stream to choose another source.
+  xdg.portal.wlr.settings.screencast = {
+    chooser_type = "dmenu";
+    chooser_cmd = "${gaiaScreenShareChooser}";
   };
 
   environment.sessionVariables = {
