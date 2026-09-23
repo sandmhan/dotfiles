@@ -336,6 +336,22 @@
         "type": "indirect"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1776169885,
+        "narHash": "sha256-l/iNYDZ4bGOAFQY2q8y5OAfBBtrDAaPuRQqWaFHVRXM=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "4bd9165a9165d7b5e33ae57f3eecbcb28fb231c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nur": {
       "inputs": {
         "flake-parts": [
@@ -407,6 +423,27 @@
         "type": "github"
       }
     },
+    "piMono": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1790206564,
+        "narHash": "sha256-6601uB61hI4vT8jWmfTBkRxm1McV1OhxE8iGxuDFrno=",
+        "ref": "develop",
+        "rev": "b9c861fa44cbf6562d6c38db79e9426a5d9f3723",
+        "revCount": 7105,
+        "submodules": true,
+        "type": "git",
+        "url": "ssh://git@github.com/sandmhan/pi-mono.git"
+      },
+      "original": {
+        "ref": "develop",
+        "submodules": true,
+        "type": "git",
+        "url": "ssh://git@github.com/sandmhan/pi-mono.git"
+      }
+    },
     "remoteCommunity": {
       "inputs": {
         "nixpkgs": [
@@ -435,6 +472,7 @@
         "nixpkgsCodex": "nixpkgsCodex",
         "nixpkgsFreecad": "nixpkgsFreecad",
         "nvf": "nvf",
+        "piMono": "piMono",
         "remoteCommunity": "remoteCommunity",
         "sandvim": "sandvim",
         "sops-nix": "sops-nix",

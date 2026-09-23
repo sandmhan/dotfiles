@@ -30,6 +30,7 @@
         nvf.follows = "nvf";
       };
     };
+    piMono.url = "git+ssh://git@github.com/sandmhan/pi-mono.git?ref=develop&submodules=1";
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -54,6 +55,7 @@
       home-manager,
       stylix,
       sandvim,
+      piMono,
       sops-nix,
       remoteCommunity,
       zen-browser,
@@ -161,7 +163,12 @@
             dotfilesSandvimAdapter
           ];
           extraSpecialArgs = {
-            inherit userSettings freecadPkgs codexPkgs;
+            inherit
+              userSettings
+              freecadPkgs
+              codexPkgs
+              piMono
+              ;
           };
         };
     in

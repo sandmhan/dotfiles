@@ -1,8 +1,10 @@
 # Pi coding agent integration.
 # Exposes shared AI skills through pi's global discovery directory.
 {
+  pkgs,
   lib,
   config,
+  piMono,
   ...
 }:
 let
@@ -32,6 +34,7 @@ let
 in
 {
   config = lib.mkIf cfg.features.enablePi {
+    home.packages = [ piMono.packages.${pkgs.system}.default ];
     home.file = piSkillFiles;
   };
 }
