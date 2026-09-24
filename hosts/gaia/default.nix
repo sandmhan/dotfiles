@@ -549,13 +549,15 @@ in
     wrapperFeatures.gtk = true;
   };
 
-  # xdg-desktop-portal-wlr 0.8.3 can permanently stop producing frames when
-  # Chromium/Electron temporarily holds every PipeWire buffer. Backport the
-  # merged upstream recovery fix until it reaches the pinned nixpkgs revision.
+  # xdg-desktop-portal-wlr before 0.8.4 can permanently stop producing frames
+  # when Chromium/Electron temporarily holds every PipeWire buffer. Keep the
+  # backport available for older pins; 0.8.4 and newer contain it upstream.
   nixpkgs.overlays = [
     (_final: prev: {
       xdg-desktop-portal-wlr = prev.xdg-desktop-portal-wlr.overrideAttrs (oldAttrs: {
-        patches = (oldAttrs.patches or [ ]) ++ [ ./xdg-desktop-portal-wlr-buffer-starvation.patch ];
+        patches =
+          (oldAttrs.patches or [ ])
+          ++ lib.optional (lib.versionOlder oldAttrs.version "0.8.4") ./xdg-desktop-portal-wlr-buffer-starvation.patch;
       });
     })
   ];
@@ -651,7 +653,7 @@ in
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2a03", ATTRS{idProduct}=="0037", TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1"
 
     # hid_listen
-    KERNEL=="hidraw*", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
+    KERNEL=="hidraw*", MODE="0660", TAG+="uaccess", TAG+="udev-acl"
 
     # hid bootloaders
     ## QMK HID

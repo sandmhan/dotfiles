@@ -1,10 +1,43 @@
-# s2idle Suspend Issues - Framework 13 AMD Ryzen AI 300
+---
+title: Framework 13 AMD Ryzen AI 300 s2idle Issues
+status: accepted
+---
+
+# Framework 13 AMD Ryzen AI 300 s2idle Issues
 
 ## Hardware
 - Framework Laptop 13 (AMD Ryzen AI 300 Series)
 - BIOS version: 04.02 (updated 2026-07-19; suspend behavior still needs retesting)
-- Kernel: 6.19.11 (linuxPackages_latest)
+- Kernel: nixpkgs maintained default (`linuxPackages`)
 - Sleep mode: s2idle only (deep sleep not available)
+
+## 2026-09-24 Resume Incident
+
+After an overnight suspend, `systemd-logind` 261 exceeded its three-minute
+watchdog while enumerating devices and was terminated. This produced two
+separate downstream failures:
+
+- Sway/libseat lost access to `/dev/input/event13`, the PIXA3854 touchpad, and
+  timed out reopening it. The kernel and Sway still enumerated the touchpad,
+  so this incident was a seat/device-ownership failure rather than missing
+  hardware or disabled Sway input configuration.
+- NetworkManager remained running but did not process the resume transition.
+  Restarting NetworkManager restored Wi-Fi association immediately, indicating
+  that the wireless driver itself was not stuck.
+
+The first remediation updates nixpkgs from `0bb7ec54c848` (2026-07-08) to
+`4975466d3247` (2026-09-23), moving systemd from 261 to 261.2 and the kernel
+from 6.18.38 to 6.18.53. Retest a long suspend after activating that generation
+before adding recovery services.
+
+If the issue persists:
+
+1. Add a post-resume health check that records `nmcli general status`, Sway
+   input enumeration, and relevant logind/libseat journal entries.
+2. Restart NetworkManager only when it remains unavailable after a short
+   post-resume grace period.
+3. Rebind the PIXA3854 I2C device only if the touchpad fails without a logind
+   or libseat failure.
 
 ## Problem Summary
 
@@ -33,7 +66,10 @@ Kernel logs show `Reading current time from RTC took around 133-172 ms` during s
 ## Additional Issues Noticed
 
 ### udev rule spam (unrelated to suspend)
-`/etc/udev/rules.d/99-local.rules:74` references `GROUP="plugdev"` which doesn't exist on NixOS. This is the QMK `hid_listen` rule in the Gaia NixOS config. It fires every ~3 seconds, flooding the journal. Fix: remove `GROUP="plugdev"` from the rule (it already has `TAG+="uaccess"`).
+`/etc/udev/rules.d/99-local.rules` previously referenced `GROUP="plugdev"`,
+which does not exist on NixOS. The QMK `hid_listen` rule fired repeatedly and
+flooded the journal. The Gaia configuration now relies on `TAG+="uaccess"`
+without the nonexistent group.
 
 ### TPM timeout errors during suspend
 ```
@@ -75,12 +111,10 @@ systemd.services.fix-resume-input = {
 BIOS 4.02 was installed successfully on 2026-07-19. Retest suspend behavior
 before adding lower-level wake-source or input-device workarounds.
 
-### Fix plugdev udev rule
-In the Gaia NixOS config (`hosts/gaia/default.nix` or an imported module), change the `hid_listen` rule from:
-```
-KERNEL=="hidraw*", MODE="0660", GROUP="plugdev", TAG+="uaccess", TAG+="udev-acl"
-```
-to:
+### Fixed plugdev udev rule
+
+The Gaia NixOS configuration now uses:
+
 ```
 KERNEL=="hidraw*", MODE="0660", TAG+="uaccess", TAG+="udev-acl"
 ```
